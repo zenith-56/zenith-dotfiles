@@ -1,0 +1,100 @@
+name: Enforce Standards
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  enforce:
+    name: Enforce Coding Standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check shebangs
+        run: |
+          echo "Checking for #!/usr/bin/env bash shebangs..."
+          errors=0
+          for script in $(find . -name "*.sh" -type f -o -path "./.local/bin/*" -type f); do
+            if [ -f "$script" ]; then
+              first_line=$(head -1 "$script")
+              if [[ "$first_line" != "#!/usr/bin/env bash" && "$first_line" != "#!/usr/bin/env fish" ]]; then
+                echo "ERROR: $script has incorrect shebang: $first_line"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors files with incorrect shebangs"
+            exit 1
+          fi
+          echo "All shebangs are correct"
+
+      - name: Check executable permissions
+        run: |
+          echo "Checking executable permissions..."
+          errors=0
+          for script in install.sh update.sh uninstall.sh install/*.sh .local/bin/* .config/rofi/scripts/*.sh .config/waybar/scripts/*.sh .local/share/dark-mode.d/*.sh .local/share/light-mode.d/*.sh; do
+            if [ -f "$script" ] && [ ! -x "$script" ]; then
+              echo "ERROR: $script is not executable"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ "$errors" -gt 0 ]; then
+            exit 1
+          fi
+          echo "All scripts are executable"
+
+      - name: Check for hardcoded absolute paths
+        run: |
+          echo "Checking for hardcoded /home/ paths..."
+          count=$(grep -rn "/home/[a-zA-Z]" --include="*.sh" --include="*.fish" --include="*.conf" --include="*.kdl" --include="*.toml" . 2>/dev/null | grep -v "fish_variables" | grep -v "AGENTS.md" | grep -v "README.md" | wc -l)
+          echo "Found $count potential hardcoded paths"
+          if [ "$count" -gt 0 ]; then
+            grep -rn "/home/[a-zA-Z]" --include="*.sh" --include="*.fish" --include="*.conf" --include="*.kdl" --include="*.toml" . 2>/dev/null | grep -v "fish_variables" | grep -v "AGENTS.md" | grep -v "README.md" || true
+          fi
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "Scanning for TODO/FIXME comments..."
+          count=$(grep -rn "TODO\|FIXME\|HACK\|XXX" --include="*.sh" --include="*.fish" --include="*.kdl" --include="*.json" --include="*.jsonc" --include="*.toml" --include="*.css" --include="*.rasi" . 2>/dev/null | wc -l)
+          echo "Found $count TODO/FIXME/HACK/XXX comments"
+          if [ "$count" -gt 0 ]; then
+            grep -rn "TODO\|FIXME\|HACK\|XXX" --include="*.sh" --include="*.fish" --include="*.kdl" --include="*.json" --include="*.jsonc" --include="*.toml" --include="*.css" --include="*.rasi" . 2>/dev/null || true
+          fi
+
+      - name: Check for missing sourced files
+        run: |
+          echo "Checking for source statements that reference non-existent files..."
+          errors=0
+          for script in $(find . -name "*.sh" -type f); do
+            while IFS= read -r line; do
+              file=$(echo "$line" | sed -n "s/.*source ['\"]\\([^'\"]*\\)['\"].*/\\1/p")
+              if [ -n "$file" ]; then
+                script_dir=$(dirname "$script")
+                if [ ! -f "$file" ] && [ ! -f "$script_dir/$file" ]; then
+                  echo "ERROR: $script sources '$file' which does not exist"
+                  errors=$((errors + 1))
+                fi
+              fi
+            done < "$script"
+          done
+          if [ "$errors" -gt 0 ]; then
+            exit 1
+          fi
+          echo "All sourced files exist"
+
+      - name: Check for consistent error handling
+        run: |
+          echo "Checking for consistent error handling patterns..."
+          echo "--- Scripts using 'command -v' for dependency checks ---"
+          grep -rl "command -v" --include="*.sh" .local/bin/ 2>/dev/null | wc -l
+          echo "--- Scripts missing dependency checks ---"
+          for script in .local/bin/zenith-*; do
+            if [ -f "$script" ] && ! grep -q "command -v" "$script" && ! grep -q "has_cmd" "$script"; then
+              echo "WARNING: $script has no dependency check"
+            fi
+          done

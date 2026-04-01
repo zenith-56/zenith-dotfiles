@@ -21,9 +21,9 @@ if [ -z "$artist" ] && [ -z "$title" ]; then
 fi
 
 if [ "$status" = "Playing" ]; then
-    icon=""
+    icon="▶"
 else
-    icon=""
+    icon="⏸"
 fi
 
 if [ -n "$artist" ] && [ -n "$title" ]; then

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-
-# Show a fuzzy-finder TUI for picking new AUR packages to install.
+# =============================================================================
+# Zenith-Dotfiles - AUR Package Install
+# =============================================================================
+# Interactive AUR package installation using fzf and yay
 
 fzf_args=(
   --style minimal
@@ -17,8 +19,8 @@ fzf_args=(
 
 pkg_names=$(yay -Slqa | fzf "${fzf_args[@]}")
 
-if [[ -n $pkg_names ]]; then
-  echo "$pkg_names" | sed 's/^/aur\//' | tr '\n' ' ' | xargs yay -S --noconfirm
+if [[ -n "$pkg_names" ]]; then
+  echo "$pkg_names" | sed 's/^/aur\//' | tr '\n' ' ' | xargs --no-run-if-empty yay -S --noconfirm
   sudo updatedb
   notify-send \
     --urgency=normal \

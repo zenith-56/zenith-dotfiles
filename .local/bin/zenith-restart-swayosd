@@ -5,5 +5,5 @@
 
 pkill swayosd-server 2>/dev/null || true
 sleep 0.2
-swayosd-server &
+swayosd-server &>/dev/null &
 echo "SwayOSD restarted"

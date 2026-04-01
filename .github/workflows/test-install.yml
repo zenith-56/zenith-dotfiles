@@ -1,4 +1,4 @@
-name: Test Installation
+name: Install Structure
 
 on:
   push:
@@ -51,7 +51,6 @@ jobs:
             fi
           done
           echo "Total ShellCheck errors: $errors"
-          # Don't fail on ShellCheck warnings for now, just report
           exit 0
 
       - name: Verify bin count

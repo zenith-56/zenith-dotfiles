@@ -30,9 +30,15 @@ else
     notify-send "Recording" "Select area to record..." -i video-camera-symbolic
 
     # Select area with slurp
-    GEOM=$(slurp)
+    GEOM=$(slurp 2>/dev/null) || {
+        notify-send "Recording" "Selection cancelled" -i dialog-warning
+        exit 0
+    }
+
     if [ -n "$GEOM" ]; then
         # Record with yuv420p pixel format for compatibility
         wf-recorder -g "$GEOM" -p yuv420p -f "$FILENAME"
+    else
+        notify-send "Recording" "No area selected" -i dialog-warning
     fi
 fi

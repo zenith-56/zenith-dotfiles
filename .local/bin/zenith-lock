@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Lock Screen
+# =============================================================================
+
+command -v hyprlock >/dev/null 2>&1 || { echo "hyprlock not installed"; exit 1; }
 exec hyprlock

@@ -5,5 +5,5 @@
 
 pkill waybar 2>/dev/null || true
 sleep 0.2
-waybar &
+waybar &>/dev/null &
 echo "Waybar restarted"

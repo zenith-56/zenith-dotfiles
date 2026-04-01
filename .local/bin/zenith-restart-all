@@ -11,9 +11,9 @@ pkill swayosd-server 2>/dev/null || true
 
 sleep 0.3
 
-waybar &
-dunst &
-swayosd-server &
+waybar &>/dev/null &
+dunst &>/dev/null &
+swayosd-server &>/dev/null &
 "$BIN/zenith-reload-kitty"
 
 echo "All services restarted"

@@ -1,0 +1,23 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          check_together: true
+        env:
+          SHELLCHECK_OPTS: -e SC1091 -e SC2002 -e SC2086 -e SC2162

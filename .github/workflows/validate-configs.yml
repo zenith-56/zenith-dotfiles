@@ -1,0 +1,114 @@
+name: Validate Configs
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - '.config/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.config/**'
+
+jobs:
+  validate:
+    name: Validate Config Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate JSON/JSONC files
+        run: |
+          errors=0
+          for json in $(find .config -name "*.json" -type f); do
+            if ! jq empty "$json" 2>/dev/null; then
+              echo "ERROR: Invalid JSON in $json"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ "$errors" -gt 0 ]; then
+            exit 1
+          fi
+          echo "All JSON files valid"
+
+      - name: Validate TOML files
+        run: |
+          pip install toml 2>/dev/null || pip3 install toml 2>/dev/null || true
+          if python3 -c "import toml" 2>/dev/null; then
+            for toml in $(find .config -name "*.toml" -type f); do
+              if ! python3 -c "import toml; toml.load('$toml')" 2>/dev/null; then
+                echo "ERROR: Invalid TOML in $toml"
+                errors=$((errors + 1))
+              fi
+            done
+          else
+            echo "toml module not available, skipping TOML validation"
+          fi
+
+      - name: Validate CSS files
+        run: |
+          for css in $(find .config -name "*.css" -type f); do
+            # Basic CSS validation - check for unbalanced braces
+            open=$(grep -o '{' "$css" 2>/dev/null | wc -l)
+            close=$(grep -o '}' "$css" 2>/dev/null | wc -l)
+            if [ "$open" -ne "$close" ]; then
+              echo "ERROR: Unbalanced braces in $css (open: $open, close: $close)"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "CSS validation complete"
+
+      - name: Validate KDL files
+        run: |
+          for kdl in $(find .config -name "*.kdl" -type f); do
+            open=$(grep -o '{' "$kdl" 2>/dev/null | wc -l)
+            close=$(grep -o '}' "$kdl" 2>/dev/null | wc -l)
+            if [ "$open" -ne "$close" ]; then
+              echo "ERROR: Unbalanced braces in $kdl (open: $open, close: $close)"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "KDL validation complete"
+
+      - name: Validate Rasi files
+        run: |
+          for rasi in $(find .config -name "*.rasi" -type f); do
+            open=$(grep -o '{' "$rasi" 2>/dev/null | wc -l)
+            close=$(grep -o '}' "$rasi" 2>/dev/null | wc -l)
+            if [ "$open" -ne "$close" ]; then
+              echo "ERROR: Unbalanced braces in $rasi (open: $open, close: $close)"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "Rasi validation complete"
+
+      - name: Check for broken symlinks
+        run: |
+          broken=$(find .config -xtype l 2>/dev/null | wc -l)
+          if [ "$broken" -gt 0 ]; then
+            echo "WARNING: Found $broken broken symlinks:"
+            find .config -xtype l 2>/dev/null
+          else
+            echo "No broken symlinks found"
+          fi
+
+      - name: Verify Matugen templates exist
+        run: |
+          templates_dir=".config/matugen/templates"
+          expected_templates=("colors.css" "colors.rasi" "dunstrc" "hyprlock.conf" "kitty.conf" "rofi-colors.rasi" "swayosd.css" "zed-theme.json" "btop.theme")
+          missing=0
+          for template in "${expected_templates[@]}"; do
+            if [ ! -f "$templates_dir/$template" ]; then
+              echo "WARNING: Missing template: $template"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "$missing templates missing"
+          else
+            echo "All Matugen templates present"
+          fi

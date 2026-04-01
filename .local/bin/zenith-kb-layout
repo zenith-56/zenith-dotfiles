@@ -7,7 +7,7 @@ case "$1" in
     us)     hyprctl keyword xkb_layout "us" ;;
     es)     hyprctl keyword xkb_layout "es" ;;
     toggle)
-        current=$(hyprctl keyword xkb_layout -j | grep -o '"[^"]*"' | head -1 | tr -d '"')
+        current=$(hyprctl keyword xkb_layout -j 2>/dev/null | jq -r '.[0].str // ""' 2>/dev/null || echo "")
         [ "$current" = "us" ] && hyprctl keyword xkb_layout "es" || hyprctl keyword xkb_layout "us"
         ;;
     *)      echo "Usage: $0 {us|es|toggle}" ;;

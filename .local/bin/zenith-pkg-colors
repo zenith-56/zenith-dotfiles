@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Common Colors for Package Scripts
+# =============================================================================
+# Shared color definitions and fzf color variables for package management scripts
+# =============================================================================
+
+export GREEN='\033[0;32m'
+export YELLOW='\033[1;33m'
+export RED='\033[0;31m'
+export CYAN='\033[0;36m'
+export RESET='\033[0m'
+
+# Fzf color theme (pink accent to match Zenith theme)
+export FZF_COLOR_PINK="pointer:#f5c2e7,marker:#f5c2e7,hl:#f5c2e7,hl+:#f5c2e7"

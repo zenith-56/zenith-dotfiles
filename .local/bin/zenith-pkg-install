@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Show a fuzzy-finder TUI for picking new Arch and OPR packages to install.
+# =============================================================================
+# Zenith-Dotfiles - Package Install
+# =============================================================================
+# Interactive package installation using fzf and pacman
+
 fzf_args=(
   --style minimal
   --multi
@@ -10,10 +14,11 @@ fzf_args=(
   --bind 'alt-k:preview-up,alt-j:preview-down'
   --color 'pointer:green,marker:green'
 )
+
 pkg_names=$(pacman -Slq | fzf "${fzf_args[@]}")
-if [[ -n $pkg_names ]]; then
-  # Convert newline-separated selections to space-separated for pacman
-  echo "$pkg_names" | tr '\n' ' ' | xargs sudo pacman -S --noconfirm
+
+if [[ -n "$pkg_names" ]]; then
+  echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty sudo pacman -S --noconfirm
   notify-send \
     --urgency=normal \
     --icon=software-update-available \
