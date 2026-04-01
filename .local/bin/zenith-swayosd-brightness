@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - SwayOSD Brightness Control
+# =============================================================================
+
+case "$1" in
+    up)
+        swayosd-client --brightness raise 2>/dev/null || brightnessctl set +10%
+        ;;
+    down)
+        swayosd-client --brightness lower 2>/dev/null || brightnessctl set 10%-
+        ;;
+    *)
+        echo "Usage: $0 {up|down}"
+        exit 1
+        ;;
+esac

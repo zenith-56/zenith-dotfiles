@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Screen Recorder
+# =============================================================================
+# Description : Toggle screen recording with wf-recorder. Select area with slurp
+#               on first run, stop recording on second run.
+# Author      : Maximocruz (@zenith-56)
+# License     : MIT
+#
+# Usage:
+#   zenith-screen-recorder
+#     First run: Select area and start recording
+#     Second run: Stop recording
+# =============================================================================
+
+set -e
+
+VIDEO_DIR="$HOME/Videos"
+FILENAME="$VIDEO_DIR/ScreenRecord_$(date +%Y%m%d_%H%M%S).mp4"
+
+# Ensure video directory exists
+mkdir -p "$VIDEO_DIR"
+
+# If wf-recorder is running, stop recording
+if pgrep -x "wf-recorder" >/dev/null; then
+    pkill -INT wf-recorder
+    notify-send "Recording" "Recording finished and saved to $VIDEO_DIR" -i video-display
+else
+    # Start new recording
+    notify-send "Recording" "Select area to record..." -i video-camera-symbolic
+
+    # Select area with slurp
+    GEOM=$(slurp)
+    if [ -n "$GEOM" ]; then
+        # Record with yuv420p pixel format for compatibility
+        wf-recorder -g "$GEOM" -p yuv420p -f "$FILENAME"
+    fi
+fi

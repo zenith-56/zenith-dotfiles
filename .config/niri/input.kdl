@@ -1,0 +1,32 @@
+// =============================================================================
+// Niri Input Configuration
+// =============================================================================
+// Description : Input device settings for the Niri compositor.
+//               Configures keyboard layout (Spanish), touchpad with natural
+//               scroll, and enables numlock on startup.
+// =============================================================================
+
+input {
+    keyboard {
+        xkb {
+            layout "es"
+            variant "nodeadkeys"
+        }
+
+        numlock
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+    }
+
+    mouse {
+    }
+
+    trackpoint {
+    }
+
+    // warp-mouse-to-focus
+    // focus-follows-mouse max-scroll-amount="0%"
+}

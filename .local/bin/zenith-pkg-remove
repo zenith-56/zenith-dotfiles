@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-pkg-remove — Remove packages interactively with fzf + gum
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-pkg-colors"
+
+# ── Check for required commands ───────────────────────────────────────────────
+check_deps() {
+    local missing=()
+    for cmd in fzf gum sudo pacman; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}Error: Missing dependencies: ${missing[*]}${RESET}" >&2
+        echo -e "${CYAN}Install with: sudo pacman -S fzf gum${RESET}" >&2
+        exit 1
+    fi
+}
+
+# ── Interactive package removal ───────────────────────────────────────────────
+remove_interactive() {
+    echo -e "${CYAN}Select packages to remove:${RESET}"
+    echo -e "${YELLOW}Tip: Use Tab to select multiple packages${RESET}"
+    echo ""
+
+    local packages
+    packages=$(pacman -Qqe | sort)
+
+    local count
+    count=$(echo "$packages" | wc -l)
+
+    echo -e "${CYAN}Explicitly installed packages: $count${RESET}"
+    echo ""
+
+    local selected_packages
+    selected_packages=$(echo "$packages" | fzf --multi \
+        --preview 'pacman -Qi {} 2>/dev/null' \
+        --preview-label='Package Info' \
+        --preview-window 'down:65%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --color "$FZF_COLOR_PINK" \
+        --header 'Explicitly installed - Tab: multi-select' \
+        --prompt 'Remove> ')
+
+    if [[ -z "$selected_packages" ]]; then
+        echo -e "${YELLOW}No packages selected${RESET}"
+        exit 0
+    fi
+
+    mapfile -t packages_to_remove <<< "$selected_packages"
+
+    echo ""
+    echo -e "${RED}Selected ${#packages_to_remove[@]} package(s) for removal:${RESET}"
+    printf '  • %s\n' "${packages_to_remove[@]}"
+    echo ""
+
+    if ! gum_confirm "Remove with dependencies?"; then
+        echo -e "${YELLOW}Removal cancelled${RESET}"
+        exit 0
+    fi
+
+    echo -e "${CYAN}Removing packages...${RESET}"
+
+    if sudo pacman -Rns --noconfirm "${packages_to_remove[@]}"; then
+        echo ""
+        echo -e "${GREEN}✓ Removal completed successfully${RESET}"
+        notify-send \
+            --urgency=normal \
+            --icon=software-update-available \
+            "Packages Removed" \
+            "${#packages_to_remove[@]} package(s) removed" 2>/dev/null || true
+    else
+        echo ""
+        echo -e "${RED}✗ Removal failed${RESET}"
+        echo -e "${YELLOW}Some packages may have unresolvable dependencies${RESET}"
+        exit 1
+    fi
+}
+
+# ── Remove specific packages (direct mode) ───────────────────────────────────
+remove_direct() {
+    local packages=("$@")
+
+    echo -e "${RED}Packages to remove:${RESET}"
+    printf '  • %s\n' "${packages[@]}"
+    echo ""
+
+    if ! gum_confirm "Remove with dependencies?"; then
+        echo -e "${YELLOW}Removal cancelled${RESET}"
+        exit 0
+    fi
+
+    if sudo pacman -Rns --noconfirm "${packages[@]}"; then
+        echo -e "${GREEN}✓ Removal completed${RESET}"
+    else
+        echo -e "${RED}✗ Removal failed${RESET}"
+        exit 1
+    fi
+}
+
+# ── Remove orphan packages ───────────────────────────────────────────────────
+remove_orphans() {
+    echo -e "${CYAN}Finding orphan packages...${RESET}"
+    echo ""
+
+    local orphans
+    orphans=$(pacman -Qtdq 2>/dev/null | sort -u) || true
+
+    local count
+    count=$(echo "$orphans" | grep -c . 2>/dev/null || echo "0")
+
+    if [[ -z "$orphans" || "$count" -eq 0 ]]; then
+        echo -e "${GREEN}✓ No orphan packages found${RESET}"
+        return 0
+    fi
+
+    echo -e "${YELLOW}Orphan packages ($count):${RESET}"
+    echo "$orphans" | sed 's/^/  • /'
+    echo ""
+    echo -e "${CYAN}These packages are no longer required by any installed package.${RESET}"
+    echo -e "${CYAN}They can be safely removed.${RESET}"
+    echo ""
+
+    if ! gum_confirm "Remove all $count orphan packages?"; then
+        echo -e "${YELLOW}Removal cancelled${RESET}"
+        exit 0
+    fi
+
+    echo ""
+    echo -e "${CYAN}Removing orphan packages...${RESET}"
+
+    if sudo pacman -Rns --noconfirm $orphans; then
+        echo -e "${GREEN}✓ Removed $count orphan packages${RESET}"
+    else
+        echo -e "${RED}✗ Removal failed${RESET}"
+        exit 1
+    fi
+}
+
+# ── Clean package cache ──────────────────────────────────────────────────────
+clean_cache() {
+    echo -e "${CYAN}Package Cache Cleaner${RESET}"
+    echo ""
+
+    local cache_size
+    cache_size=$(sudo du -sh /var/cache/pacman/pkg/ 2>/dev/null | cut -f1 || echo "Unknown")
+
+    echo -e "Current cache size: ${YELLOW}$cache_size${RESET}"
+    echo ""
+
+    local action
+    action=$(gum_choose \
+        --header "Select action:" \
+        "Remove uninstalled packages (paccache -r)" \
+        "Keep only current versions (paccache -rk1)" \
+        "Remove all cached packages" \
+        "Cancel")
+
+    case "$action" in
+        *"uninstalled"*)
+            echo -e "${CYAN}Running paccache -r...${RESET}"
+            if command -v paccache &>/dev/null; then
+                sudo paccache -r
+            else
+                echo -e "${YELLOW}paccache not found. Install pacman-contrib:${RESET}"
+                echo "sudo pacman -S pacman-contrib"
+            fi
+            ;;
+        *"current"*)
+            echo -e "${CYAN}Keeping only current versions...${RESET}"
+            if command -v paccache &>/dev/null; then
+                sudo paccache -rk1
+            else
+                sudo pacman -Sc --noconfirm
+            fi
+            ;;
+        *"all"*)
+            if gum_confirm "Remove ALL cached packages?"; then
+                sudo pacman -Scc --noconfirm
+            fi
+            ;;
+        *)
+            echo -e "${YELLOW}Cancelled${RESET}"
+            ;;
+    esac
+}
+
+show_help() {
+    cat << EOF
+${CYAN}zenith-pkg-remove${RESET} — Remove packages interactively
+
+${YELLOW}USAGE:${RESET}
+    zenith-pkg-remove [OPTIONS] [PACKAGES...]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--orphans, -t${RESET}     Remove orphan packages
+    ${GREEN}--clean, -c${RESET}       Clean package cache
+    ${GREEN}--help, -h${RESET}        Show this help message
+
+${YELLOW}MODES:${RESET}
+    ${GREEN}Interactive${RESET}       Run without arguments for fzf selector
+    ${GREEN}Direct${RESET}            Provide package names as arguments
+    ${GREEN}Orphans${RESET}           Use --orphans to remove orphan packages
+    ${GREEN}Clean${RESET}             Use --clean to clean package cache
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith-pkg-remove                 # Interactive mode
+    zenith-pkg-remove firefox         # Remove firefox
+    zenith-pkg-remove firefox thunderbird  # Remove multiple
+    zenith-pkg-remove --orphans       # Remove orphans
+    zenith-pkg-remove --clean         # Clean cache
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    check_deps
+
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${RED}Error: Do not run as root${RESET}" >&2
+        exit 1
+    fi
+
+    if [[ $# -eq 0 ]]; then
+        remove_interactive
+        return 0
+    fi
+
+    case "$1" in
+        --orphans|-t)
+            remove_orphans
+            ;;
+        --clean|-c)
+            clean_cache
+            ;;
+        --help|-h)
+            show_help
+            ;;
+        *)
+            remove_direct "$@"
+            ;;
+    esac
+}
+
+main "$@"

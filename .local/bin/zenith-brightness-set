@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Set Brightness
+# =============================================================================
+
+[ -z "$1" ] && exit 1
+command -v brightnessctl >/dev/null 2>&1 || exit 1
+brightnessctl set "${1}%" 2>/dev/null || exit 1

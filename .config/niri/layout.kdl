@@ -1,0 +1,38 @@
+// Niri Layout Configuration
+// =============================================================================
+// Description : Layout settings for the Niri compositor.
+//               Configures gaps, background color, column widths, focus ring,
+//               border, shadow, and struts.
+// =============================================================================
+
+
+layout {
+    gaps 0
+    background-color "transparent"
+    center-focused-column "never"
+
+    preset-column-widths {
+        proportion 0.5
+        proportion 1.0
+    }
+
+    default-column-width { proportion 1.0; }
+
+    focus-ring {
+        off
+    }
+
+    border {
+        off
+    }
+
+    shadow {
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#0007"
+    }
+
+    struts {
+    }
+}

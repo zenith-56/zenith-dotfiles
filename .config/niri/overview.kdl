@@ -1,0 +1,10 @@
+// Niri Overview Configuration
+// =============================================================================
+// Description : Overview settings for the Niri compositor.
+//               Configures the zoom level of the overview window.
+// =============================================================================
+
+
+overview {
+    zoom 0.5
+}

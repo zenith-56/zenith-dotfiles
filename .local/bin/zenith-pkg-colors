@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-pkg-colors — Shared gum/fzf color configuration for all pkg scripts
+# =============================================================================
+# Source this file in any zenith-pkg-* script:
+#   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+#   source "$SCRIPT_DIR/zenith-pkg-colors"
+# =============================================================================
+
+# ── ANSI Color Codes ──────────────────────────────────────────────────────────
+# For echo -e output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+PINK='\033[38;5;213m'
+BRIGHT_PINK='\033[38;5;219m'
+RESET='\033[0m'
+
+# ── Gum TUI Colors ────────────────────────────────────────────────────────────
+# Pink/Purple theme with good contrast
+GUM_CHOOSE_SELECTED_BG="213"      # Pink background
+GUM_CHOOSE_SELECTED_FG="0"        # Black text
+GUM_CHOOSE_HEADER_FG="213"        # Pink header
+GUM_CHOOSE_CURSOR_FG="#FF79C6"    # Bright pink cursor
+
+GUM_CONFIRM_SELECTED_BG="213"     # Pink background
+GUM_CONFIRM_SELECTED_FG="0"       # Black text
+GUM_CONFIRM_UNSELECTED_BG="235"   # Dark gray background
+GUM_CONFIRM_UNSELECTED_FG="254"   # Light gray text
+
+GUM_INPUT_PROMPT_FG="#FF79C6"     # Bright pink prompt
+GUM_INPUT_PLACEHOLDER_FG="240"    # Gray placeholder
+GUM_INPUT_CURSOR_FG="#FF79C6"     # Bright pink cursor
+
+# ── FZF Color Schemes ─────────────────────────────────────────────────────────
+# Format: pointer:COLOR,marker:COLOR
+FZF_COLOR_GREEN="pointer:green,marker:green"
+FZF_COLOR_RED="pointer:red,marker:red"
+FZF_COLOR_PINK="pointer:magenta,marker:magenta"
+FZF_COLOR_CYAN="pointer:cyan,marker:cyan"
+FZF_COLOR_YELLOW="pointer:yellow,marker:yellow"
+FZF_COLOR_BLUE="pointer:blue,marker:blue"
+
+# Default FZF color (pink for primary actions)
+FZF_COLOR_DEFAULT="$FZF_COLOR_PINK"
+
+# ── Gum Style Helpers ─────────────────────────────────────────────────────────
+gum_choose() {
+    gum choose \
+        --selected.background "$GUM_CHOOSE_SELECTED_BG" \
+        --selected.foreground "$GUM_CHOOSE_SELECTED_FG" \
+        --header.foreground "$GUM_CHOOSE_HEADER_FG" \
+        --cursor.foreground "$GUM_CHOOSE_CURSOR_FG" \
+        "$@"
+}
+
+gum_confirm() {
+    local prompt="$1"
+    gum confirm "$prompt" \
+        --selected.background "$GUM_CONFIRM_SELECTED_BG" \
+        --selected.foreground "$GUM_CONFIRM_SELECTED_FG" \
+        --unselected.background "$GUM_CONFIRM_UNSELECTED_BG" \
+        --unselected.foreground "$GUM_CONFIRM_UNSELECTED_FG" \
+        </dev/tty
+}
+
+gum_input() {
+    gum input \
+        --prompt.foreground "$GUM_INPUT_PROMPT_FG" \
+        --placeholder.foreground "$GUM_INPUT_PLACEHOLDER_FG" \
+        --cursor.foreground "$GUM_INPUT_CURSOR_FG" \
+        "$@"
+}

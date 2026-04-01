@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Show VM Status
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-status [vm-name]
+
+Shows the status of a VM.
+
+Options:
+  -h, --help  Show this help
+EOF
+}
+
+VM_NAME="${1:-}"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [ -z "$VM_NAME" ]; then
+        VM_NAME="$1"
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Interactive selection with gum
+if [ -z "$VM_NAME" ]; then
+  if command -v gum &>/dev/null; then
+    VM_NAME=$(gum choose $(ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json) --header "Select VM")
+  else
+    echo "Available VMs:"
+    ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json
+    echo ""
+    read -rp "Enter VM name: " VM_NAME
+  fi
+  [ -z "$VM_NAME" ] && { echo "No VM selected"; exit 1; }
+fi
+
+CONFIG="$VM_CONFIG_DIR/${VM_NAME}.json"
+if [ ! -f "$CONFIG" ]; then
+  echo "Error: VM '$VM_NAME' not found"
+  exit 1
+fi
+
+# Read config
+get_json() { python3 -c "import json; d=json.load(open('$CONFIG')); print(d.get('$1',''))" 2>/dev/null; }
+
+NAME=$(get_json "name")
+OS_TYPE=$(get_json "os_type")
+OS_VERSION=$(get_json "os_version")
+ENGINE=$(get_json "engine")
+RAM=$(get_json "ram")
+CPUS=$(get_json "cpus")
+DISK=$(get_json "disk")
+WEB_PORT=$(get_json "web_port")
+GPU_PASSTHROUGH=$(get_json "gpu_passthrough")
+CREATED=$(get_json "created_at")
+
+# Get actual runtime status
+ACTUAL_STATUS="stopped"
+if [ "$ENGINE" = "docker" ]; then
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${NAME}$"; then
+    ACTUAL_STATUS="running"
+    # Get resource usage
+    CPU_USAGE=$(docker stats --no-stream --format '{{.CPUPerc}}' "$NAME" 2>/dev/null || echo "0%")
+    MEM_USAGE=$(docker stats --no-stream --format '{{.MemUsage}}' "$NAME" 2>/dev/null || echo "0B / 0B")
+    NET_IO=$(docker stats --no-stream --format '{{.NetIO}}' "$NAME" 2>/dev/null || echo "0B / 0B")
+  fi
+elif [ "$ENGINE" = "qemu" ]; then
+  if virsh domstate "$NAME" 2>/dev/null | grep -q "running"; then
+    ACTUAL_STATUS="running"
+  fi
+fi
+
+# Update config status
+python3 -c "
+import json
+with open('$CONFIG', 'r') as f:
+    d = json.load(f)
+d['status'] = '$ACTUAL_STATUS'
+with open('$CONFIG', 'w') as f:
+    json.dump(d, f, indent=2)
+" 2>/dev/null || true
+
+# Display status
+echo "VM: $NAME"
+echo "  Status: $ACTUAL_STATUS"
+echo "  OS: $OS_TYPE $OS_VERSION"
+echo "  Engine: $ENGINE"
+echo "  RAM: $RAM"
+echo "  CPUs: $CPUS"
+echo "  Disk: $DISK"
+echo "  GPU Passthrough: $GPU_PASSTHROUGH"
+echo "  Web Port: $WEB_PORT"
+echo "  Created: $CREATED"
+
+if [ "$ACTUAL_STATUS" = "running" ] && [ "$ENGINE" = "docker" ]; then
+  echo ""
+  echo "Runtime:"
+  echo "  CPU: $CPU_USAGE"
+  echo "  Memory: $MEM_USAGE"
+  echo "  Network: $NET_IO"
+fi

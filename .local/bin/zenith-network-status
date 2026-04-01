@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Network Status
+# =============================================================================
+
+command -v impalactl >/dev/null 2>&1 && \
+    impalactl gateway status 2>/dev/null | grep -qi "connected" && \
+    echo "connected" || echo "disconnected"

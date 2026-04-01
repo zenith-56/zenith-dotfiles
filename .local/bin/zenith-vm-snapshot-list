@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - List VM Snapshots
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+SNAPSHOT_DIR="$HOME/.config/zenith-vm/snapshots"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-snapshot-list [vm-name]
+
+Lists snapshots for a VM.
+
+Options:
+  --json       Output in JSON format
+  -h, --help   Show this help
+EOF
+}
+
+VM_NAME="${1:-}"
+JSON_OUTPUT=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --json) JSON_OUTPUT=true; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [ -z "$VM_NAME" ]; then
+        VM_NAME="$1"
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Interactive selection with gum
+if [ -z "$VM_NAME" ]; then
+  if command -v gum &>/dev/null; then
+    VM_NAME=$(gum choose $(ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json) --header "Select VM")
+  else
+    echo "Available VMs:"
+    ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json
+    echo ""
+    read -rp "Enter VM name: " VM_NAME
+  fi
+  [ -z "$VM_NAME" ] && { echo "No VM selected"; exit 1; }
+fi
+
+VM_SNAP_DIR="$SNAPSHOT_DIR/$VM_NAME"
+
+if [ ! -d "$VM_SNAP_DIR" ] || [ -z "$(ls "$VM_SNAP_DIR"/*.json 2>/dev/null)" ]; then
+  if [ "$JSON_OUTPUT" = true ]; then
+    echo "[]"
+  else
+    echo "No snapshots found for VM '$VM_NAME'"
+  fi
+  exit 0
+fi
+
+if [ "$JSON_OUTPUT" = true ]; then
+  python3 -c "
+import json, glob
+
+snaps = []
+for f in sorted(glob.glob('$VM_SNAP_DIR/*.json')):
+    with open(f) as fh:
+        snaps.append(json.load(fh))
+print(json.dumps(snaps, indent=2))
+"
+else
+  printf "%-30s %-20s %s\n" "SNAPSHOT" "CREATED" "DESCRIPTION"
+  printf "%-30s %-20s %s\n" "--------" "-------" "-----------"
+
+  for snap in "$VM_SNAP_DIR"/*.json; do
+    get_snap() { python3 -c "import json; d=json.load(open('$snap')); print(d.get('$1',''))" 2>/dev/null; }
+
+    NAME=$(get_snap "name")
+    CREATED=$(get_snap "created_at")
+    DESC=$(get_snap "description")
+
+    printf "%-30s %-20s %s\n" "$NAME" "$CREATED" "$DESC"
+  done
+fi

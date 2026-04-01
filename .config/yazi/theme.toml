@@ -1,0 +1,37 @@
+# =============================================================================
+# Yazi Theme
+# =============================================================================
+# Description : Color theme for Yazi file manager.
+# =============================================================================
+
+[theme]
+idle = "34"
+task = "33"
+frame = "34"
+
+[theme.file_name]
+"*" = "1"
+"dark.yaml" = "34"
+
+[theme.dir_name]
+blocker = "31"
+hidden = "90"
+media = "34;1"
+image = "35;1"
+video = "35;1"
+audio = "35;1"
+document = "36;1"
+code = "32;1"
+archive = "33;1"
+config = "34;1"
+link = "36;1"
+
+[theme.link]
+orphan = "31"
+valid = "34"
+
+[theme.permission]
+read = "32"
+write = "33"
+exec = "31"
+none = "90"

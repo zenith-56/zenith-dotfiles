@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# =============================================================================
+# ZenithO-Dotfiles - Set Volume
+# =============================================================================
+
+[ -z "$1" ] && exit 1
+command -v pamixer >/dev/null 2>&1 || exit 1
+pamixer --set-volume "$1" 2>/dev/null || exit 1

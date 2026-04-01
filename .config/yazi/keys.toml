@@ -1,0 +1,24 @@
+# =============================================================================
+# Yazi Keybindings
+# =============================================================================
+# Description : Keyboard shortcuts for Yazi file manager.
+# =============================================================================
+
+[manager]
+keymap = [
+    { invoke = "manager::half::up",    exec = "k",  desc = "Scroll up by half page" },
+    { invoke = "manager::half::down",  exec = "j",  desc = "Scroll down by half page" },
+    { invoke = "manager::hover",        exec = "l",  desc = "Open file/directory" },
+    { invoke = "manager::back",        exec = "h",  desc = "Go to parent directory" },
+    { invoke = "manager::change_mode",  exec = "Space",  desc = "Toggle selection" },
+    { invoke = "manager::select_all",   exec = "a",  desc = "Select all files" },
+    { invoke = "manager::open",         exec = "enter",  desc = "Open file with default app" },
+    { invoke = "manager::quit",        exec = "q",  desc = "Quit yazi" },
+    { invoke = "manager::toggle_hidden",exec = "zh", desc = "Toggle hidden files" },
+    { invoke = "manager::refresh",     exec = "r",  desc = "Refresh directory" },
+]
+
+[tasks]
+keymap = [
+    { invoke = "tasks::cancel", exec = "c", desc = "Cancel current task" },
+]

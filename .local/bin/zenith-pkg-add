@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-pkg-add — Install pacman packages (OFFICIAL REPOS ONLY)
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-pkg-colors"
+
+# ── Check for required commands ───────────────────────────────────────────────
+check_deps() {
+    local missing=()
+    for cmd in fzf gum sudo pacman; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}Error: Missing dependencies: ${missing[*]}${RESET}" >&2
+        echo -e "${CYAN}Install with: sudo pacman -S fzf gum${RESET}" >&2
+        exit 1
+    fi
+}
+
+# ── Direct mode ───────────────────────────────────────────────────────────────
+install_direct() {
+    local packages=("$@")
+
+    echo -e "${CYAN}Installing pacman packages: ${packages[*]}${RESET}"
+    echo ""
+
+    for pkg in "${packages[@]}"; do
+        echo -e "${YELLOW}→ Fetching info for: $pkg${RESET}"
+        pacman -Si "$pkg" 2>/dev/null || true
+        echo ""
+    done
+
+    if gum_confirm "Proceed with installation?"; then
+        sudo pacman -S --noconfirm "${packages[@]}" && \
+            echo -e "${GREEN}✓ Installation completed${RESET}" || \
+            echo -e "${RED}✗ Installation failed${RESET}"
+    else
+        echo -e "${YELLOW}Installation cancelled${RESET}"
+    fi
+}
+
+# ── Interactive mode ──────────────────────────────────────────────────────────
+install_interactive() {
+    echo -e "${CYAN}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${CYAN}║${RESET}     ${GREEN}Pacman Package Installer${RESET}          ${CYAN}║${RESET}"
+    echo -e "${CYAN}╚════════════════════════════════════════╝${RESET}"
+    echo ""
+
+    echo -e "${CYAN}Loading pacman package list...${RESET}"
+    local pkg_list
+    pkg_list=$(pacman -Slq 2>/dev/null | sort -u)
+
+    local pkg_count
+    pkg_count=$(echo "$pkg_list" | wc -l)
+    echo -e "${GREEN}Available pacman packages: $pkg_count${RESET}"
+    echo ""
+
+    local selected_packages
+    selected_packages=$(echo "$pkg_list" | fzf --multi \
+        --preview 'pacman -Si {} 2>/dev/null || echo "Package not found"' \
+        --preview-label='Package Info' \
+        --preview-window 'down:65%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --color "$FZF_COLOR_PINK" \
+        --header 'Official Pacman Repos Only - Tab: multi-select' \
+        --prompt 'Package> ')
+
+    if [[ -z "$selected_packages" ]]; then
+        echo -e "${YELLOW}No packages selected${RESET}"
+        exit 0
+    fi
+
+    mapfile -t packages <<< "$selected_packages"
+
+    echo ""
+    echo -e "${CYAN}Selected ${#packages[@]} package(s):${RESET}"
+    printf '  • %s\n' "${packages[@]}"
+    echo ""
+
+    if gum_confirm "Proceed with installation?"; then
+        echo -e "${CYAN}Installing packages...${RESET}"
+        if sudo pacman -S --noconfirm "${packages[@]}"; then
+            echo -e "${GREEN}✓ Installation completed successfully${RESET}"
+            notify-send \
+                --urgency=normal \
+                --icon=software-update-available \
+                "Packages Installed" \
+                "${#packages[@]} package(s) installed from official repos" 2>/dev/null || true
+        else
+            echo -e "${RED}✗ Installation failed${RESET}"
+            echo -e "${YELLOW}Try running: sudo pacman -Syu && sudo pacman -S ${packages[*]}${RESET}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}Installation cancelled${RESET}"
+    fi
+}
+
+# ── Search mode ───────────────────────────────────────────────────────────────
+search_and_install() {
+    local query="${1:-}"
+
+    if [[ -z "$query" ]]; then
+        query=$(gum_input \
+            --prompt "Search> " \
+            --placeholder "Search pacman repos..." \
+            --width 50)
+    fi
+
+    if [[ -z "$query" ]]; then
+        echo -e "${YELLOW}No search query provided${RESET}"
+        return 0
+    fi
+
+    echo -e "${CYAN}Searching pacman repos for '$query'...${RESET}"
+    echo ""
+
+    local results
+    results=$(pacman -Slq 2>/dev/null | grep -i "$query" | head -100)
+
+    if [[ -z "$results" ]]; then
+        echo -e "${RED}No packages found in official repos${RESET}"
+        return 0
+    fi
+
+    local count
+    count=$(echo "$results" | wc -l)
+    echo -e "${GREEN}Found $count packages:${RESET}"
+    echo ""
+
+    local selected
+    selected=$(echo "$results" | fzf --multi \
+        --preview 'pacman -Si {} 2>/dev/null' \
+        --preview-label='Package Info' \
+        --preview-window 'down:60%:wrap' \
+        --color "$FZF_COLOR_PINK" \
+        --prompt 'Pacman> ')
+
+    if [[ -n "$selected" ]]; then
+        mapfile -t packages <<< "$selected"
+
+        echo ""
+        echo -e "${CYAN}Selected ${#packages[@]} package(s):${RESET}"
+        printf '  • %s\n' "${packages[@]}"
+        echo ""
+
+        if gum_confirm "Install selected packages?"; then
+            sudo pacman -S --noconfirm "${packages[@]}"
+        fi
+    fi
+}
+
+show_help() {
+    cat << EOF
+${CYAN}zenith-pkg-add${RESET} — Install packages from OFFICIAL PACMAN REPOS ONLY
+
+${YELLOW}USAGE:${RESET}
+    zenith-pkg-add [OPTIONS] [PACKAGES...]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--search, -s <query>${RESET}  Search and install
+    ${GREEN}--help, -h${RESET}            Show this help message
+
+${YELLOW}MODES:${RESET}
+    ${GREEN}Interactive${RESET}           Run without arguments for fzf selector
+    ${GREEN}Direct${RESET}                Provide package names as arguments
+    ${GREEN}Search${RESET}                Use --search for quick install
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith-pkg-add                        # Interactive mode
+    zenith-pkg-add firefox vim            # Install specific packages
+    zenith-pkg-add --search editor        # Search and install
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    check_deps
+
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${RED}Error: Do not run as root${RESET}" >&2
+        exit 1
+    fi
+
+    if [[ $# -eq 0 ]]; then
+        install_interactive
+        return 0
+    fi
+
+    case "$1" in
+        --search|-s)
+            search_and_install "${2:-}"
+            ;;
+        --help|-h)
+            show_help
+            ;;
+        *)
+            install_direct "$@"
+            ;;
+    esac
+}
+
+main "$@"

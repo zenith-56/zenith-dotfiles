@@ -1,0 +1,46 @@
+/* =============================================================================
+ * SwayOSD Style - Matugen Dynamic Theme
+ * ============================================================================= */
+
+window {
+    background-color: {{colors.surface.default.hex}};
+    color: {{colors.on_surface.default.hex}};
+    font-family: "JetBrains Mono Nerd Font";
+    font-size: 12px;
+    border-radius: 0px;
+    margin: 0px;
+    padding: 4px 6px;
+}
+
+-osd-bar {
+    background-color: {{colors.primary.default.hex}};
+    color: {{colors.on_primary.default.hex}};
+    min-width: 80px;
+    min-height: 8px;
+}
+
+-osd-label {
+    color: {{colors.on_surface.default.hex}};
+    font-size: 10px;
+}
+
+-osd-icon {
+    color: {{colors.primary.default.hex}};
+}
+
+.content {
+    padding: 2px;
+}
+
+.brightness-slider slider,
+.volume-slider slider {
+    background-color: {{colors.primary.default.hex}};
+}
+
+.icon {
+    color: {{colors.primary.default.hex}};
+}
+
+.bar {
+    background-color: {{colors.primary.default.hex}};
+}

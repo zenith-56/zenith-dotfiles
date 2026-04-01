@@ -1,0 +1,107 @@
+// =============================================================================
+// Niri Animations Configuration
+// =============================================================================
+// Description : Animation settings for the Niri compositor.
+// ==============================================
+animations {
+
+    slowdown 1.0
+
+    // =========================================================================
+    // window-open — scale + tint
+    // =========================================================================
+    window-open {
+        duration-ms 235
+        curve "linear"
+
+        custom-shader r"
+float easeInExpo(float t) { return t == 0.0 ? 0.0 : pow(2.0, 10.0 * (t - 1.0)); }
+float easeInQuad(float t) { return t * t; }
+float easeOutQuad(float t) { return 1.0 - (1.0 - t) * (1.0 - t); }
+float easeOutCubic(float t) { float f = t - 1.0; return f * f * f + 1.0; }
+
+vec2 scaleUV(vec2 uv, vec2 scale) { return (uv - 0.5) / scale + 0.5; }
+
+// Optimización: Reemplazado if/else por matemática directa (más rápido en GPU)
+float centerGradient(float x) { return 1.0 - abs(x * 2.0 - 1.0); }
+
+vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+    vec2 uv = coords_geo.xy;
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) return vec4(0.0);
+
+    float p = niri_clamped_progress; // Guardamos en variable corta
+    float t = easeOutQuad(p);
+    float x = mix(0.1, 1.0, easeOutCubic(p));
+    float y = easeInQuad(p);
+
+    vec2 suv = scaleUV(uv, vec2(x, y));
+    if (suv.x < 0.0 || suv.x > 1.0 || suv.y < 0.0 || suv.y > 1.0) return vec4(0.0);
+
+    // Optimización: Cálculo vectorizado de la máscara
+    vec2 grads = vec2(centerGradient(suv.x), centerGradient(suv.y));
+    vec2 masks = smoothstep(0.0, 0.10, grads);
+    float mask = masks.x * masks.y;
+
+    vec3 tint    = vec3(0.55, 0.82, 1.0);
+    vec3 baseCol = mix(tint, vec3(1.0), t);
+    float tintAmt = smoothstep(0.0, 0.8, t);
+    vec3 rgb = mix(tint, baseCol, tintAmt);
+
+    vec4 wColor = texture2D(niri_tex, suv);
+    return mix(vec4(rgb, mask * t * wColor.a), wColor, easeInExpo(p));
+}
+        "
+    }
+
+    // =========================================================================
+    // window-close — CRT shutoff
+    // =========================================================================
+    window-close {
+        duration-ms 520
+        curve "linear"
+
+        custom-shader r"
+float easeInCubic(float t) { return t * t * t; }
+float easeInQuint(float t) { return t * t * t * t * t; }
+vec2 scaleUV(vec2 uv, vec2 scale) { return (uv - 0.5) / scale + 0.5; }
+
+vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+    if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+        coords_geo.y < 0.0 || coords_geo.y > 1.0) return vec4(0.0);
+
+    vec2 uv = coords_geo.xy;
+    float p = niri_clamped_progress;
+
+    const float SPLIT      = 0.55;
+    const float EDGE_SOFT  = 0.025;
+    const float BRIGHTNESS = 3.0;
+
+    // Fases de tiempo
+    float p1 = clamp(p / SPLIT, 0.0, 1.0);
+    float p2 = clamp((p - SPLIT) / (1.0 - SPLIT), 0.0, 1.0);
+    float ep2 = easeInQuint(p2);
+
+    // Optimización: band.x = width (fase 2), band.y = height (fase 1)
+    vec2 band = max(vec2(
+        1.0 - ep2,
+        1.0 - easeInCubic(p1)
+    ) * 0.5, 0.0005);
+
+    vec2 suv = scaleUV(uv, band * 2.0);
+    if (suv.x < 0.0 || suv.x > 1.0 || suv.y < 0.0 || suv.y > 1.0) return vec4(0.0);
+
+    // Optimización: Vectorización de distancias y bordes suaves
+    vec2 d = abs(uv - 0.5);
+    vec2 edge = smoothstep(band, band - EDGE_SOFT, d);
+
+    float glow = 1.0 + ep2 * ep2 * BRIGHTNESS;
+
+    vec4 wColor = texture2D(niri_tex, suv);
+    wColor.rgb  = clamp(wColor.rgb * glow, 0.0, 4.0);
+    wColor.a   *= edge.x * edge.y;
+
+    return wColor;
+}
+        "
+    }
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Toggle Theme
+# =============================================================================
+
+current=$(cat "$HOME/.config/darkman.cfg" 2>/dev/null || echo "light")
+
+if [ "$current" = "dark" ]; then
+    echo "light" > "$HOME/.config/darkman.cfg"
+    darkman set light 2>/dev/null || true
+else
+    echo "dark" > "$HOME/.config/darkman.cfg"
+    darkman set dark 2>/dev/null || true
+fi

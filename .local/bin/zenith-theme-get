@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Get Current Theme
+# =============================================================================
+
+[ -f "$HOME/.config/darkman.cfg" ] && cat "$HOME/.config/darkman.cfg" || echo "light"

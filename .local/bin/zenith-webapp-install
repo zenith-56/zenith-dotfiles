@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-webapp — Web app installer for Zenith-Dotfiles
+# Creates a .desktop entry that opens a URL in app mode (no browser chrome)
+#
+# Usage:
+#   zenith-webapp                          # interactive
+#   zenith-webapp <name> <url> [icon]      # scripted
+#     icon can be: dashboardicons name | https://... | (empty = auto favicon)
+# =============================================================================
+set -e
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+ICON_DIR="$HOME/.local/share/applications/icons"
+APPS_DIR="$HOME/.local/share/applications"
+mkdir -p "$ICON_DIR" "$APPS_DIR"
+
+# ── Browser detection ─────────────────────────────────────────────────────────
+# Browsers that support --app=URL (opens without tabs/urlbar)
+APPMODE_BROWSERS=(
+    chromium chromium-browser
+    google-chrome google-chrome-stable google-chrome-beta
+    brave-browser brave
+    microsoft-edge microsoft-edge-stable
+    vivaldi vivaldi-stable
+    opera
+)
+
+# Returns binary name if found in PATH, else empty
+find_binary() {
+    for b in "$@"; do
+        if command -v "$b" &>/dev/null; then
+            echo "$b"; return
+        fi
+    done
+}
+
+# Get xdg default browser binary (strips .desktop suffix, lowercases)
+get_xdg_default() {
+    local desktop
+    desktop=$(xdg-settings get default-web-browser 2>/dev/null || true)
+    desktop="${desktop%.desktop}"
+    desktop="${desktop,,}"
+    # Common desktop-id → binary mappings
+    case "$desktop" in
+        chromium|chromium-browser)   echo "chromium" ;;
+        google-chrome*)              echo "google-chrome-stable" ;;
+        brave-browser*)              echo "brave-browser" ;;
+        microsoft-edge*)             echo "microsoft-edge-stable" ;;
+        vivaldi*)                    echo "vivaldi-stable" ;;
+        firefox*)                    echo "firefox" ;;
+        zen*)                        echo "zen-browser" ;;
+        librewolf*)                  echo "librewolf" ;;
+        *)                           echo "$desktop" ;;
+    esac
+}
+
+supports_appmode() {
+    local bin="$1"
+    for b in "${APPMODE_BROWSERS[@]}"; do
+        [[ "$bin" == "$b" ]] && return 0
+    done
+    return 1
+}
+
+# Build list of installed chromium-family browsers for fallback picker
+installed_appmode_browsers() {
+    local found=()
+    for b in "${APPMODE_BROWSERS[@]}"; do
+        command -v "$b" &>/dev/null && found+=("$b")
+    done
+    printf '%s\n' "${found[@]}"
+}
+
+pick_browser() {
+    local default_bin
+    default_bin=$(get_xdg_default)
+    # Resolve actual binary (default might not be in PATH as-is)
+    default_bin=$(find_binary "$default_bin" "$default_bin-stable" "$default_bin-browser" || true)
+
+    if [[ -n "$default_bin" ]] && supports_appmode "$default_bin"; then
+        echo "$default_bin"
+        return
+    fi
+
+    # Default doesn't support --app mode — find installed ones
+    local choices
+    mapfile -t choices < <(installed_appmode_browsers)
+
+    if (( ${#choices[@]} == 0 )); then
+        echo -e "\e[31mNo Chromium-family browser found. App mode requires Chromium, Brave, etc.\e[0m" >&2
+        echo -e "Install one or use Firefox (note: Firefox opens as a regular window)." >&2
+        # Let user decide whether to proceed with Firefox anyway
+        local use_ff
+        use_ff=$(gum choose --header "No --app mode browser found. Proceed with?" \
+            "firefox" "zen-browser" "librewolf" "cancel")
+        [[ "$use_ff" == "cancel" ]] && exit 1
+        echo "$use_ff"
+        return
+    fi
+
+    if (( ${#choices[@]} == 1 )); then
+        echo "${choices[0]}"
+        return
+    fi
+
+    # Multiple app-mode browsers available — let user choose
+    gum choose --header "Default browser doesn't support app mode. Pick one:" "${choices[@]}"
+}
+
+build_exec() {
+    local browser="$1" url="$2"
+    case "$browser" in
+        firefox|zen-browser|librewolf|waterfox)
+            # Firefox family: no real app mode, open as new window
+            echo "$browser --new-window $url"
+            ;;
+        *)
+            echo "$browser --app=$url"
+            ;;
+    esac
+}
+
+# ── Icon resolution ───────────────────────────────────────────────────────────
+# Priority: dashboardicons name → auto favicon → manual URL
+
+DASHICONS_BASE="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png"
+FAVICON_BASE="https://www.google.com/s2/favicons?domain"
+
+download_icon() {
+    local url="$1" dest="$2"
+    curl -fsSL --max-time 10 -o "$dest" "$url" 2>/dev/null && [[ -s "$dest" ]]
+}
+
+resolve_icon() {
+    local name="$1" app_url="$2" icon_hint="$3"
+    local dest="$ICON_DIR/$name.png"
+
+    # 1. Explicit dashboardicons name (no slashes, no protocol)
+    if [[ -n "$icon_hint" && ! "$icon_hint" =~ ^https?:// && ! "$icon_hint" =~ / ]]; then
+        local di_url="$DASHICONS_BASE/${icon_hint}.png"
+        if download_icon "$di_url" "$dest"; then
+            echo "$dest"; return
+        fi
+        echo -e "\e[33mDashboard icon '$icon_hint' not found, falling back to favicon.\e[0m" >&2
+    fi
+
+    # 2. Explicit URL
+    if [[ "$icon_hint" =~ ^https?:// ]]; then
+        if download_icon "$icon_hint" "$dest"; then
+            echo "$dest"; return
+        fi
+        echo -e "\e[33mFailed to download icon URL, falling back to favicon.\e[0m" >&2
+    fi
+
+    # 3. Auto favicon
+    local favicon_url="$FAVICON_BASE=${app_url}&sz=128"
+    if download_icon "$favicon_url" "$dest"; then
+        echo "$dest"; return
+    fi
+
+    # 4. Give up — ask manually
+    echo -e "\e[33mCould not fetch icon automatically.\e[0m" >&2
+    local manual_url
+    manual_url=$(gum input \
+        --prompt "Icon> " \
+        --placeholder "dashboardicons name or https://... (see dashboardicons.com)")
+    resolve_icon "$name" "$app_url" "$manual_url"
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+INTERACTIVE_MODE=false
+
+if (( $# < 2 )); then
+    INTERACTIVE_MODE=true
+
+    echo -e "\e[32m── Zenith-Dotfiles Web App Installer ──\e[0m\n"
+
+    APP_NAME=$(gum input \
+        --prompt "Name> " \
+        --placeholder "Notion, Linear, Figma…")
+
+    APP_URL=$(gum input \
+        --prompt "URL> " \
+        --placeholder "https://example.com")
+
+    ICON_HINT=$(gum input \
+        --prompt "Icon> " \
+        --placeholder "dashboardicons name, URL, or leave empty for auto favicon")
+else
+    APP_NAME="$1"
+    APP_URL="$2"
+    ICON_HINT="${3:-}"
+fi
+
+# Normalize URL
+[[ "$APP_URL" =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]] || APP_URL="https://$APP_URL"
+
+# Validate
+if [[ -z "$APP_NAME" || -z "$APP_URL" ]]; then
+    echo "Name and URL are required." >&2
+    exit 1
+fi
+
+# Sanitize name for filename (spaces → underscores, strip special chars)
+SAFE_NAME="${APP_NAME// /_}"
+SAFE_NAME="${SAFE_NAME//[^a-zA-Z0-9_.-]/}"
+
+# ── Resolve components ────────────────────────────────────────────────────────
+echo -e "\e[2mDetecting browser…\e[0m"
+BROWSER=$(pick_browser)
+
+echo -e "\e[2mFetching icon…\e[0m"
+ICON_PATH=$(resolve_icon "$SAFE_NAME" "$APP_URL" "$ICON_HINT")
+
+EXEC_CMD=$(build_exec "$BROWSER" "$APP_URL")
+
+# ── Write .desktop ────────────────────────────────────────────────────────────
+DESKTOP_FILE="$APPS_DIR/$SAFE_NAME.desktop"
+
+cat > "$DESKTOP_FILE" <<EOF
+[Desktop Entry]
+Version=1.0
+Name=$APP_NAME
+Comment=Web app — $APP_URL
+Exec=$EXEC_CMD
+Terminal=false
+Type=Application
+Icon=$ICON_PATH
+StartupNotify=true
+StartupWMClass=$SAFE_NAME
+Categories=WebApp;Network;
+EOF
+
+chmod +x "$DESKTOP_FILE"
+
+# Update desktop database so launchers (Rofi, etc.) pick it up immediately
+update-desktop-database "$APPS_DIR" 2>/dev/null || true
+
+# ── Done ──────────────────────────────────────────────────────────────────────
+if [[ "$INTERACTIVE_MODE" == "true" ]]; then
+    notify-send \
+        --icon="$ICON_PATH" \
+        --urgency=normal \
+        "Web app installed" \
+        "$APP_NAME is ready in your app launcher"
+
+    echo -e "\n\e[32m✓ $APP_NAME installed\e[0m"
+    echo -e "  Browser : $BROWSER"
+    echo -e "  URL     : $APP_URL"
+    echo -e "  Icon    : $ICON_PATH"
+    echo -e "  Desktop : $DESKTOP_FILE\n"
+fi

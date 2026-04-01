@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Restart SwayOSD
+# =============================================================================
+
+pkill swayosd-server 2>/dev/null || true
+sleep 0.2
+swayosd-server &
+echo "SwayOSD restarted"

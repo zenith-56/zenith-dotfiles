@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-pkg — Main CLI entry point for package management
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-pkg-colors"
+
+# ── Check for required commands ───────────────────────────────────────────────
+check_deps() {
+    local missing=()
+    for cmd in fzf gum pacman; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}Error: Missing dependencies: ${missing[*]}${RESET}" >&2
+        echo -e "${CYAN}Install with: sudo pacman -S fzf gum${RESET}" >&2
+        exit 1
+    fi
+}
+
+# ── Main Menu ─────────────────────────────────────────────────────────────────
+show_main_menu() {
+    echo ""
+    echo -e "${CYAN}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${CYAN}║${RESET}     ${CYAN}Zenith Package Manager${RESET}          ${CYAN}║${RESET}"
+    echo -e "${CYAN}╚════════════════════════════════════════╝${RESET}"
+    echo ""
+
+    local choice
+    choice=$(gum_choose \
+        --header "What would you like to do?" \
+        --cursor-prefix "> " \
+        --unselected-prefix "  " \
+        "Install packages" \
+        "Remove packages" \
+        "List installed packages" \
+        "Search packages" \
+        "Package info" \
+        "Update system" \
+        "Clean package cache" \
+        "Exit")
+
+    echo ""
+
+    case "$choice" in
+        "Install packages")
+            zenith-pkg-add
+            ;;
+        "Remove packages")
+            zenith-pkg-remove
+            ;;
+        "List installed packages")
+            zenith-pkg-list
+            ;;
+        "Search packages")
+            zenith-pkg search
+            ;;
+        "Package info")
+            show_package_info_interactive
+            ;;
+        "Update system")
+            cmd_update
+            ;;
+        "Clean package cache")
+            zenith-pkg-remove --clean
+            ;;
+        *)
+            echo -e "${YELLOW}Goodbye!${RESET}"
+            exit 0
+            ;;
+    esac
+
+    echo ""
+    if gum_confirm "Return to main menu?"; then
+        show_main_menu
+    fi
+}
+
+# ── Subcommands ───────────────────────────────────────────────────────────────
+
+cmd_add() {
+    if [[ $# -gt 0 ]]; then
+        zenith-pkg-add "$@"
+    else
+        zenith-pkg-add
+    fi
+}
+
+cmd_remove() {
+    if [[ $# -gt 0 ]]; then
+        zenith-pkg-remove "$@"
+    else
+        zenith-pkg-remove
+    fi
+}
+
+cmd_list() {
+    if [[ $# -gt 0 ]]; then
+        zenith-pkg-list "$@"
+    else
+        zenith-pkg-list
+    fi
+}
+
+cmd_search() {
+    local pattern="${1:-}"
+
+    if [[ -z "$pattern" ]]; then
+        pattern=$(gum_input \
+            --prompt "Search> " \
+            --placeholder "Search packages..." \
+            --width 50)
+    fi
+
+    if [[ -n "$pattern" ]]; then
+        zenith-pkg-list --search "$pattern"
+    else
+        echo -e "${YELLOW}No search pattern provided${RESET}"
+    fi
+}
+
+cmd_info() {
+    local pkg="${1:-}"
+
+    if [[ -z "$pkg" ]]; then
+        pkg=$(gum_input \
+            --prompt "Package> " \
+            --placeholder "Enter package name..." \
+            --width 50)
+    fi
+
+    if [[ -n "$pkg" ]]; then
+        echo -e "${CYAN}Package info for: $pkg${RESET}"
+        echo ""
+
+        if pacman -Qi "$pkg" 2>/dev/null; then
+            :
+        elif pacman -Si "$pkg" 2>/dev/null; then
+            :
+        else
+            echo -e "${RED}Package not found: $pkg${RESET}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}No package specified${RESET}"
+    fi
+}
+
+cmd_update() {
+    echo -e "${CYAN}System Update${RESET}"
+    echo ""
+
+    local mode
+    mode=$(gum_choose \
+        --header "Select update mode:" \
+        "Full system update (pacman -Syu)" \
+        "Check for updates only" \
+        "Cancel")
+
+    echo ""
+
+    case "$mode" in
+        "Full system update (pacman -Syu)")
+            echo -e "${CYAN}Running full system update...${RESET}"
+            sudo pacman -Syu
+            ;;
+        "Check for updates only")
+            echo -e "${CYAN}Checking for updates...${RESET}"
+            echo ""
+            echo -e "${YELLOW}Available updates:${RESET}"
+            pacman -Qu || echo -e "${GREEN}System is up to date${RESET}"
+            ;;
+        *)
+            echo -e "${YELLOW}Update cancelled${RESET}"
+            return 0
+            ;;
+    esac
+}
+
+cmd_clean() {
+    zenith-pkg-remove --clean
+}
+
+show_package_info_interactive() {
+    echo -e "${CYAN}Package Info${RESET}"
+    echo ""
+
+    local pkg
+    pkg=$(gum_input \
+        --prompt "Package> " \
+        --placeholder "Enter package name..." \
+        --width 50)
+
+    if [[ -n "$pkg" ]]; then
+        cmd_info "$pkg"
+    fi
+}
+
+show_help() {
+    cat << EOF
+${CYAN}zenith-pkg${RESET} — Zenith Package Manager
+
+${YELLOW}USAGE:${RESET}
+    zenith-pkg                          # Interactive main menu
+    zenith-pkg <command> [options]      # Direct command
+
+${YELLOW}COMMANDS:${RESET}
+    ${GREEN}add [packages...]${RESET}     Install pacman packages (official repos)
+    ${GREEN}remove [packages...]${RESET}  Remove packages
+    ${GREEN}list [options]${RESET}        List pacman packages
+    ${GREEN}search <pattern>${RESET}      Search packages
+    ${GREEN}info <package>${RESET}        Show package info
+    ${GREEN}update${RESET}                Update system
+    ${GREEN}clean${RESET}                 Clean package cache
+    ${GREEN}help${RESET}                  Show this help message
+
+${YELLOW}SUB-SCRIPTS:${RESET}
+    ${GREEN}zenith-pkg-add${RESET}        Interactive pacman package installer
+    ${GREEN}zenith-pkg-list${RESET}       List installed pacman packages
+    ${GREEN}zenith-pkg-remove${RESET}     Remove packages interactively
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith-pkg                          # Open main menu
+    zenith-pkg add firefox vim          # Install pacman packages
+    zenith-pkg remove chrome            # Remove packages
+    zenith-pkg list --orphans           # List orphan packages
+    zenith-pkg search editor            # Search for editors
+    zenith-pkg info vim                 # Show vim info
+    zenith-pkg update                   # Update system
+
+${YELLOW}KEY FEATURES:${RESET}
+    • Fuzzy search with fzf
+    • Interactive menus with gum
+    • Package preview before install
+    • Orphan package detection
+    • Reverse dependency checking
+    • Desktop notifications
+
+EOF
+}
+
+show_version() {
+    echo "zenith-pkg version 0.3.0"
+    echo "Part of Zenith-Dotfiles"
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    check_deps
+
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${RED}Error: Do not run as root${RESET}" >&2
+        exit 1
+    fi
+
+    if [[ $# -eq 0 ]]; then
+        show_main_menu
+        return 0
+    fi
+
+    local command="$1"
+    shift
+
+    case "$command" in
+        add|install|i)
+            cmd_add "$@"
+            ;;
+        remove|rm|r|uninstall)
+            cmd_remove "$@"
+            ;;
+        list|ls|l)
+            cmd_list "$@"
+            ;;
+        search|s|find)
+            cmd_search "$@"
+            ;;
+        info|i)
+            cmd_info "$@"
+            ;;
+        update|up|u)
+            cmd_update
+            ;;
+        clean|c)
+            cmd_clean
+            ;;
+        version|--version|-v)
+            show_version
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            echo -e "${RED}Error: Unknown command: $command${RESET}" >&2
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

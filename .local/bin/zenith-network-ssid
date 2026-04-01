@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Network SSID
+# =============================================================================
+
+command -v impalactl >/dev/null 2>&1 && \
+    impalactl gateway status 2>/dev/null | grep "SSID" | awk '{print $2}' || \
+    echo ""

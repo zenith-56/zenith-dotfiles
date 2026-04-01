@@ -1,0 +1,124 @@
+/**
+ * =============================================================================
+ * Rofi Wallpaper Preview Theme
+ * =============================================================================
+ * Description : Ultra-minimalist "Gallery Mode" focused on full-size image
+ * previews by disabling inputbars and standard UI borders.
+ * =============================================================================
+ **/
+
+@import "~/.config/rofi/colors.rasi"
+
+* {
+    font:                        "JetBrains Mono Nerd Font 11";
+    bg:                          @background;
+    bg-alt:                      @background-alt;
+    fg:                          @foreground;
+    sel:                         @selected;
+    act:                         @active;
+    urg:                         @urgent;
+
+    /* Reseteo maestro: mata cualquier línea o margen oculto por defecto */
+    margin:                      0px;
+    padding:                     0px;
+    border:                      0px;
+}
+
+configuration {
+    modi:                        "drun,run,filebrowser,window";
+    show-icons:                  true;
+}
+
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  false;
+
+    width:                       1000px;
+
+    x-offset:                    0px;
+    y-offset:                    0px;
+    border-radius:               0px;
+
+    enabled:                     true;
+    cursor:                      "default";
+    background-color:            transparent;
+}
+
+mainbox {
+    enabled:                     true;
+    spacing:                     0px;
+    background-color:            transparent;
+    orientation:                 horizontal;
+    children:                    [ "listview" ];
+}
+
+listview {
+    enabled:                     true;
+    columns:                     1;
+    lines:                       1;
+    cycle:                       true;
+    dynamic:                     false;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                true;
+    fixed-columns:               true;
+    spacing:                     0px;
+    padding:                     0px;
+    background-color:            transparent;
+    text-color:                  @fg;
+    cursor:                      "default";
+}
+
+element {
+    enabled:                     true;
+    spacing:                     0px;
+    padding:                     0px;
+    border-radius:               0px;
+    background-color:            transparent;
+    text-color:                  @fg;
+    cursor:                      pointer;
+    orientation:                 vertical;
+}
+
+element selected.normal {
+    background-color:            transparent;
+    text-color:                  @fg;
+}
+
+element selected.urgent {
+    background-color:            transparent;
+    text-color:                  @fg;
+}
+
+element selected.active {
+    background-color:            transparent;
+    text-color:                  @fg;
+}
+
+element-icon {
+    background-color:            transparent;
+    text-color:                  inherit;
+    size:                        1000px;
+    cursor:                      inherit;
+}
+
+element-text {
+    enabled:                     false;
+}
+
+message {
+    enabled:                     true;
+    padding:                     10px 20px;
+    background-color:            transparent;
+    text-color:                  @fg;
+    horizontal-align:            0.5;
+    font:                        "JetBrains Mono Nerd Font 12";
+}
+
+textbox {
+    background-color:            transparent;
+    text-color:                  @fg;
+}

@@ -1,0 +1,12 @@
+// Niri Layer Rules Configuration
+// =============================================================================
+// Description : Layer rules for the Niri compositor.
+//               Configures the placement of windows within the backdrop for
+//               specific namespaces.
+// =============================================================================
+
+
+layer-rule {
+    match namespace="awww-daemon"
+    place-within-backdrop true
+}

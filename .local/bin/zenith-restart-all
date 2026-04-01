@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Restart All Services
+# =============================================================================
+
+BIN="$HOME/.local/bin"
+
+pkill waybar 2>/dev/null || true
+pkill dunst 2>/dev/null || true
+pkill swayosd-server 2>/dev/null || true
+
+sleep 0.3
+
+waybar &
+dunst &
+swayosd-server &
+"$BIN/zenith-reload-kitty"
+
+echo "All services restarted"

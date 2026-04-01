@@ -1,0 +1,143 @@
+@import "./colors.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font Propo";
+    font-size: 16px;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    outline: none;
+}
+
+window#waybar {
+    background: @surface;
+}
+
+#custom-darkman:hover,
+#custom-cachy:hover,
+#custom-cpu_snake:hover,
+#custom-notification:hover,
+#clock:hover,
+#custom-menu:hover,
+#tray:hover,
+#privacy:hover,
+#network:hover,
+#bluetooth:hover,
+#pulseaudio:hover,
+#pulseaudio.microphone:hover,
+#pulseaudio.sink-muted:hover,
+#custom-powermenu:hover {
+    opacity: 0.5;
+}
+
+#custom-darkman,
+#custom-cachy,
+#custom-cpu_snake,
+#custom-notification,
+#clock,
+#custom-menu,
+#tray,
+#privacy,
+#network,
+#bluetooth,
+#pulseaudio,
+#pulseaudio.microphone,
+#backlight,
+#battery,
+#custom-powermenu {
+    color: @on_surface;
+    padding: 6px 0;
+}
+
+#workspaces button {
+    color: @on_surface;
+    padding: 0;
+}
+#workspaces button:hover {
+    color: @on_surface;
+    opacity: 0.5;
+}
+#workspaces button.active {
+    color: @primary;
+}
+
+#privacy {
+    margin: 4px;
+    color: @secondary;
+}
+
+#clock {
+    color: @primary;
+}
+
+#network.disabled {
+    color: @error;
+}
+#network.wifi {
+    color: @primary;
+}
+#network.ethernet {
+    color: @tertiary;
+}
+
+#bluetooth.disabled {
+    color: @error;
+}
+#bluetooth.connected {
+    color: @tertiary;
+}
+
+#pulseaudio.sink-muted:not(.microphone) {
+    color: @secondary;
+}
+#pulseaudio.microphone.source-muted {
+    color: @error;
+}
+
+#battery.plugged {
+    color: @tertiary;
+}
+#battery.charging {
+    color: @primary;
+}
+#battery.critical {
+    color: @error;
+}
+
+tooltip {
+    background: @surface_container;
+    border: 1px solid @outline;
+}
+tooltip * {
+    color: @on_surface;
+    margin: 2px;
+    background: @surface_container;
+}
+
+#pulseaudio-slider,
+#backlight-slider {
+    min-height: 70px;
+}
+
+#pulseaudio-slider slider,
+#backlight-slider slider {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    min-width: 4px;
+    min-height: 4px;
+    margin: 0;
+}
+
+#pulseaudio-slider trough,
+#backlight-slider trough {
+    min-width: 4px;
+    background: @surface_variant;
+    border: none;
+}
+
+#pulseaudio-slider highlight,
+#backlight-slider highlight {
+    background: @primary;
+}

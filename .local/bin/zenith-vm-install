@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Install New VM
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+TEMPLATE_DIR="$HOME/.config/zenith-vm/templates"
+VM_DATA_DIR="$HOME/.local/share/zenith-vm"
+
+mkdir -p "$VM_DATA_DIR"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-install [options]
+
+Options:
+  --name NAME        VM name (required)
+  --os OS            windows11, ubuntu, arch [default: windows11]
+  --ram RAM          RAM allocation (e.g., 4G, 8G, 16G) [default: 8G]
+  --cpus N           CPU cores (1-32) [default: 4]
+  --disk SIZE        Disk size (e.g., 32G, 64G, 128G) [default: 64G]
+  --web-port PORT    Web console port [default: 8006]
+  --gpu-passthrough  Enable GPU passthrough
+  --usb-devices      Comma-separated USB device IDs (e.g., 1234:5678,abcd:ef01)
+  -h, --help         Show this help
+EOF
+}
+
+# Defaults
+VM_NAME=""
+VM_OS=""
+RAM="8G"
+CPUS=4
+DISK="64G"
+WEB_PORT=8006
+GPU_PASSTHROUGH=false
+USB_DEVICES=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --name) VM_NAME="$2"; shift 2 ;;
+    --os) VM_OS="$2"; shift 2 ;;
+    --ram) RAM="$2"; shift 2 ;;
+    --cpus) CPUS="$2"; shift 2 ;;
+    --disk) DISK="$2"; shift 2 ;;
+    --web-port) WEB_PORT="$2"; shift 2 ;;
+    --gpu-passthrough) GPU_PASSTHROUGH=true; shift ;;
+    --usb-devices) USB_DEVICES="$2"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1"; usage; exit 1 ;;
+  esac
+done
+
+# Interactive mode with gum if no args
+if [ -z "$VM_NAME" ]; then
+  if ! command -v gum &>/dev/null; then
+    echo "Error: gum is required for interactive mode. Install with: yay -S gum"
+    echo "Or use flags: zenith-vm-install --name myvm --os windows11"
+    exit 1
+  fi
+
+  # OS Selection
+  VM_OS=$(gum choose "Windows 11" "Ubuntu" "Arch Linux" --header "Select OS")
+  case "$VM_OS" in
+    "Windows 11") VM_OS="windows11" ;;
+    "Ubuntu") VM_OS="ubuntu" ;;
+    "Arch Linux") VM_OS="arch" ;;
+  esac
+
+  VM_NAME=$(gum input --placeholder "my-vm" --header "Enter VM name")
+  [ -z "$VM_NAME" ] && { echo "VM name is required"; exit 1; }
+
+  RAM=$(gum input --placeholder "8G" --header "RAM allocation (e.g., 4G, 8G, 16G)")
+  RAM="${RAM:-8G}"
+
+  CPUS=$(gum input --placeholder "4" --header "CPU cores (1-32)")
+  CPUS="${CPUS:-4}"
+
+  DISK=$(gum input --placeholder "64G" --header "Disk size (e.g., 32G, 64G, 128G)")
+  DISK="${DISK:-64G}"
+
+  WEB_PORT=$(gum input --placeholder "8006" --header "Web console port")
+  WEB_PORT="${WEB_PORT:-8006}"
+fi
+
+VM_OS="${VM_OS:-windows11}"
+
+# Determine template and image
+case "$VM_OS" in
+  windows11)
+    TEMPLATE="$TEMPLATE_DIR/windows-compose.yml"
+    IMAGE="dockurr/windows"
+    WIN_VERSION="11"
+    BOOT=""
+    ;;
+  ubuntu)
+    TEMPLATE="$TEMPLATE_DIR/linux-compose.yml"
+    IMAGE="qemux/qemu"
+    WIN_VERSION=""
+    BOOT="ubuntu"
+    ;;
+  arch)
+    TEMPLATE="$TEMPLATE_DIR/linux-compose.yml"
+    IMAGE="qemux/qemu"
+    WIN_VERSION=""
+    BOOT="arch"
+    ;;
+  *)
+    echo "Error: Unknown OS type: $VM_OS"
+    exit 1
+    ;;
+esac
+
+# Validate
+if [ -f "$VM_CONFIG_DIR/${VM_NAME}.json" ]; then
+  echo "Error: VM '$VM_NAME' already exists"
+  exit 1
+fi
+
+# Create VM data directory
+VM_DIR="$VM_DATA_DIR/$VM_NAME"
+mkdir -p "$VM_DIR"
+
+# Generate docker-compose file
+COMPOSE_FILE="$VM_DIR/compose.yml"
+export VM_NAME RAM CPUS DISK WEB_PORT
+export WIN_VERSION="${WIN_VERSION:-}"
+export BOOT="${BOOT:-}"
+
+envsubst < "$TEMPLATE" > "$COMPOSE_FILE"
+
+# Add GPU passthrough if enabled
+if [ "$GPU_PASSTHROUGH" = true ]; then
+  GPU_VFIO=$(ls /dev/vfio/ | grep -v vfio | head -1)
+  if [ -n "$GPU_VFIO" ]; then
+    cat >> "$COMPOSE_FILE" <<EOF
+    devices:
+      - /dev/vfio/vfio
+      - /dev/vfio/$GPU_VFIO
+EOF
+  fi
+fi
+
+# Add USB devices
+if [ -n "$USB_DEVICES" ]; then
+  USB_ARGS=""
+  IFS=',' read -ra DEVS <<< "$USB_DEVICES"
+  for dev in "${DEVS[@]}"; do
+    USB_ARGS="${USB_ARGS}-device usb-host,vendorid=0x${dev%%:*},productid=0x${dev##*:} "
+  done
+  sed -i "/^    stop_grace_period/i\\    environment:\n      ARGUMENTS: \"$USB_ARGS\"\n    devices:\n      - /dev/bus/usb" "$COMPOSE_FILE"
+fi
+
+# Create VM config JSON
+USB_JSON="[]"
+if [ -n "$USB_DEVICES" ]; then
+  USB_JSON=$(echo "$USB_DEVICES" | tr ',' '\n' | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//' | sed 's/^/[/' | sed 's/$/]/')
+fi
+
+case "$VM_OS" in
+  windows11) OS_TYPE="windows"; OS_VERSION="11" ;;
+  ubuntu) OS_TYPE="linux"; OS_VERSION="22.04" ;;
+  arch) OS_TYPE="linux"; OS_VERSION="rolling" ;;
+esac
+
+cat > "$VM_CONFIG_DIR/${VM_NAME}.json" <<EOF
+{
+  "name": "$VM_NAME",
+  "os_type": "$OS_TYPE",
+  "os_version": "$OS_VERSION",
+  "engine": "docker",
+  "image": "$IMAGE",
+  "ram": "$RAM",
+  "cpus": $CPUS,
+  "disk": "$DISK",
+  "web_port": $WEB_PORT,
+  "rdp_port": 3389,
+  "ssh_port": 2222,
+  "vnc_port": null,
+  "gpu_passthrough": $GPU_PASSTHROUGH,
+  "usb_devices": $USB_JSON,
+  "network": "nat",
+  "status": "stopped",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "compose_file": "$COMPOSE_FILE"
+}
+EOF
+
+echo "VM '$VM_NAME' created successfully"
+echo "  OS: $VM_OS"
+echo "  RAM: $RAM"
+echo "  CPUs: $CPUS"
+echo "  Disk: $DISK"
+echo "  Web console: http://localhost:$WEB_PORT"
+echo ""
+echo "Run 'zenith-vm launch $VM_NAME' to start the VM"

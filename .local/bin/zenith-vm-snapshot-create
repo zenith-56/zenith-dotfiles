@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Create VM Snapshot
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+SNAPSHOT_DIR="$HOME/.config/zenith-vm/snapshots"
+mkdir -p "$SNAPSHOT_DIR"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-snapshot-create [vm-name] [snapshot-name]
+
+Creates a snapshot of a VM.
+
+Options:
+  --name NAME    Snapshot name (default: snapshot-YYYYMMDD-HHMMSS)
+  --desc DESC    Snapshot description
+  -h, --help     Show this help
+EOF
+}
+
+VM_NAME="${1:-}"
+SNAPSHOT_NAME=""
+DESCRIPTION=""
+
+shift 2>/dev/null || true
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --name) SNAPSHOT_NAME="$2"; shift 2 ;;
+    --desc) DESCRIPTION="$2"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [ -z "$VM_NAME" ]; then
+        VM_NAME="$1"
+      elif [ -z "$SNAPSHOT_NAME" ]; then
+        SNAPSHOT_NAME="$1"
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Interactive selection with gum
+if [ -z "$VM_NAME" ]; then
+  if command -v gum &>/dev/null; then
+    VM_NAME=$(gum choose $(ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json) --header "Select VM to snapshot")
+  else
+    echo "Available VMs:"
+    ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json
+    echo ""
+    read -rp "Enter VM name: " VM_NAME
+  fi
+  [ -z "$VM_NAME" ] && { echo "No VM selected"; exit 1; }
+fi
+
+CONFIG="$VM_CONFIG_DIR/${VM_NAME}.json"
+if [ ! -f "$CONFIG" ]; then
+  echo "Error: VM '$VM_NAME' not found"
+  exit 1
+fi
+
+# Generate snapshot name
+SNAPSHOT_NAME="${SNAPSHOT_NAME:-snapshot-$(date +%Y%m%d-%H%M%S)}"
+
+# Get description
+if [ -z "$DESCRIPTION" ] && command -v gum &>/dev/null; then
+  DESCRIPTION=$(gum input --placeholder "Snapshot description" --header "Description (optional)")
+fi
+
+# Read config
+get_json() { python3 -c "import json; d=json.load(open('$CONFIG')); print(d.get('$1',''))" 2>/dev/null; }
+
+ENGINE=$(get_json "engine")
+
+# Create snapshot
+VM_SNAP_DIR="$SNAPSHOT_DIR/$VM_NAME"
+mkdir -p "$VM_SNAP_DIR"
+
+if [ "$ENGINE" = "docker" ]; then
+  # Docker: commit container state as image
+  echo "Creating snapshot '$SNAPSHOT_NAME' for VM '$VM_NAME'..."
+
+  # Check if running
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${VM_NAME}$"; then
+    docker commit "$VM_NAME" "${VM_NAME}:${SNAPSHOT_NAME}" 2>/dev/null
+  else
+    echo "Warning: VM is not running. Snapshot will be based on current image."
+  fi
+
+elif [ "$ENGINE" = "qemu" ]; then
+  echo "Creating snapshot '$SNAPSHOT_NAME' for VM '$VM_NAME'..."
+  virsh snapshot-create-as "$VM_NAME" "$SNAPSHOT_NAME" --description "$DESCRIPTION" 2>/dev/null || {
+    echo "Error: Failed to create snapshot"
+    exit 1
+  }
+fi
+
+# Save snapshot metadata
+cat > "$VM_SNAP_DIR/${SNAPSHOT_NAME}.json" <<EOF
+{
+  "name": "$SNAPSHOT_NAME",
+  "vm_name": "$VM_NAME",
+  "description": "$DESCRIPTION",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "engine": "$ENGINE"
+}
+EOF
+
+echo "Snapshot '$SNAPSHOT_NAME' created successfully"

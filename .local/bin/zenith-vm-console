@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Open VNC/Web Console
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-console [vm-name]
+
+Opens the web console for a VM.
+
+Options:
+  -h, --help  Show this help
+EOF
+}
+
+VM_NAME="${1:-}"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [ -z "$VM_NAME" ]; then
+        VM_NAME="$1"
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Interactive selection with gum
+if [ -z "$VM_NAME" ]; then
+  if command -v gum &>/dev/null; then
+    VM_NAME=$(gum choose $(ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json) --header "Select VM")
+  else
+    echo "Available VMs:"
+    ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json
+    echo ""
+    read -rp "Enter VM name: " VM_NAME
+  fi
+  [ -z "$VM_NAME" ] && { echo "No VM selected"; exit 1; }
+fi
+
+CONFIG="$VM_CONFIG_DIR/${VM_NAME}.json"
+if [ ! -f "$CONFIG" ]; then
+  echo "Error: VM '$VM_NAME' not found"
+  exit 1
+fi
+
+# Read config
+get_json() { python3 -c "import json; d=json.load(open('$CONFIG')); print(d.get('$1',''))" 2>/dev/null; }
+
+ENGINE=$(get_json "engine")
+WEB_PORT=$(get_json "web_port")
+RDP_PORT=$(get_json "rdp_port")
+SSH_PORT=$(get_json "ssh_port")
+
+# Ensure VM is running
+if [ "$ENGINE" = "docker" ]; then
+  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${VM_NAME}$"; then
+    echo "VM '$VM_NAME' is not running. Starting..."
+    "$HOME/.local/bin/zenith-vm-launch" "$VM_NAME" --no-console
+  fi
+elif [ "$ENGINE" = "qemu" ]; then
+  if ! virsh domstate "$VM_NAME" 2>/dev/null | grep -q "running"; then
+    echo "VM '$VM_NAME' is not running. Starting..."
+    "$HOME/.local/bin/zenith-vm-launch" "$VM_NAME" --no-console
+  fi
+fi
+
+# Open console
+echo "Opening console for VM '$VM_NAME'..."
+
+if [ "$ENGINE" = "docker" ]; then
+  # Web console (dockurr provides web-based VNC)
+  xdg-open "http://localhost:${WEB_PORT:-8006}" 2>/dev/null || {
+    echo "Could not open browser. Navigate to: http://localhost:${WEB_PORT:-8006}"
+  }
+elif [ "$ENGINE" = "qemu" ]; then
+  # Try virt-manager first
+  if command -v virt-viewer &>/dev/null; then
+    virt-viewer --connect qemu:///system "$VM_NAME" 2>/dev/null &
+  elif command -v virt-manager &>/dev/null; then
+    virt-manager --show-domain-console="$VM_NAME" 2>/dev/null &
+  else
+    echo "No VNC client found. Install virt-viewer or virt-manager."
+  fi
+fi

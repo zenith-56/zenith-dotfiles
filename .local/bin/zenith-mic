@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Mic Mute/Unmute
+# =============================================================================
+
+wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+muted=$(wpctl get-mute @DEFAULT_AUDIO_SOURCE@)
+
+if [[ "$muted" == *"Muted"* ]]; then
+    notify-send "Mic" "🔇 Muted" -t 1000
+else
+    notify-send "Mic" "🎤 Unmuted" -t 1000
+fi

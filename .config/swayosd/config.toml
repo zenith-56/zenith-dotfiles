@@ -1,0 +1,13 @@
+# =============================================================================
+# SwayOSD Configuration - Zenith-Dotfiles
+# =============================================================================
+# Description : Visual feedback service for hardware controls, featuring
+#               customized geometry and brightness thresholds.
+# =============================================================================
+
+[server]
+top_margin = 0.92
+min_brightness = 5
+
+[client]
+# Client settings

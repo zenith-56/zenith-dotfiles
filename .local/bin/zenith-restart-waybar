@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Restart Waybar
+# =============================================================================
+
+pkill waybar 2>/dev/null || true
+sleep 0.2
+waybar &
+echo "Waybar restarted"

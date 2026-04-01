@@ -1,0 +1,23 @@
+// =============================================================================
+// Niri Main Configuration
+// =============================================================================
+// Description : Main entry point for the Niri Wayland compositor configuration.
+//               Includes modular configuration files for input, output, layout,
+//               startup, animations, window rules, keybindings, overview, and
+//               layer rules.
+// =============================================================================
+
+// This config is in the KDL format: https://kdl.dev
+// Check the wiki for a full description of the configuration:
+// https://yalter.github.io/niri/Configuration:-Introduction
+
+include "input.kdl"
+include "output.kdl"
+include "layout.kdl"
+include "startup.kdl"
+include "animations.kdl"
+include "window-rules.kdl"
+include "binds.kdl"
+include "overview.kdl"
+include "layer-rules.kdl"
+include "gestures.kdl"

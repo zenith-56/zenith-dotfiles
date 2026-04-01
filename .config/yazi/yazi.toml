@@ -1,0 +1,50 @@
+# =============================================================================
+# Yazi Configuration - Zenith-Dotfiles
+# =============================================================================
+# Description : High-performance TUI file manager config with enhanced
+#               preview ratios and external multimedia plugin support.
+# =============================================================================
+
+[mgr]
+# ── BIGGER PREVIEWS ──────────────────────────────────────────────────
+ratio          = [ 1, 2, 5 ]
+
+# ── COMPORTAMIENTO BÁSICO ─────────────────────────────────────────────────
+sort_by        = "natural"
+sort_sensitive = true
+sort_reverse   = false
+sort_dir_first = true
+show_hidden    = true
+show_symlink   = true
+
+[opener]
+play = [
+	{ run = 'mpv "$@"', orphan = true, desc = "Reproducir con MPV" }
+]
+
+[open]
+rules = [
+	{ mime = "video/*", use = "play" }
+]
+
+[preview]
+# ── CALIDAD DE IMAGEN Y TEXTO ─────────────────────────────────────────────
+wrap            = "yes"
+tab_size        = 2
+max_width       = 1920
+max_height      = 1080
+image_filter    = "triangle"
+image_quality   = 90
+
+[plugin]
+# ── PREVIEWERS EXTERNOS ───────────────────────────────────────────────────
+# Yazi ya tiene soporte nativo para video, pdf y código si tienes las
+# dependencias instaladas (ffmpegthumbnailer, pdftoppm, etc.).
+prepend_previewers = [
+    # Videos
+    { mime = "video/*", run = "video" },
+    # Archivos comprimidos
+    { mime = "application/x-tar", run = "archive" },
+    { mime = "application/zip", run = "archive" },
+    { mime = "application/x-7z-compressed", run = "archive" },
+]

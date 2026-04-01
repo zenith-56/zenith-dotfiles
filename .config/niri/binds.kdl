@@ -1,0 +1,119 @@
+// Niri Binds Configuration
+// =============================================================================
+// Description : Keybindings for the Niri compositor.
+// =============================================================================
+
+
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    Mod+T hotkey-overlay-title="Open a Terminal: Kitty" { spawn "kitty"; }
+    Super+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
+
+    Mod+Shift+SPACE hotkey-overlay-title="Launcher" { spawn "~/.config/rofi/scripts/launcher.sh"; }
+    Mod+SPACE hotkey-overlay-title="App Launcher" { spawn "~/.config/rofi/scripts/app-launcher.sh"; }
+    Mod+Shift+W hotkey-overlay-title="Wallpaper Launcher" { spawn "~/.config/rofi/scripts/wall-selector.sh"; }
+    Mod+Shift+Delete hotkey-overlay-title="Power Launcher" { spawn "~/.config/rofi/scripts/power-menu.sh"; }
+    Mod+Shift+T hotkey-overlay-title="Theme Launcher" { spawn "~/.config/rofi/scripts/theme-menu.sh"; }
+    Mod+Shift+E hotkey-overlay-title="Yazi Finder" { spawn-sh "kitty yazi"; }
+    Mod+Shift+R hotkey-overlay-title="Screen Region Recorder" { spawn "~/.local/bin/zenith-screen-recorder"; }
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume down"; }
+    XF86AudioMute        allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume toggle"; }
+
+    XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
+
+    XF86MonBrightnessUp allow-when-locked=true { spawn "~/.local/bin/zenith-swayosd-brightness" "up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "~/.local/bin/zenith-swayosd-brightness" "down"; }
+
+    XF86AudioMicMute allow-when-locked=true { spawn "~/.local/bin/zenith-mic"; }
+    Mod+Shift+K { spawn "~/.local/bin/zenith-kb-layout" "toggle"; }
+
+    Mod+TAB repeat=false { toggle-overview; }
+    Mod+Q repeat=false { close-window; }
+
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down; }
+    Mod+Ctrl+Up    { move-window-up; }
+    Mod+Ctrl+Right { move-column-right; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End  { move-column-to-last; }
+
+    Mod+Shift+Left  { focus-monitor-left; }
+    Mod+Shift+Down  { focus-monitor-down; }
+    Mod+Shift+Up    { focus-monitor-up; }
+    Mod+Shift+Right { focus-monitor-right; }
+
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+
+    Mod+Ctrl+U         { move-column-to-workspace-down; }
+    Mod+Ctrl+I         { move-column-to-workspace-up; }
+
+    Mod+Shift+U         { move-workspace-down; }
+    Mod+Shift+I         { move-workspace-up; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+
+    Mod+Comma  { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    Mod+R { switch-preset-column-width; }
+    Mod+F { fullscreen-window; }
+
+    Mod+Ctrl+F { expand-column-to-available-width; }
+
+    Mod+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Plus { set-column-width "+10%"; }
+
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Plus { set-window-height "+10%"; }
+
+    Mod+V       { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+
+    Mod+W { toggle-column-tabbed-display; }
+
+    Print { spawn "sh" "-c" "niri msg action screenshot"; }
+    Ctrl+Print { spawn "sh" "-c" "niri msg action screenshot-screen"; }
+    Alt+Print { spawn "sh" "-c" "niri msg action screenshot-window"; }
+
+    Mod+Shift+P { power-off-monitors; }
+}

@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+# =============================================================================
+# zenith-pkg-list — List installed pacman packages
+# =============================================================================
+# Usage:
+#   zenith-pkg-list                     # interactive list
+#   zenith-pkg-list --search <pattern>  # search packages
+#   zenith-pkg-list --explicit          # list explicitly installed only
+#   zenith-pkg-list --orphans           # list orphan packages
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-pkg-colors"
+
+# ── Check for required commands ───────────────────────────────────────────────
+check_deps() {
+    local missing=()
+    for cmd in fzf gum pacman; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}Error: Missing dependencies: ${missing[*]}${RESET}" >&2
+        exit 1
+    fi
+}
+
+# ── List Functions ────────────────────────────────────────────────────────────
+list_all() {
+    local packages
+    packages=$(pacman -Qq | sort)
+
+    local count
+    count=$(echo "$packages" | wc -l)
+
+    echo -e "${GREEN}Installed packages ($count):${RESET}"
+    echo ""
+
+    echo "$packages" | fzf \
+        --preview 'pacman -Qi {} 2>/dev/null' \
+        --preview-label='Package Info' \
+        --preview-window 'down:50%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --color "$FZF_COLOR_PINK" \
+        --header 'Press Ctrl+C to exit' \
+        --prompt 'Package> '
+}
+
+list_explicit() {
+    local packages
+    packages=$(pacman -Qeq | sort)
+
+    local count
+    count=$(echo "$packages" | wc -l)
+
+    echo -e "${GREEN}Explicitly installed packages ($count):${RESET}"
+    echo ""
+
+    echo "$packages" | fzf \
+        --preview 'pacman -Qi {} 2>/dev/null' \
+        --preview-label='Package Info' \
+        --preview-window 'down:50%:wrap' \
+        --color "$FZF_COLOR_PINK" \
+        --prompt 'Explicit> '
+}
+
+list_orphans() {
+    local packages
+    packages=$(pacman -Qtdq 2>/dev/null | sort -u) || true
+
+    local count
+    count=$(echo "$packages" | grep -c . 2>/dev/null || echo "0")
+
+    echo -e "${YELLOW}Orphan packages ($count):${RESET}"
+    echo ""
+
+    if [[ -z "$packages" ]]; then
+        echo -e "${GREEN}✓ No orphan packages found${RESET}"
+        return 0
+    fi
+
+    echo "$packages" | fzf \
+        --preview 'pacman -Qi {} 2>/dev/null' \
+        --preview-label='Orphan Package Info' \
+        --preview-window 'down:50%:wrap' \
+        --color "$FZF_COLOR_PINK" \
+        --prompt 'Orphan> ' \
+        --header 'Remove with: sudo pacman -Rns <package>'
+}
+
+list_search() {
+    local pattern="$1"
+
+    if [[ -z "$pattern" ]]; then
+        echo -e "${RED}Error: Search pattern required${RESET}" >&2
+        echo "Usage: zenith-pkg-list --search <pattern>" >&2
+        exit 1
+    fi
+
+    local packages
+    packages=$(pacman -Qq | grep -i "$pattern" | sort)
+
+    local count
+    count=$(echo "$packages" | grep -c . 2>/dev/null || echo "0")
+
+    echo -e "${CYAN}Search results for '$pattern' ($count):${RESET}"
+    echo ""
+
+    if [[ -z "$packages" || "$count" -eq 0 ]]; then
+        echo -e "${YELLOW}No packages found matching '$pattern'${RESET}"
+        return 0
+    fi
+
+    echo "$packages" | fzf \
+        --preview 'pacman -Qi {} 2>/dev/null' \
+        --preview-label='Package Info' \
+        --preview-window 'down:50%:wrap' \
+        --color "$FZF_COLOR_PINK" \
+        --prompt 'Result> '
+}
+
+show_help() {
+    cat << EOF
+${CYAN}zenith-pkg-list${RESET} — List installed pacman packages
+
+${YELLOW}USAGE:${RESET}
+    zenith-pkg-list [OPTIONS]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--explicit, -e${RESET}    List explicitly installed packages
+    ${GREEN}--orphans, -t${RESET}     List orphan packages
+    ${GREEN}--search, -s <pattern>${RESET}  Search packages by name
+    ${GREEN}--help, -h${RESET}        Show this help message
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith-pkg-list                   # Interactive list
+    zenith-pkg-list --orphans         # Find orphan packages
+    zenith-pkg-list --search firefox  # Search for firefox
+    zenith-pkg-list --explicit        # List explicitly installed
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    check_deps
+
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${RED}Error: Do not run as root${RESET}" >&2
+        exit 1
+    fi
+
+    if [[ $# -eq 0 ]]; then
+        list_all
+        return 0
+    fi
+
+    case "$1" in
+        --explicit|-e)
+            list_explicit
+            ;;
+        --orphans|-t)
+            list_orphans
+            ;;
+        --search|-s)
+            list_search "${2:-}"
+            ;;
+        --help|-h)
+            show_help
+            ;;
+        *)
+            echo -e "${RED}Error: Unknown option: $1${RESET}" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

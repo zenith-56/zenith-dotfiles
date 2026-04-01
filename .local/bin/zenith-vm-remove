@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Remove VM
+# =============================================================================
+
+set -e
+
+VM_CONFIG_DIR="$HOME/.config/zenith-vm/vms"
+SNAPSHOT_DIR="$HOME/.config/zenith-vm/snapshots"
+VM_DATA_DIR="$HOME/.local/share/zenith-vm"
+
+usage() {
+  cat <<EOF
+Usage: zenith-vm-remove [vm-name]
+
+Removes a VM and all its data.
+
+Options:
+  --keep-data    Keep VM disk data
+  -h, --help     Show this help
+EOF
+}
+
+VM_NAME="${1:-}"
+KEEP_DATA=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --keep-data) KEEP_DATA=true; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [ -z "$VM_NAME" ]; then
+        VM_NAME="$1"
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Interactive selection with gum
+if [ -z "$VM_NAME" ]; then
+  if command -v gum &>/dev/null; then
+    VM_NAME=$(gum choose $(ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json) --header "Select VM to remove")
+  else
+    echo "Available VMs:"
+    ls "$VM_CONFIG_DIR"/*.json 2>/dev/null | xargs -I{} basename {} .json
+    echo ""
+    read -rp "Enter VM name: " VM_NAME
+  fi
+  [ -z "$VM_NAME" ] && { echo "No VM selected"; exit 1; }
+fi
+
+CONFIG="$VM_CONFIG_DIR/${VM_NAME}.json"
+if [ ! -f "$CONFIG" ]; then
+  echo "Error: VM '$VM_NAME' not found"
+  exit 1
+fi
+
+# Confirm removal
+if command -v gum &>/dev/null; then
+  if ! gum confirm "Remove VM '$VM_NAME' and all its data?" --affirmative "Remove" --negative "Cancel"; then
+    echo "Cancelled"
+    exit 0
+  fi
+else
+  read -rp "Remove VM '$VM_NAME' and all its data? [y/N] " confirm
+  [[ "$confirm" != [yY]* ]] && { echo "Cancelled"; exit 0; }
+fi
+
+# Read config
+get_json() { python3 -c "import json; d=json.load(open('$CONFIG')); print(d.get('$1',''))" 2>/dev/null; }
+
+ENGINE=$(get_json "engine")
+COMPOSE_FILE=$(get_json "compose_file")
+
+# Stop VM first
+"$HOME/.local/bin/zenith-vm-stop" "$VM_NAME" --force 2>/dev/null || true
+
+# Remove Docker container and volumes
+if [ "$ENGINE" = "docker" ]; then
+  docker rm -f "$VM_NAME" 2>/dev/null || true
+  if [ "$KEEP_DATA" = false ]; then
+    docker volume rm "${VM_NAME}_data" 2>/dev/null || true
+  fi
+  # Remove compose directory
+  if [ -n "$COMPOSE_FILE" ] && [ -d "$(dirname "$COMPOSE_FILE")" ]; then
+    rm -rf "$(dirname "$COMPOSE_FILE")"
+  fi
+
+elif [ "$ENGINE" = "qemu" ]; then
+  virsh undefine "$VM_NAME" --remove-all-storage 2>/dev/null || true
+fi
+
+# Remove snapshots
+rm -rf "$SNAPSHOT_DIR/${VM_NAME}" 2>/dev/null || true
+
+# Remove VM config
+rm -f "$CONFIG"
+
+# Remove data if not keeping
+if [ "$KEEP_DATA" = false ]; then
+  rm -rf "$VM_DATA_DIR/$VM_NAME" 2>/dev/null || true
+fi
+
+echo "VM '$VM_NAME' removed"

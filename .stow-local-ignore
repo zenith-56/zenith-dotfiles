@@ -1,0 +1,12 @@
+\.github
+AGENTS\.md
+install\.sh
+update\.sh
+version
+README\.md
+LICENSE
+\install
+\images
+\.gitignore
+\.git
+\.stow-local-ignore

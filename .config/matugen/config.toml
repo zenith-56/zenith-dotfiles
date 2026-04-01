@@ -1,0 +1,42 @@
+# =============================================================================
+# Matugen Configuration
+# =============================================================================
+# Description : Configuration file for Matugen, a theme generator that
+#               automatically applies Material Design 3 color themes across
+#               various desktop applications.
+# =============================================================================
+
+[config]
+mode = "auto"
+
+[templates.waybar]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/waybar/colors.css'
+
+[templates.rofi]
+input_path = '~/.config/matugen/templates/rofi-colors.rasi'
+output_path = '~/.config/rofi/colors.rasi'
+
+[templates.dunst]
+input_path = '~/.config/matugen/templates/dunstrc'
+output_path = '~/.config/dunst/dunstrc'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprlock.conf'
+output_path = '~/.config/hypr/hyprlock.conf'
+
+[templates.kitty]
+input_path = '~/.config/matugen/templates/kitty.conf'
+output_path = '~/.config/kitty/theme.conf'
+
+[templates.zed]
+input_path = '~/.config/matugen/templates/zed-theme.json'
+output_path = '~/.config/zed/themes/matugen.json'
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/btop.theme'
+output_path = '~/.config/btop/themes/matugen.theme'
+
+[templates.swayosd]
+input_path = '~/.config/matugen/templates/swayosd.css'
+output_path = '~/.config/swayosd/style.css'

@@ -1,0 +1,40 @@
+{
+  "name": "Matugen Dynamic",
+  "author": "Matugen",
+  "themes": [
+    {
+      "name": "Matugen Dynamic Dark",
+      "appearance": "dark",
+      "style": {
+        "syntax": {
+          "comment": { "color": "{{colors.on_surface_variant.default.hex}}" },
+          "string": { "color": "{{colors.primary.default.hex}}" },
+          "keyword": { "color": "{{colors.tertiary.default.hex}}" },
+          "function": { "color": "{{colors.secondary.default.hex}}" },
+          "operator": { "color": "{{colors.on_surface.default.hex}}" }
+        },
+        "status_bar.background": "{{colors.surface_container_low.default.hex}}",
+        "editor.background": "{{colors.surface.default.hex}}",
+        "editor.foreground": "{{colors.on_surface.default.hex}}",
+        "panel.background": "{{colors.surface_container_low.default.hex}}"
+      }
+    },
+    {
+      "name": "Matugen Dynamic Light",
+      "appearance": "light",
+      "style": {
+        "syntax": {
+          "comment": { "color": "{{colors.on_surface_variant.default.hex}}" },
+          "string": { "color": "{{colors.primary.default.hex}}" },
+          "keyword": { "color": "{{colors.tertiary.default.hex}}" },
+          "function": { "color": "{{colors.secondary.default.hex}}" },
+          "operator": { "color": "{{colors.on_surface.default.hex}}" }
+        },
+        "status_bar.background": "{{colors.surface_container_low.default.hex}}",
+        "editor.background": "{{colors.surface.default.hex}}",
+        "editor.foreground": "{{colors.on_surface.default.hex}}",
+        "panel.background": "{{colors.surface_container_low.default.hex}}"
+      }
+    }
+  ]
+}

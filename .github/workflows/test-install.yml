@@ -1,0 +1,74 @@
+name: Test Installation
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify install structure
+        run: |
+          [ -f "install.sh" ] || exit 1
+          [ -d "install" ] || exit 1
+          [ -d ".local/bin" ] || exit 1
+
+      - name: Check scripts are executable
+        run: |
+          count=$(find . -name "*.sh" -type f ! -executable | wc -l)
+          echo "Non-executable scripts: $count"
+          [ "$count" -eq 0 ] || exit 1
+
+      - name: Validate shell scripts (syntax check)
+        run: |
+          errors=0
+          for script in $(find . -name "*.sh" -type f); do
+            if ! bash -n "$script" 2>&1; then
+              echo "Syntax error in: $script"
+              errors=$((errors + 1))
+            fi
+          done
+          [ "$errors" -eq 0 ] || exit 1
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          errors=0
+          for script in $(find . -name "*.sh" -type f); do
+            if ! shellcheck "$script" 2>&1; then
+              echo "ShellCheck failed for: $script"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "Total ShellCheck errors: $errors"
+          # Don't fail on ShellCheck warnings for now, just report
+          exit 0
+
+      - name: Verify bin count
+        run: |
+          count=$(find .local/bin -type f 2>/dev/null | wc -l)
+          echo "Bin scripts found: $count"
+          [ "$count" -ge 20 ]
+
+      - name: Verify matugen templates
+        run: |
+          [ -d ".config/matugen/templates" ]
+
+      - name: Verify rofi scripts
+        run: |
+          [ -d ".config/rofi/scripts" ]
+
+      - name: Verify KDL configs
+        run: |
+          [ -d ".config/niri" ] || exit 1
+          [ -d ".config/hypr" ] || exit 1

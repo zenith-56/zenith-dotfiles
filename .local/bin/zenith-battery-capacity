@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Battery Capacity
+# =============================================================================
+
+BAT0="/sys/class/power_supply/BAT0"
+[ -f "$BAT0/capacity" ] && cat "$BAT0/capacity" || echo "0"

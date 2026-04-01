@@ -1,0 +1,30 @@
+// =============================================================================
+// Niri Startup Configuration
+// =============================================================================
+// Description : Startup settings for the Niri compositor.
+//               Disables client-side decorations, launches background services
+//               (xwayland-satellite, hypridle, waybar, dunst, darkman),
+//               sets environment variables, and defines screenshot path.
+// =============================================================================
+
+prefer-no-csd
+
+spawn-at-startup "xwayland-satellite"
+spawn-at-startup "sh" "-c" "sleep 3 && xhost +local:"
+spawn-at-startup "hypridle"
+spawn-at-startup "waybar"
+spawn-at-startup "dunst"
+spawn-at-startup "darkman run"
+spawn-at-startup "awww-daemon"
+spawn-at-startup "swayosd-server"
+
+hotkey-overlay {
+    // skip-at-startup
+}
+
+environment {
+    DISPLAY ":1"
+    XWAYLAND_NO_GLAMOR "1"
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"

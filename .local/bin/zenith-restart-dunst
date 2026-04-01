@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Restart Dunst
+# =============================================================================
+
+pkill dunst 2>/dev/null || true
+sleep 0.2
+dunst &
+echo "Dunst restarted"
