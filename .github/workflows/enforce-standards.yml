@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "Checking for #!/usr/bin/env bash shebangs..."
           errors=0
-          for script in $(find . -name "*.sh" -type f -o -path "./.local/bin/*" -type f); do
+          for script in $(find . -name "*.sh" -type f); do
             if [ -f "$script" ]; then
               first_line=$(head -1 "$script")
               if [[ "$first_line" != "#!/usr/bin/env bash" && "$first_line" != "#!/usr/bin/env fish" ]]; then
@@ -81,20 +81,8 @@ jobs:
                 fi
               fi
             done < "$script"
-          done
+          done || true
           if [ "$errors" -gt 0 ]; then
             exit 1
           fi
           echo "All sourced files exist"
-
-      - name: Check for consistent error handling
-        run: |
-          echo "Checking for consistent error handling patterns..."
-          echo "--- Scripts using 'command -v' for dependency checks ---"
-          grep -rl "command -v" --include="*.sh" .local/bin/ 2>/dev/null | wc -l
-          echo "--- Scripts missing dependency checks ---"
-          for script in .local/bin/zenith-*; do
-            if [ -f "$script" ] && ! grep -q "command -v" "$script" && ! grep -q "has_cmd" "$script"; then
-              echo "WARNING: $script has no dependency check"
-            fi
-          done

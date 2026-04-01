@@ -112,12 +112,11 @@ Located in `.config/matugen/templates/`:
 
 | Workflow | Purpose |
 |----------|---------|
-| `test-install.yml` | Test installation in VM |
+| `test-install.yml` | Test installation structure |
 | `lint.yml` | Shell script linting |
 | `shellcheck.yml` | ShellCheck analysis |
-| `validate-configs.yml` | Config validation (JSON, KDL) |
+| `validate-configs.yml` | Config validation (JSON, TOML, KDL) |
 | `enforce-standards.yml` | Enforce code standards |
-| `code-review.yml` | Automated code review |
 | `release.yml` | Release automation |
 
 ## Pre-Release Checklist

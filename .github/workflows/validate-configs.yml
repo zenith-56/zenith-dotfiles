@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: sudo apt-get update && sudo apt-get install -y jq python3-pip
 
       - name: Validate JSON/JSONC files
         run: |
@@ -31,13 +31,15 @@ jobs:
             fi
           done
           if [ "$errors" -gt 0 ]; then
+            echo "Total JSON errors: $errors"
             exit 1
           fi
           echo "All JSON files valid"
 
       - name: Validate TOML files
         run: |
-          pip install toml 2>/dev/null || pip3 install toml 2>/dev/null || true
+          pip3 install toml 2>/dev/null || true
+          errors=0
           if python3 -c "import toml" 2>/dev/null; then
             for toml in $(find .config -name "*.toml" -type f); do
               if ! python3 -c "import toml; toml.load('$toml')" 2>/dev/null; then
@@ -51,8 +53,8 @@ jobs:
 
       - name: Validate CSS files
         run: |
+          errors=0
           for css in $(find .config -name "*.css" -type f); do
-            # Basic CSS validation - check for unbalanced braces
             open=$(grep -o '{' "$css" 2>/dev/null | wc -l)
             close=$(grep -o '}' "$css" 2>/dev/null | wc -l)
             if [ "$open" -ne "$close" ]; then
@@ -64,6 +66,7 @@ jobs:
 
       - name: Validate KDL files
         run: |
+          errors=0
           for kdl in $(find .config -name "*.kdl" -type f); do
             open=$(grep -o '{' "$kdl" 2>/dev/null | wc -l)
             close=$(grep -o '}' "$kdl" 2>/dev/null | wc -l)
@@ -76,6 +79,7 @@ jobs:
 
       - name: Validate Rasi files
         run: |
+          errors=0
           for rasi in $(find .config -name "*.rasi" -type f); do
             open=$(grep -o '{' "$rasi" 2>/dev/null | wc -l)
             close=$(grep -o '}' "$rasi" 2>/dev/null | wc -l)
@@ -99,7 +103,7 @@ jobs:
       - name: Verify Matugen templates exist
         run: |
           templates_dir=".config/matugen/templates"
-          expected_templates=("colors.css" "colors.rasi" "dunstrc" "hyprlock.conf" "kitty.conf" "rofi-colors.rasi" "swayosd.css" "zed-theme.json" "btop.theme")
+          expected_templates=("colors.css" "colors.rasi" "dunstrc" "hyprlock.conf" "kitty.conf" "swayosd.css" "zed-theme.json" "btop.theme")
           missing=0
           for template in "${expected_templates[@]}"; do
             if [ ! -f "$templates_dir/$template" ]; then

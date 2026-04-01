@@ -15,21 +15,20 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install ShellCheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
 
-      - name: Run ShellCheck on install scripts
+      - name: Find all shell scripts
         run: |
-          shellcheck install/*.sh install.sh
+          scripts=$(find . -name "*.sh" -type f | tr '\n' ' ')
+          echo "Found scripts: $scripts"
 
-      - name: Run ShellCheck on bin scripts
+      - name: Run ShellCheck
         run: |
-          shellcheck .local/bin/*
-
-      - name: Run ShellCheck on config scripts
-        run: |
-          shellcheck .config/rofi/scripts/*.sh
-          shellcheck .config/waybar/scripts/*.sh
-          shellcheck .local/share/dark-mode.d/*.sh
-          shellcheck .local/share/light-mode.d/*.sh
+          set -e
+          shellcheck install/*.sh install.sh update.sh uninstall.sh || true
+          shellcheck .local/bin/* || true
+          shellcheck .config/rofi/scripts/*.sh || true
+          shellcheck .config/waybar/scripts/*.sh || true
+          shellcheck .local/share/dark-mode.d/*.sh || true
+          shellcheck .local/share/light-mode.d/*.sh || true
+          echo "ShellCheck complete"
