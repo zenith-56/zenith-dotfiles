@@ -56,4 +56,6 @@ gum style --foreground 212 --border-foreground 212 --border rounded \
     "Installation complete!"
 echo ""
 
-gum confirm "Reboot now?" && sudo reboot
+if gum confirm "Reboot now?"; then
+    sudo reboot
+fi

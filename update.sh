@@ -141,11 +141,11 @@ log "Font cache updated"
 echo ""
 if gum confirm "Check and install new packages from repo?"; then
     info "Installing missing packages (pacman)..."
-    sudo pacman -S --noconfirm --needed "${PACMAN_PACKAGES[@]}" 2>/dev/null || \
+    sudo pacman -S --noconfirm --needed "${PACMAN_PACKAGES[@]}" || \
         warn "Some packages not available in official repos"
 
     info "Installing missing packages (AUR via yay)..."
-    yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" 2>/dev/null || \
+    yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" || \
         warn "Some AUR packages failed"
 
     log "Packages verified"
@@ -179,25 +179,23 @@ if gum confirm "Reload running services? (waybar, dunst, kitty, niri)"; then
         warn "Found $ERRORS config issues. Services may not reload correctly."
         if ! gum confirm "Continue anyway?"; then
             info "Skipping service reload"
-            ERRORS=0
+            exit 0
         fi
     fi
 
-    if [ "$ERRORS" -eq 0 ] || gum confirm "Continue anyway?"; then
-        info "Reloading waybar..."
-        pkill -SIGUSR2 waybar 2>/dev/null || true
+    info "Reloading waybar..."
+    pkill -SIGUSR2 waybar 2>/dev/null || true
 
-        info "Restarting dunst..."
-        pkill dunst && dunst &
+    info "Restarting dunst..."
+    pkill dunst && dunst &
 
-        info "Reloading kitty..."
-        zenith-reload-kitty 2>/dev/null || true
+    info "Reloading kitty..."
+    zenith-reload-kitty 2>/dev/null || true
 
-        info "Reloading niri..."
-        niri msg action reload-config 2>/dev/null || true
+    info "Reloading niri..."
+    niri msg action reload-config 2>/dev/null || true
 
-        log "Services reloaded"
-    fi
+    log "Services reloaded"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────

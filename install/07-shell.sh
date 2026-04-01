@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 get_fish() {
-    which fish 2>/dev/null
+    command -v fish 2>/dev/null
 }
 
 FISH_PATH=$(get_fish)

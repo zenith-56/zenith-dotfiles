@@ -107,9 +107,11 @@ esac
 # ── Reset Fish Shell ──────────────────────────────────────────────────────────
 echo ""
 if gum confirm "Reset fish shell to bash?"; then
-    if grep -q "$(which fish)" /etc/shells 2>/dev/null; then
-        chsh -s "$(which bash)" 2>/dev/null || warn "Could not change shell"
+    if command -v bash &>/dev/null; then
+        chsh -s "$(command -v bash)" 2>/dev/null || warn "Could not change shell"
         log "Default shell reset to bash"
+    else
+        warn "bash not found, cannot reset shell"
     fi
 fi
 
