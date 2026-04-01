@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Flatpak Package Remove
+# =============================================================================
+# Interactive Flatpak package removal using fzf and flatpak
+
+fzf_args=(
+  --style minimal
+  --multi
+  --preview 'flatpak info {1}'
+  --preview-label-pos='bottom'
+  --preview-window 'right:65%:wrap'
+  --bind 'alt-p:toggle-preview'
+  --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+  --bind 'alt-k:preview-up,alt-j:preview-down'
+  --color 'pointer:red,marker:red'
+)
+
+if ! command -v flatpak &>/dev/null; then
+  echo "Error: flatpak is not installed" >&2
+  exit 1
+fi
+
+pkg_names=$(flatpak list --app --columns=application | fzf "${fzf_args[@]}")
+
+if [[ -n "$pkg_names" ]]; then
+  echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty flatpak uninstall -y
+  notify-send \
+    --urgency=normal \
+    --icon=software-update-available \
+    "Flatpak Packages Removed" \
+    "Selected flatpak packages removed" 2>/dev/null || true
+  zenith-done
+fi

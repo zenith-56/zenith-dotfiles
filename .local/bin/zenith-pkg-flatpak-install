@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Flatpak Package Install
+# =============================================================================
+# Interactive Flatpak package installation using fzf and flatpak
+
+fzf_args=(
+  --style minimal
+  --multi
+  --preview 'flatpak remote-info flathub {1}'
+  --preview-window 'right:75%:wrap'
+  --bind 'alt-p:toggle-preview'
+  --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+  --bind 'alt-k:preview-up,alt-j:preview-down'
+  --color 'pointer:green,marker:green'
+)
+
+if ! command -v flatpak &>/dev/null; then
+  echo "Error: flatpak is not installed" >&2
+  exit 1
+fi
+
+pkg_names=$(flatpak remote-ls flathub --app --columns=application | fzf "${fzf_args[@]}")
+
+if [[ -n "$pkg_names" ]]; then
+  echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty flatpak install flathub -y
+  notify-send \
+    --urgency=normal \
+    --icon=software-update-available \
+    "Flatpak Packages Installed" \
+    "Selected flatpak packages installed" 2>/dev/null || true
+  zenith-done
+fi
