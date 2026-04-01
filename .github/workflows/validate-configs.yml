@@ -2,11 +2,11 @@ name: Validate Configs
 
 on:
   push:
-    branches: [main, dev]
+    branches: [master, dev]
     paths:
       - '.config/**'
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - '.config/**'
 

@@ -167,7 +167,7 @@ Before creating a release, verify:
 3. Test installation: `./install.sh` (in VM or test environment)
 4. Commit changes: `git add . && git commit -m "Release vX.Y.Z"`
 5. Create tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
-6. Push: `git push origin main --tags`
+6. Push: `git push origin master --tags`
 
 ## Common Tasks
 
