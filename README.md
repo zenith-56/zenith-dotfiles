@@ -2,7 +2,7 @@
 
 Complete Arch Linux desktop environment with **Niri** (scrollable-tiling compositor), dynamic **Material You** theming, and ready-to-use configuration.
 
-> **AUR Helper:** [paru](https://github.com/Morganamilo/paru) is the default AUR helper. It is installed automatically if missing.
+> **AUR Helper:** [yay](https://github.com/Jguer/yay) is the default AUR helper. It is installed automatically if missing.
 
 ## Features
 
@@ -69,25 +69,27 @@ Complete Arch Linux desktop environment with **Niri** (scrollable-tiling composi
 | **Firmware** | sof-firmware, intel-ucode |
 | **Misc** | flatpak, base-devel, darkman |
 
-### AUR (paru)
+### AUR (yay)
 
 | Package | Description |
 |---------|-------------|
 | matugen-bin | Material You color generator |
-| awww | Wallpaper manager with animated transitions |
+| brave-bin | Brave browser |
+| impala | Network manager TUI |
+| ncpamixer | PulseAudio mixer TUI |
 | ttf-material-design-icons-desktop-git | Material Design icons for Waybar |
 
 ## Fresh install
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/main/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/master/install.sh)
 ```
 
 The script automatically:
-1. Installs dependencies (`gum`, `stow`) if missing
+1. Installs dependencies (`git`, `base-devel`, `gum`) if missing
 2. Clones Zenith-Dotfiles to `~/zenith-dotfiles`
 3. Uses a [Gum](https://github.com/charmbracelet/gum) interface to walk you through:
-   - **Install packages** — pacman + AUR (via paru)
+   - **Install packages** — pacman + AUR (via yay)
    - **Deploy configs** — Copies configs to `~/.config/`
    - **Deploy bin scripts** — Installs `~/.local/bin/` scripts
    - **Directories** — Creates standard user directories
@@ -100,7 +102,7 @@ The script automatically:
 If you already have Zenith-Dotfiles installed and want to pull the latest configs:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/main/update.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/master/update.sh)
 ```
 
 Or if you have the repo cloned:
@@ -122,15 +124,15 @@ Modular scripts in `~/.local/bin/` for system control:
 | `zenith-swayosd-volume {up\|down\|toggle}` | Volume OSD |
 | `zenith-swayosd-brightness {up\|down}` | Brightness OSD |
 | `zenith-mic` | Toggle microphone mute |
-| `zenith-media {play\|pause\|next\|prev\|stop}` | Media controls |
 | `zenith-kb-layout {us\|es\|toggle}` | Keyboard layout |
 | `zenith-restart-all` | Restart waybar, dunst, swayosd |
 | `zenith-restart-waybar` | Restart waybar |
+| `zenith-restart-dunst` | Restart dunst |
+| `zenith-restart-swayosd` | Restart swayosd |
 | `zenith-reload-kitty` | Reload kitty colors live |
 | `zenith-music-show` | Display current track (for hyprlock) |
 | `zenith-webapp-install` | Install web app as desktop entry |
 | `zenith-webapp-uninstall` | Remove installed web apps |
-| `zenith-restart-swayosd` | Restart swayosd |
 | `zenith-lock` | Lock screen |
 | `zenith-power-off` | Power off |
 | `zenith-reboot` | Reboot |
@@ -146,6 +148,11 @@ Modular scripts in `~/.local/bin/` for system control:
 | `zenith-volume-set` | Set volume |
 | `zenith-network-status` | Network status |
 | `zenith-network-ssid` | Current SSID |
+| `zenith-pkg-install` | FZF TUI for pacman package install |
+| `zenith-pkg-aur-install` | FZF TUI for AUR package install |
+| `zenith-pkg-list` | List/search installed packages |
+| `zenith-pkg-missing` | Check if packages are missing |
+| `zenith-pkg-remove` | FZF TUI for package removal |
 
 ## Project structure
 

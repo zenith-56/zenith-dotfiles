@@ -151,5 +151,5 @@ if [ -d "$BACKUP_DIR" ]; then
     info "Backup location: ${BACKUP_DIR}"
 fi
 
-info "To reinstall: bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/main/install.sh)"
+info "To reinstall: bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/master/install.sh)"
 echo ""

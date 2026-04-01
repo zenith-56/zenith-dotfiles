@@ -2,6 +2,7 @@
 AGENTS\.md
 install\.sh
 update\.sh
+uninstall\.sh
 version
 README\.md
 LICENSE

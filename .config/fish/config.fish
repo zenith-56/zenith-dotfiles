@@ -33,6 +33,8 @@ if status is-interactive
     set -gx VISUAL nvim
     set -gx TERMINAL kitty
 
+    set -x LIBVIRT_DEFAULT_URI "qemu:///system"
+
     # ── GREETING ──────────────────────────────────────────────────────
     set fish_greeting
 
