@@ -12,14 +12,21 @@ set -e
 REPO_URL="https://github.com/zenith-56/zenith-dotfiles.git"
 DOTFILES_DIR="$HOME/zenith-dotfiles"
 
-# Source common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/install/common.sh"
+# ── Minimal inline helpers (before repo is cloned) ────────────────────────────
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
 
-# Install base dependencies
+log()  { echo -e "${GREEN}[✓]${RESET} $1"; }
+warn() { echo -e "${YELLOW}[!]${RESET} $1"; }
+err()  { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
+info() { echo -e "${CYAN}[i]${RESET} $1"; }
+
+# ── Install base dependencies ─────────────────────────────────────────────────
 install_deps() {
     info "Installing base dependencies..."
-
     if command -v sudo &>/dev/null; then
         sudo pacman -Sy --noconfirm git base-devel gum curl || {
             warn "Some packages failed to install"
@@ -29,7 +36,6 @@ install_deps() {
     fi
 }
 
-# Install gum from AUR if not in repos
 install_gum() {
     if ! command -v gum &>/dev/null; then
         info "Installing gum from AUR..."
@@ -48,11 +54,11 @@ install_gum() {
     fi
 }
 
-# Check and install deps
+# ── Check and install deps ────────────────────────────────────────────────────
 command -v git &>/dev/null || install_deps
 command -v gum &>/dev/null || install_gum
 
-# Clone or update repo
+# ── Clone or update repo ──────────────────────────────────────────────────────
 if [ -d "$DOTFILES_DIR/.git" ]; then
     info "Updating existing repo..."
     cd "$DOTFILES_DIR"
@@ -67,7 +73,10 @@ else
     cd "$DOTFILES_DIR"
 fi
 
-# Verify scripts are executable (repo should have them, but double-check)
+# ── Source common functions (now that repo exists on disk) ────────────────────
+source "$DOTFILES_DIR/install/common.sh"
+
+# ── Verify scripts are executable ─────────────────────────────────────────────
 verify_executable() {
     local missing=()
     for file in install/*.sh .local/bin/* .config/rofi/scripts/*.sh .config/waybar/scripts/*.sh; do
@@ -81,6 +90,6 @@ verify_executable() {
 
 verify_executable
 
-# Run installer
+# ── Run installer ─────────────────────────────────────────────────────────────
 log "Starting installation..."
 exec ./install/run.sh "$@"
