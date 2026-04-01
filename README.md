@@ -1,317 +1,145 @@
 # Zenith-Dotfiles
 
-Complete Arch Linux desktop environment with **Niri** (scrollable-tiling compositor), dynamic **Material You** theming, and ready-to-use configuration.
+Arch Linux desktop with **Niri** (scrollable-tiling compositor), **Material You** theming, and modular installation.
 
-> **AUR Helper:** [yay](https://github.com/Jguer/yay) is the default AUR helper. It is installed automatically if missing.
+> **AUR Helper:** [yay](https://github.com/Jguer/yay) installed automatically.
 
 ## Features
 
-- **Niri** — Scrollable-tiling Wayland compositor with preconfigured keybindings
-- **Material You** — Dynamic theme auto-generated from your wallpaper using Matugen
-- **Dark/Light Mode** — Automatic theme switching with Darkman, integrated with GTK and all apps
-- **Waybar** — Vertical status bar with Japanese workspace numerals, CPU snake animation, and drawers
-- **SwayOSD** — On-screen display for volume, brightness, and caps-lock using swayosd
-- **Hyprlock + Hypridle** — Blurred lock screen and idle management
-- **Rofi** — Launcher with wallpaper selector, power menu, theme menu, and web app installer
-- **Fish Shell** — Interactive shell with aliases, configured PATH, and dynamic cursor
-- **Dunst** — Notifications with Material You colors
-- **Kitty** — GPU-accelerated terminal with JetBrainsMono Nerd Font and live theme reload
-- **Zed** — Editor with dynamically generated Matugen theme
-- **Btop** — System monitor with dynamic theme
-- **Yazi** — Terminal file manager with Kitty image preview
-- **Fastfetch** — System information display with custom logo
-- **Web Apps** — Install/uninstall web apps as standalone desktop entries
+| Category | Component |
+|----------|-----------|
+| **Compositor** | Niri (scrollable-tiling Wayland) |
+| **Theming** | Material You via Matugen |
+| **Theme Switching** | Darkman (auto dark/light) |
+| **Bar** | Waybar with CPU animation |
+| **OSD** | SwayOSD |
+| **Lock/Idle** | Hyprlock + Hypridle |
+| **Launcher** | Rofi (wallpaper selector, power menu, web apps) |
+| **Shell** | Fish |
+| **Terminal** | Kitty (GPU-accelerated) |
+| **Notifications** | Dunst |
+| **Editor** | Zed |
+| **File Manager** | Yazi (Kitty image preview) |
+| **System Monitor** | Btop |
+| **Display** | Fastfetch |
 
 ## Screenshots
 
-### NiriWM
-![NiriWM](images/1-niriwm.png)
+| 1-Niri | 2-Rofi | 3-Awww |
+|--------|--------|--------|
+| ![Niri](images/1-niriwm.png) | ![Rofi](images/2-rofi.png) | ![Awww](images/3-awww.png) |
 
-### Rofi
-![Rofi](images/2-rofi.png)
+| 4-WebApps | 5-Launcher | 6-Themes |
+|-----------|------------|----------|
+| ![Web Apps](images/4-webapp.png) | ![Launcher](images/5-applauncher.png) | ![Themes](images/6-dltheme.png) |
 
-### Awww
-![Awww](images/3-awww.png)
-
-### Web Apps
-![Web Apps](images/4-webapp.png)
-
-### App Launcher
-![App Launcher](images/5-applauncher.png)
-
-### Theme Selector
-![Theme Selector](images/6-dltheme.png)
-
-## Packages installed
-
-### Official repos (pacman)
-
-| Category | Packages |
-|----------|----------|
-| **Shell** | fish |
-| **Compositor** | niri, xwayland-satellite, xorg-xhost |
-| **Terminal** | kitty |
-| **Bar / Launcher** | waybar, rofi |
-| **Notifications** | dunst |
-| **OSD** | swayosd |
-| **Lock / Idle** | hyprlock, hypridle |
-| **System** | btop, fastfetch, snapper, fd, ripgrep, fzf |
-| **Utilities** | brightnessctl, playerctl, unzip, wget, yazi, jq, imagemagick |
-| **Audio** | pamixer, pipewire, pipewire-alsa, pipewire-jack, pipewire-pulse, wireplumber, wf-recorder, slurp |
-| **Bluetooth** | bluez, bluez-utils, bluetui |
-| **WiFi / Network** | iwd, impala, wireless_tools |
-| **Display Manager** | sddm |
-| **Fonts** | ttf-jetbrains-mono-nerd, ttf-liberation, ttf-nerd-fonts-symbols, noto-fonts, noto-fonts-cjk, noto-fonts-emoji, gnu-free-fonts, woff2-font-awesome |
-| **Editors** | neovim, zed, nano |
-| **Dev** | git, github-cli, base-devel, cmake |
-| **Power** | power-profiles-daemon, zram-setup |
-| **Firmware** | sof-firmware, edk2-ovmf, efibootmgr |
-| **VM** | qemu-full, libvirt, virt-manager, virt-viewer, dnsmasq |
-| **Misc** | flatpak, darkman, 7zip, ffmpeg, ffmpegthumbnailer, mediainfo, mpv, poppler, resvg, reflector, polkit, libsecret, gnome-keyring |
-
-### AUR (yay)
-
-| Package | Description |
-|---------|-------------|
-| matugen-bin | Material You color generator |
-| brave-bin | Brave browser |
-| impala | Network manager TUI |
-| ncpamixer | PulseAudio mixer TUI |
-| ttf-material-design-icons-desktop-git | Material Design icons for Waybar |
-
-## Fresh install
+## Quick Install
 
 ```bash
 bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/master/install.sh)
 ```
 
-The script automatically:
-1. Installs dependencies (`git`, `base-devel`, `gum`) if missing
-2. Clones Zenith-Dotfiles to `~/zenith-dotfiles`
-3. Uses a [Gum](https://github.com/charmbracelet/gum) interface to walk you through:
-   - **Install packages** — pacman + AUR (via yay)
-   - **Deploy configs** — Copies configs to `~/.config/`
-   - **Deploy bin scripts** — Installs `~/.local/bin/` scripts
-   - **Directories** — Creates standard user directories
-   - **Font cache** — Updates font cache
-   - **Shell** — Sets Fish as default
-   - **Display Manager** — Optionally enables SDDM
+The installer walks you through (via Gum):
+1. Install packages (pacman + AUR via yay)
+2. Deploy configs to `~/.config/`
+3. Install bin scripts to `~/.local/bin/`
+4. Create directories
+5. Setup fonts
+6. Configure shell (Fish)
+7. Optionally enable SDDM
 
-## Update configs
-
-If you already have Zenith-Dotfiles installed and want to pull the latest configs:
+## Update
 
 ```bash
+# Via curl
 bash <(curl -sSL https://raw.githubusercontent.com/zenith-56/zenith-dotfiles/master/update.sh)
-```
 
-Or if you have the repo cloned:
-
-```bash
-cd ~/zenith-dotfiles
-./update.sh
+# Or locally
+cd ~/zenith-dotfiles && ./update.sh
 ```
 
 ## Zenith Bin Scripts
 
-Modular scripts in `~/.local/bin/` for system control:
-
 | Script | Description |
 |--------|-------------|
-| `zenith-theme-set {dark\|light}` | Set theme |
-| `zenith-theme-get` | Get current theme |
-| `zenith-theme-toggle` | Toggle theme |
-| `zenith-swayosd-volume {up\|down\|toggle}` | Volume OSD |
-| `zenith-swayosd-brightness {up\|down}` | Brightness OSD |
-| `zenith-mic` | Toggle microphone mute |
-| `zenith-kb-layout {us\|es\|toggle}` | Keyboard layout |
-| `zenith-restart-all` | Restart waybar, dunst, swayosd |
-| `zenith-restart-waybar` | Restart waybar |
-| `zenith-restart-dunst` | Restart dunst |
-| `zenith-restart-swayosd` | Restart swayosd |
-| `zenith-reload-kitty` | Reload kitty colors live |
-| `zenith-music-show` | Display current track (for hyprlock) |
-| `zenith-webapp-install` | Install web app as desktop entry |
-| `zenith-webapp-uninstall` | Remove installed web apps |
+| `zenith-theme-{get,set,toggle}` | Theme control |
+| `zenith-swayosd-{volume,brightness}` | OSD controls |
+| `zenith-mic` | Toggle mic mute |
+| `zenith-kb-layout` | Keyboard layout (us/es) |
 | `zenith-lock` | Lock screen |
-| `zenith-power-off` | Power off |
-| `zenith-reboot` | Reboot |
-| `zenith-logout` | Logout |
-| `zenith-screenshot` | Screenshot |
-| `zenith-screenshot-region` | Region screenshot |
-| `zenith-screen-recorder` | Toggle screen recording (select area) |
-| `zenith-battery-capacity` | Battery percentage |
-| `zenith-battery-status` | Battery status |
-| `zenith-brightness-get` | Get brightness |
-| `zenith-brightness-set` | Set brightness |
-| `zenith-volume-get` | Get volume |
-| `zenith-volume-set` | Set volume |
-| `zenith-network-status` | Network status |
-| `zenith-network-ssid` | Current SSID |
-| `zenith-pkg-install` | FZF TUI for pacman package install |
-| `zenith-pkg-aur-install` | FZF TUI for AUR package install |
-| `zenith-pkg-list` | List/search installed packages |
-| `zenith-pkg-missing` | Check if packages are missing |
-| `zenith-pkg-remove` | FZF TUI for package removal |
-| `zenith-done` | Terminal exit prompt with optional message |
-
-## Project structure
-
-```
-zenith-dotfiles/
-├── install.sh              # Main installer (delegates to install/)
-├── install/                # Modular installation scripts
-│   ├── run.sh             # Main runner
-│   ├── 00-banner.sh
-│   ├── 01-dependencies.sh
-│   ├── 02-services.sh
-│   ├── 03-deploy-configs.sh
-│   ├── 04-deploy-bin.sh
-│   ├── 05-directories.sh
-│   ├── 06-fonts.sh
-│   ├── 07-shell.sh
-│   └── 08-display-manager.sh
-├── update.sh              # Config updater
-├── .local/
-│   └── bin/               # Zenith bin scripts
-│   └── share/
-│       ├── dark-mode.d/   # Dark mode scripts (darkman)
-│       └── light-mode.d/  # Light mode scripts (darkman)
-├── .config/
-│   ├── kitty/            # Terminal
-│   ├── btop/             # System monitor
-│   ├── dunst/            # Notifications + Matugen template
-│   ├── fastfetch/        # System info display
-│   ├── fish/             # Shell config
-│   ├── hypr/             # hyprlock + hypridle
-│   ├── matugen/          # Config + templates
-│   │   └── templates/    # Matugen templates
-│   ├── niri/             # Compositor config
-│   ├── rofi/             # Launcher + scripts
-│   ├── swayosd/          # OSD config + template
-│   ├── waybar/           # Status bar + scripts
-│   │   └── scripts/      # Waybar modules
-│   ├── yazi/             # Terminal file manager
-│   └── zed/             # Editor
-├── .github/
-│   └── workflows/        # GitHub Actions
-└── images/               # Screenshots
-```
+| `zenith-power-off` / `zenith-reboot` / `zenith-logout` | Power actions |
+| `zenith-screenshot` / `zenith-screenshot-region` | Screenshot |
+| `zenith-screen-recorder` | Screen recording |
+| `zenith-music-show` | Current track (hyprlock) |
+| `zenith-battery-{capacity,status}` | Battery info |
+| `zenith-brightness-{get,set}` | Brightness control |
+| `zenith-volume-{get,set}` | Volume control |
+| `zenith-network-{status,ssid}` | Network info |
+| `zenith-pkg-install` | FZF pacman install |
+| `zenith-pkg-aur-install` | FZF AUR install |
+| `zenith-pkg-flatpak-install` | Flatpak install |
+| `zenith-pkg-flatpak-remove` | Flatpak remove |
+| `zenith-pkg-list` | List packages |
+| `zenith-pkg-remove` | FZF remove package |
+| `zenith-pkg-colors` | Package info colors |
+| `zenith-webapp-{install,uninstall}` | Web app installer |
+| `zenith-restart-{all,waybar,dunst,swayosd}` | Restart services |
+| `zenith-reload-kitty` | Reload kitty colors |
+| `zenith-done` | Exit prompt with message |
 
 ## Keybindings (Niri)
 
 | Keys | Action |
 |------|--------|
-| `Mod+T` | Open terminal (Kitty) |
+| `Mod+T` | Terminal (Kitty) |
 | `Mod+Space` | App launcher |
 | `Mod+Shift+Space` | Main launcher |
 | `Mod+Shift+W` | Wallpaper selector |
-| `Mod+Shift+T` | Theme menu (dark/light) |
+| `Mod+Shift+T` | Theme menu |
 | `Mod+Shift+Delete` | Power menu |
 | `Mod+Q` | Close window |
 | `Mod+F` | Fullscreen |
-| `Mod+V` | Toggle floating/tiled |
-| `Mod+1-9` | Switch workspace |
-| `Super+L` | Lock screen |
-| `XF86AudioRaiseVolume` | Volume up + OSD |
-| `XF86AudioLowerVolume` | Volume down + OSD |
-| `XF86AudioMute` | Toggle mute |
-| `XF86MonBrightnessUp` | Brightness up + OSD |
-| `XF86MonBrightnessDown` | Brightness down + OSD |
-| `XF86AudioMicMute` | Toggle mic mute |
-| `Mod+Shift+K` | Toggle keyboard layout |
+| `Mod+V` | Toggle float/tiled |
+| `Mod+1-9` | Workspace |
+| `Super+L` | Lock |
+| `Vol/Brightness keys` | OSD |
+| `Mod+Shift+K` | Keyboard layout |
 
 ## Matugen Integration
 
-Zenith-Dotfiles uses **Matugen** to generate Material You colors from your wallpaper. Templates are provided for:
+Templates in `.config/matugen/templates/` generate colors for:
+- Waybar, Rofi, Dunst, Hyprlock, Kitty, Zed, Btop, SwayOSD
 
-- Waybar (`colors.css`)
-- Rofi (`colors.rasi`)
-- Dunst (`dunstrc`)
-- Hyprlock (`hyprlock.conf`)
-- Kitty (`theme.conf`)
-- Zed (`matugen.json`)
-- Btop (`matugen.theme`)
-- SwayOSD (`style.css`)
+Wallpaper changes (`Mod+Shift+W`) auto-regenerate all themes.
 
-When you change wallpaper with `Mod+Shift+W`, Matugen automatically regenerates all colors.
+## Project Structure
 
-## Wallpapers
-
-Place your wallpapers in `~/Pictures/Wallpapers` and use `Mod+Shift+W` to select one. Matugen will automatically generate colors for all applications.
-
-## Notes
-
-- Keyboard is configured for **Spanish (nodeadkeys)** — edit `niri/input.kdl` to change
-- Monitors are set to **eDP-1 (2880x1920@120Hz, scale 2)** and **HDMI-1 (scale 1)** — edit `niri/output.kdl`
-- GPU driver is **amdgpu** — change in the `install.sh` package list for your hardware
+```
+zenith-dotfiles/
+├── install.sh / update.sh    # Install scripts
+├── install/                   # Modular installers
+├── .local/bin/               # zenith-* scripts
+├── .local/share/             # dark/light mode scripts
+├── .config/                  # App configs (niri, waybar, kitty, etc.)
+├── .github/workflows/        # CI/CD
+└── images/                   # Screenshots
+```
 
 ## Troubleshooting
 
-### Common Issues
-
 | Issue | Solution |
 |-------|----------|
-| **Waybar not showing** | Run `waybar &` or check config with `jq . ~/.config/waybar/config` |
-| **Themes not applying** | Run `matugen image ~/Pictures/Wallpapers/wallpaper.png --prefer value -m dark` |
-| **Dark mode not working** | Enable darkman service: `systemctl --user enable --now darkman.service` |
-| **Rofi not launching** | Check theme file exists: `ls ~/.config/rofi/themes/` |
-| **Kitty colors wrong** | Run `zenith-reload-kitty` or restart kitty |
-| **Volume/brightness OSD not showing** | Restart swayosd: `systemctl --user restart swayosd.service` |
-| **Wallpaper selector crashes** | Ensure `awww` is installed: `yay -S awww` |
-| **Fish shell not starting** | Run `chsh -s $(which fish)` and relogin |
-| **Niri config errors** | Validate KDL syntax: check balanced braces `{}` in `~/.config/niri/*.kdl` |
-| **Matugen colors not generating** | Check templates exist: `ls ~/.config/matugen/templates/` |
+| Waybar not showing | `waybar &` or validate JSON: `jq . ~/.config/waybar/config` |
+| Themes not applying | Run: `matugen image ~/Pictures/Wallpapers/wallpaper.png` |
+| Dark mode broken | Enable: `systemctl --user enable --now darkman` |
+| Rofi crashes | Check theme: `ls ~/.config/rofi/themes/` |
+| Kitty colors wrong | Run: `zenith-reload-kitty` |
 
-### Manual Config Validation
-
-Before restarting services, validate configs:
+## Uninstall
 
 ```bash
-# Waybar JSON
-jq empty ~/.config/waybar/config
-
-# Niri KDL (check braces)
-for f in ~/.config/niri/*.kdl; do
-  echo "$f: $(grep -o '{' "$f" | wc -l) open, $(grep -o '}' "$f" | wc -l) close"
-done
-
-# Kitty syntax
-kitty @ launch --type=overlay cat ~/.config/kitty/kitty.conf
+cd ~/zenith-dotfiles && ./uninstall.sh
 ```
-
-### Service Commands
-
-```bash
-# Check service status
-systemctl --user status darkman
-systemctl --user status swayosd
-systemctl status sddm
-
-# Restart services
-systemctl --user restart darkman swayosd
-pkill waybar && waybar &
-pkill dunst && dunst &
-
-# View logs
-journalctl --user -u darkman -f
-journalctl --user -u swayosd -f
-```
-
-### Uninstall
-
-To remove Zenith-Dotfiles:
-
-```bash
-cd ~/zenith-dotfiles
-./uninstall.sh
-```
-
-### Get Help
-
-- Check GitHub Issues: https://github.com/zenith-56/zenith-dotfiles/issues
-- Review logs: `journalctl --user -f`
-- Test configs in VM before applying to main system
 
 ## License
 

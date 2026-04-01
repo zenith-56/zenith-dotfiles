@@ -43,20 +43,94 @@ check_commands() {
 # Central package definitions to avoid duplication
 
 PACMAN_PACKAGES=(
-    7zip awww base base-devel bluez bluez-utils bluetui brightnessctl btop
-    cmake darkman dnsmasq dunst edk2-ovmf efibootmgr fastfetch fd
-    ffmpeg fish flatpak fzf github-cli gnome-keyring gnu-free-fonts
-    gst-plugin-pipewire hypridle hyprlock imagemagick iproute2 iwd jq
-    kitty libsecret libvirt nano neovim niri noto-fonts noto-fonts-cjk
-    noto-fonts-emoji pamixer pipewire pipewire-alsa pipewire-jack
-    pipewire-pulse playerctl polkit poppler power-profiles-daemon qemu-full
-    reflector resvg ripgrep rofi sddm snapper sof-firmware swayosd
-    ttf-jetbrains-mono-nerd ttf-liberation ttf-nerd-fonts-symbols
-    ttf-nerd-fonts-symbols-common unzip virt-manager virt-viewer wget
-    waybar wireless_tools wireplumber woff2-font-awesome xorg-server
-    xorg-xauth xorg-xhost xorg-xinit xorg-xwayland xwayland-satellite
-    yazi zed zoxide zram-generator xdg-desktop-portal xdg-desktop-portal-gnome
-    xdg-desktop-portal-gtk wf-recorder slurp ffmpegthumbnailer mediainfo mpv
+    7zip
+    awww
+    base
+    base-devel
+    bluez
+    bluez-utils
+    bluetui
+    brightnessctl
+    btop
+    cmake
+    darkman
+    dnsmasq
+    dunst
+    edk2-ovmf
+    efibootmgr
+    fastfetch
+    fd
+    ffmpeg
+    ffmpegthumbnailer
+    fish
+    flatpak
+    fzf
+    github-cli
+    gnome-keyring
+    gnu-free-fonts
+    gst-plugin-pipewire
+    hypridle
+    hyprlock
+    imagemagick
+    iproute2
+    iwd
+    jq
+    kitty
+    libsecret
+    libvirt
+    mediainfo
+    mpv
+    nano
+    neovim
+    niri
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+    pamixer
+    pipewire
+    pipewire-alsa
+    pipewire-jack
+    pipewire-pulse
+    playerctl
+    polkit
+    poppler
+    power-profiles-daemon
+    qemu-full
+    reflector
+    resvg
+    ripgrep
+    rofi
+    sddm
+    slurp
+    snapper
+    sof-firmware
+    swayosd
+    ttf-jetbrains-mono-nerd
+    ttf-liberation
+    ttf-nerd-fonts-symbols
+    ttf-nerd-fonts-symbols-common
+    unzip
+    virt-manager
+    virt-viewer
+    waybar
+    wf-recorder
+    wget
+    wireless_tools
+    wireplumber
+    woff2-font-awesome
+    xdg-desktop-portal
+    xdg-desktop-portal-gnome
+    xdg-desktop-portal-gtk
+    xorg-server
+    xorg-xauth
+    xorg-xhost
+    xorg-xinit
+    xorg-xwayland
+    xwayland-satellite
+    yazi
+    zed
+    zoxide
+    zram-generator
 )
 
 AUR_PACKAGES=(
