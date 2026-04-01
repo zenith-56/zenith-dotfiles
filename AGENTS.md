@@ -21,7 +21,7 @@ zenith-dotfiles/
 │   ├── 07-shell.sh
 │   └── 08-display-manager.sh
 ├── update.sh              # Config updater
-├── version                # Version file (e.g., 0.1.2)
+├── version                # Version file (e.g., 0.1.5)
 ├── .local/
 │   └── bin/               # Zenith bin scripts
 │   └── share/
@@ -68,6 +68,7 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Kitty** | `zenith-reload-kitty` |
 | **Web Apps** | `zenith-webapp-install`, `zenith-webapp-uninstall` |
 | **Packages** | `zenith-pkg-install`, `zenith-pkg-aur-install`, `zenith-pkg-missing`, `zenith-pkg-remove` |
+| **Utils** | `zenith-done` |
 
 ## Waybar Scripts
 
@@ -117,7 +118,7 @@ Before creating a release, verify:
 
 4. **Version bump**:
    ```bash
-   echo "0.1.2" > version
+   echo "0.1.5" > version
    ```
 
 5. **Git status clean**:

@@ -153,6 +153,7 @@ Modular scripts in `~/.local/bin/` for system control:
 | `zenith-pkg-list` | List/search installed packages |
 | `zenith-pkg-missing` | Check if packages are missing |
 | `zenith-pkg-remove` | FZF TUI for package removal |
+| `zenith-done` | Terminal exit prompt with optional message |
 
 ## Project structure
 
