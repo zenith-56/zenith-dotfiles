@@ -13,10 +13,10 @@ selection=$(rofi_menu "tokyo-night.rasi" " 󰏖  Packages\n 󰀱  Web App\n 󰜺
 
 case "$selection" in
     *Packages)
-        kitty --class "zenith-uninstaller" -e fish -c "zenith-pkg-remove; echo -e '\nPress Enter to close...'; read" &
+        kitty --class "zenith-uninstaller" -e fish -c "zenith-pkg-remove" &
         ;;
     *Web\ App)
-        kitty --class "zenith-uninstaller" -e fish -c "zenith-webapp-uninstall; echo -e '\nPress Enter to close...'; read" &
+        kitty --class "zenith-uninstaller" -e fish -c "zenith-webapp-uninstall" &
         ;;
     *Back)
         bash "$ROFI_SCRIPTS_DIR/launcher.sh"

@@ -24,4 +24,5 @@ if [[ -n $pkg_names ]]; then
     --icon=software-update-available \
     "Packages Removed" \
     "Selected packages removed" 2>/dev/null || true
+  zenith-done
 fi

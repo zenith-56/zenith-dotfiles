@@ -55,7 +55,7 @@ PACMAN_PACKAGES=(
     ttf-nerd-fonts-symbols-common unzip virt-manager virt-viewer wget
     waybar wireless_tools wireplumber woff2-font-awesome xorg-server
     xorg-xauth xorg-xhost xorg-xinit xorg-xwayland xwayland-satellite
-    yazi zed zoxide zram-setup xdg-desktop-portal xdg-desktop-portal-gnome
+    yazi zed zoxide zram-generator xdg-desktop-portal xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk wf-recorder slurp ffmpegthumbnailer mediainfo mpv
 )
 

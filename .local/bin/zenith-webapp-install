@@ -250,4 +250,6 @@ if [[ "$INTERACTIVE_MODE" == "true" ]]; then
     echo -e "  URL     : $APP_URL"
     echo -e "  Icon    : $ICON_PATH"
     echo -e "  Desktop : $DESKTOP_FILE\n"
+
+    zenith-done
 fi

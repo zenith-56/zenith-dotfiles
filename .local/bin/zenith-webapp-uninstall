@@ -75,3 +75,4 @@ done
 update-desktop-database "$APPS_DIR" 2>/dev/null || true
 
 echo -e "\n\e[32mDone. ${#selected[@]} app(s) removed.\e[0m"
+zenith-done
