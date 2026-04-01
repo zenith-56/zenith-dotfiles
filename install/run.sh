@@ -34,6 +34,36 @@ run_step() {
 
 [ "$(id -u)" -eq 0 ] && err "Do not run as root"
 
+# Offer backup before installation
+backup_configs() {
+    BACKUP_DIR="$HOME/.config.bak-$(date +%Y%m%d-%H%M%S)"
+    if gum confirm "Backup existing configs before installing?"; then
+        mkdir -p "$BACKUP_DIR/.config"
+        mkdir -p "$BACKUP_DIR/.local/share"
+        
+        BACKED=0
+        for cfg in "${CONFIGS[@]}"; do
+            if [ -d "$HOME/.config/$cfg" ]; then
+                cp -r "$HOME/.config/$cfg" "$BACKUP_DIR/.config/"
+                BACKED=$((BACKED + 1))
+            fi
+        done
+        
+        [ -d "$HOME/.local/share/dark-mode.d" ] && \
+            cp -r "$HOME/.local/share/dark-mode.d" "$BACKUP_DIR/.local/share/" && \
+            BACKED=$((BACKED + 1))
+        [ -d "$HOME/.local/share/light-mode.d" ] && \
+            cp -r "$HOME/.local/share/light-mode.d" "$BACKUP_DIR/.local/share/" && \
+            BACKED=$((BACKED + 1))
+        
+        log "Backup: ${BACKED} dirs saved to ${BACKUP_DIR}"
+    else
+        warn "Skipping backup..."
+    fi
+}
+
+backup_configs
+
 if ! gum confirm "Start Zenith-Dotfiles installation?"; then
     exit 0
 fi

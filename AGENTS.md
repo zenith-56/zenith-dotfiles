@@ -67,6 +67,8 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Keyboard** | `zenith-kb-layout` |
 | **Kitty** | `zenith-reload-kitty` |
 | **Web Apps** | `zenith-webapp-install`, `zenith-webapp-uninstall` |
+| **VM** | `zenith-vm`, `zenith-vm-console`, `zenith-vm-install`, `zenith-vm-launch`, `zenith-vm-list`, `zenith-vm-remove`, `zenith-vm-settings`, `zenith-vm-snapshot-create`, `zenith-vm-snapshot-list`, `zenith-vm-snapshot-restore`, `zenith-vm-status`, `zenith-vm-stop` |
+| **Packages** | `zenith-pkg`, `zenith-pkg-add`, `zenith-pkg-aur-add`, `zenith-pkg-aur-install`, `zenith-pkg-aur-accessible`, `zenith-pkg-install`, `zenith-pkg-remove`, `zenith-pkg-drop`, `zenith-pkg-missing`, `zenith-pkg-present`, `zenith-pkg-list`, `zenith-pkg-colors` |
 
 ## Waybar Scripts
 

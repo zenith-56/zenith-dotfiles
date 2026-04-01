@@ -12,17 +12,9 @@ set -e
 REPO_URL="https://github.com/zenith-56/zenith-dotfiles.git"
 DOTFILES_DIR="$HOME/zenith-dotfiles"
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-RESET='\033[0m'
-
-log()  { echo -e "${GREEN}[✓]${RESET} $1"; }
-warn() { echo -e "${YELLOW}[!]${RESET} $1"; }
-err()  { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
-info() { echo -e "${CYAN}[i]${RESET} $1"; }
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/install/common.sh"
 
 # Install base dependencies
 install_deps() {
@@ -75,8 +67,19 @@ else
     cd "$DOTFILES_DIR"
 fi
 
-# Make scripts executable
-chmod +x install/*.sh .local/bin/* .config/rofi/scripts/*.sh .config/waybar/scripts/*.sh
+# Verify scripts are executable (repo should have them, but double-check)
+verify_executable() {
+    local missing=()
+    for file in install/*.sh .local/bin/* .config/rofi/scripts/*.sh .config/waybar/scripts/*.sh; do
+        [ -f "$file" ] && [ ! -x "$file" ] && missing+=("$file")
+    done
+    if [ ${#missing[@]} -gt 0 ]; then
+        info "Setting executable permissions..."
+        chmod +x install/*.sh .local/bin/* .config/rofi/scripts/*.sh .config/waybar/scripts/*.sh
+    fi
+}
+
+verify_executable
 
 # Run installer
 log "Starting installation..."

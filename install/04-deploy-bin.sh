@@ -5,10 +5,10 @@
 
 set -e
 
-log() { echo -e "\033[0;32m[✓]\033[0m $1"; }
-info() { echo -e "\033[0;36m[i]\033[0m $1"; }
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-DOTFILES_DIR="$HOME/zenith-dotfiles"
+DOTFILES_DIR="$(get_dotfiles_dir)"
 mkdir -p "$HOME/.local/bin"
 
 cp -f "$DOTFILES_DIR"/.local/bin/* "$HOME/.local/bin/"

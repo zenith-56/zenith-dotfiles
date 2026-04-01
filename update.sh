@@ -4,28 +4,19 @@
 # =============================================================================
 # Description : Pulls latest configs from repo and updates the local
 #               installation. Offers backup before overwriting.
-# AUR Helper  : paru (default)
+# AUR Helper  : yay (default)
 # Author      : Maximocruz (@zenith-56)
 # License     : MIT
 # =============================================================================
 
 set -e
 
-# ── Colors ────────────────────────────────────────────────────────────────────
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-RESET='\033[0m'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/install/common.sh"
 
 REPO_URL="https://github.com/zenith-56/zenith-dotfiles.git"
 DOTFILES_DIR="$HOME/zenith-dotfiles"
 BACKUP_DIR="$HOME/.config.bak-$(date +%Y%m%d-%H%M%S)"
-
-log()  { echo -e "${GREEN}[✓]${RESET} $1"; }
-warn() { echo -e "${YELLOW}[!]${RESET} $1"; }
-err()  { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
-info() { echo -e "${CYAN}[i]${RESET} $1"; }
 
 # ── Ensure gum ────────────────────────────────────────────────────────────────
 if ! command -v gum &>/dev/null; then
@@ -177,29 +168,12 @@ log "Font cache updated"
 # ── Step 7: Check for new packages ────────────────────────────────────────────
 echo ""
 if gum confirm "Check and install new packages from repo?"; then
-    PACMAN_PACKAGES=(
-        "fish" "niri" "xwayland-satellite" "xorg-xhost" "kitty"
-        "waybar" "rofi" "dunst" "hyprlock" "hypridle" "btop" "htop"
-        "brightnessctl" "playerctl" "acpi" "fzf" "unzip" "wget"
-        "fastfetch" "snapper" "ncpamixer" "bluetui" "impala"
-        "wireless_tools" "sddm" "ttf-jetbrains-mono-nerd" "noto-fonts"
-        "noto-fonts-cjk" "noto-fonts-emoji" "woff2-font-awesome"
-        "xf86-video-amdgpu" "neovim" "zed" "vim" "nano" "git"
-        "github-cli" "stow" "cmake" "power-profiles-daemon"
-        "zram-generator" "sof-firmware" "intel-ucode" "flatpak"
-        "base-devel" "darkman"
-    )
-
-    AUR_PACKAGES=(
-        "matugen-bin" "awww" "ttf-material-design-icons-desktop-git"
-    )
-
     info "Installing missing packages (pacman)..."
     sudo pacman -S --noconfirm --needed "${PACMAN_PACKAGES[@]}" 2>/dev/null || \
         warn "Some packages not available in official repos"
 
-    info "Installing missing packages (AUR via paru)..."
-    paru -S --noconfirm --needed "${AUR_PACKAGES[@]}" 2>/dev/null || \
+    info "Installing missing packages (AUR via yay)..."
+    yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" 2>/dev/null || \
         warn "Some AUR packages failed"
 
     log "Packages verified"
