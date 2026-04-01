@@ -55,19 +55,19 @@ Complete Arch Linux desktop environment with **Niri** (scrollable-tiling composi
 | **Notifications** | dunst |
 | **OSD** | swayosd |
 | **Lock / Idle** | hyprlock, hypridle |
-| **System** | btop, htop, fastfetch, snapper |
-| **Utilities** | brightnessctl, playerctl, acpi, fzf, unzip, wget, yazi |
-| **Audio** | pamixer, ncpamixer |
-| **Bluetooth** | bluetui |
-| **WiFi** | impala, wireless_tools |
+| **System** | btop, fastfetch, snapper, fd, ripgrep, fzf |
+| **Utilities** | brightnessctl, playerctl, unzip, wget, yazi, jq, imagemagick |
+| **Audio** | pamixer, pipewire, pipewire-alsa, pipewire-jack, pipewire-pulse, wireplumber, wf-recorder, slurp |
+| **Bluetooth** | bluez, bluez-utils, bluetui |
+| **WiFi / Network** | iwd, impala, wireless_tools |
 | **Display Manager** | sddm |
-| **Fonts** | ttf-jetbrains-mono-nerd, noto-fonts, noto-fonts-cjk, noto-fonts-emoji, woff2-font-awesome |
-| **GPU** | xf86-video-amdgpu (adapt to your hardware) |
-| **Editors** | neovim, zed, vim, nano |
-| **Dev** | git, github-cli, stow, cmake |
-| **Power** | power-profiles-daemon, zram-generator |
-| **Firmware** | sof-firmware, intel-ucode |
-| **Misc** | flatpak, base-devel, darkman |
+| **Fonts** | ttf-jetbrains-mono-nerd, ttf-liberation, ttf-nerd-fonts-symbols, noto-fonts, noto-fonts-cjk, noto-fonts-emoji, gnu-free-fonts, woff2-font-awesome |
+| **Editors** | neovim, zed, nano |
+| **Dev** | git, github-cli, base-devel, cmake |
+| **Power** | power-profiles-daemon, zram-setup |
+| **Firmware** | sof-firmware, edk2-ovmf, efibootmgr |
+| **VM** | qemu-full, libvirt, virt-manager, virt-viewer, dnsmasq |
+| **Misc** | flatpak, darkman, 7zip, ffmpeg, ffmpegthumbnailer, mediainfo, mpv, poppler, resvg, reflector, polkit, libsecret, gnome-keyring |
 
 ### AUR (yay)
 
@@ -257,7 +257,7 @@ Place your wallpapers in `~/Pictures/Wallpapers` and use `Mod+Shift+W` to select
 | **Rofi not launching** | Check theme file exists: `ls ~/.config/rofi/themes/` |
 | **Kitty colors wrong** | Run `zenith-reload-kitty` or restart kitty |
 | **Volume/brightness OSD not showing** | Restart swayosd: `systemctl --user restart swayosd.service` |
-| **Wallpaper selector crashes** | Ensure `awww` is installed: `paru -S awww` |
+| **Wallpaper selector crashes** | Ensure `awww` is installed: `yay -S awww` |
 | **Fish shell not starting** | Run `chsh -s $(which fish)` and relogin |
 | **Niri config errors** | Validate KDL syntax: check balanced braces `{}` in `~/.config/niri/*.kdl` |
 | **Matugen colors not generating** | Check templates exist: `ls ~/.config/matugen/templates/` |
