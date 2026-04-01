@@ -26,4 +26,11 @@ if [ -d "$LOCAL_SRC/share/dark-mode.d" ]; then
     cp -r "$LOCAL_SRC/share/dark-mode.d/"* "$HOME/.local/share/dark-mode.d/" 2>/dev/null || true
     cp -r "$LOCAL_SRC/share/light-mode.d/"* "$HOME/.local/share/light-mode.d/" 2>/dev/null || true
 fi
+
+# Fix hardcoded paths in fish_variables for current user
+FISH_VARS="$HOME/.config/fish/fish_variables"
+if [ -f "$FISH_VARS" ]; then
+    sed -i "s|/home/[^/]*/|$HOME/|g" "$FISH_VARS" 2>/dev/null || true
+fi
+
 log "Configs deployed"

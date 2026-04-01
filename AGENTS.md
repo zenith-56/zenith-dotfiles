@@ -23,7 +23,7 @@ zenith-dotfiles/
 ├── update.sh              # Config updater
 ├── version                # Version file (e.g., 0.1.2)
 ├── .local/
-│   └── bin/               # Zenith bin scripts (30 scripts)
+│   └── bin/               # Zenith bin scripts
 │   └── share/
 │       ├── dark-mode.d/   # Dark mode scripts (darkman)
 │       └── light-mode.d/   # Light mode scripts (darkman)
@@ -55,7 +55,6 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 |----------|---------|
 | **Theme** | `zenith-theme-get`, `zenith-theme-set`, `zenith-theme-toggle` |
 | **OSD** | `zenith-swayosd-volume`, `zenith-swayosd-brightness` |
-| **Media** | `zenith-media` |
 | **Music** | `zenith-music-show` |
 | **Audio** | `zenith-mic`, `zenith-volume-*` |
 | **Display** | `zenith-brightness-*` |
@@ -64,20 +63,16 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Power** | `zenith-lock`, `zenith-power-off`, `zenith-reboot`, `zenith-logout` |
 | **Restart** | `zenith-restart-all`, `zenith-restart-waybar`, `zenith-restart-dunst`, `zenith-restart-swayosd` |
 | **Screenshot** | `zenith-screenshot`, `zenith-screenshot-region` |
+| **Screen Record** | `zenith-screen-recorder` |
 | **Keyboard** | `zenith-kb-layout` |
 | **Kitty** | `zenith-reload-kitty` |
 | **Web Apps** | `zenith-webapp-install`, `zenith-webapp-uninstall` |
-| **VM** | `zenith-vm`, `zenith-vm-console`, `zenith-vm-install`, `zenith-vm-launch`, `zenith-vm-list`, `zenith-vm-remove`, `zenith-vm-settings`, `zenith-vm-snapshot-create`, `zenith-vm-snapshot-list`, `zenith-vm-snapshot-restore`, `zenith-vm-status`, `zenith-vm-stop` |
-| **Packages** | `zenith-pkg`, `zenith-pkg-add`, `zenith-pkg-aur-add`, `zenith-pkg-aur-install`, `zenith-pkg-aur-accessible`, `zenith-pkg-install`, `zenith-pkg-remove`, `zenith-pkg-drop`, `zenith-pkg-missing`, `zenith-pkg-present`, `zenith-pkg-list`, `zenith-pkg-colors` |
+| **Packages** | `zenith-pkg-install`, `zenith-pkg-aur-install`, `zenith-pkg-list`, `zenith-pkg-missing`, `zenith-pkg-remove` |
 
 ## Waybar Scripts
 
-Scripts in `.config/waybar/scripts/` that use zenith-bins:
+Scripts in `.config/waybar/scripts/`:
 
-- `battery.sh` - Uses `zenith-battery-*`
-- `network.sh` - Uses `zenith-network-*`
-- `volume.sh` - Uses `zenith-volume-get`
-- `brightness.sh` - Uses `zenith-brightness-get`
 - `braille-snake.sh` - CPU animation (enhanced with tooltip)
 
 ## Matugen Templates

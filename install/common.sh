@@ -157,6 +157,39 @@ create_backup() {
     fi
 }
 
+# Interactive backup of all Zenith configs (uses gum)
+do_backup_configs() {
+    local backup_dir="$HOME/.config.bak-$(date +%Y%m%d-%H%M%S)"
+
+    if gum confirm "Backup existing configs before installing?"; then
+        mkdir -p "$backup_dir/.config"
+        mkdir -p "$backup_dir/.local/share"
+
+        local backed=0
+        for cfg in "${CONFIGS[@]}"; do
+            if [ -d "$HOME/.config/$cfg" ]; then
+                cp -r "$HOME/.config/$cfg" "$backup_dir/.config/"
+                backed=$((backed + 1))
+            fi
+        done
+
+        if [ -d "$HOME/.local/share/dark-mode.d" ]; then
+            cp -r "$HOME/.local/share/dark-mode.d" "$backup_dir/.local/share/"
+            backed=$((backed + 1))
+        fi
+        if [ -d "$HOME/.local/share/light-mode.d" ]; then
+            cp -r "$HOME/.local/share/light-mode.d" "$backup_dir/.local/share/"
+            backed=$((backed + 1))
+        fi
+
+        log "Backup: ${backed} dirs saved to ${backup_dir}"
+        echo "$backup_dir"
+    else
+        warn "Skipping backup..."
+        echo ""
+    fi
+}
+
 # ── Config Validation ─────────────────────────────────────────────────────────
 # Validate configs before restarting services
 validate_configs() {
@@ -181,10 +214,7 @@ validate_configs() {
     # Validate niri configs (KDL format - basic check)
     for kdl_file in "$HOME/.config/niri/"*.kdl; do
         if [ -f "$kdl_file" ]; then
-            local open_braces=$(grep -o '{' "$kdl_file" 2>/dev/null | wc -l)
-            local close_braces=$(grep -o '}' "$kdl_file" 2>/dev/null | wc -l)
-            if [ "$open_braces" -ne "$close_braces" ]; then
-                warn "Unbalanced braces in $kdl_file"
+            if ! validate_kdl "$kdl_file"; then
                 errors=$((errors + 1))
             fi
         fi

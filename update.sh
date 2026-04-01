@@ -58,35 +58,7 @@ fi
 
 # ── Step 2: Backup (optional) ────────────────────────────────────────────────
 echo ""
-if gum confirm "Back up current configs before updating?"; then
-    mkdir -p "$BACKUP_DIR/.config"
-    mkdir -p "$BACKUP_DIR/.local/share"
-
-    CONFIGS=(
-        "kitty" "btop" "dunst" "fish" "hypr"
-        "matugen" "niri" "rofi" "waybar" "zed"
-        "swayosd" "yazi" "fastfetch"
-    )
-
-    BACKED=0
-    for cfg in "${CONFIGS[@]}"; do
-        if [ -d "$HOME/.config/$cfg" ]; then
-            cp -r "$HOME/.config/$cfg" "$BACKUP_DIR/.config/"
-            BACKED=$((BACKED + 1))
-        fi
-    done
-
-    [ -d "$HOME/.local/share/dark-mode.d" ] && \
-        cp -r "$HOME/.local/share/dark-mode.d" "$BACKUP_DIR/.local/share/" && \
-        BACKED=$((BACKED + 1))
-    [ -d "$HOME/.local/share/light-mode.d" ] && \
-        cp -r "$HOME/.local/share/light-mode.d" "$BACKUP_DIR/.local/share/" && \
-        BACKED=$((BACKED + 1))
-
-    log "Backup: ${BACKED} dirs saved to ${BACKUP_DIR}"
-else
-    warn "Skipping backup..."
-fi
+BACKUP_RESULT=$(do_backup_configs)
 
 # ── Step 3: Selective update ─────────────────────────────────────────────────
 echo ""
@@ -197,10 +169,7 @@ if gum confirm "Reload running services? (waybar, dunst, kitty, niri)"; then
     # Validate niri configs
     for kdl_file in "$HOME/.config/niri/"*.kdl; do
         if [ -f "$kdl_file" ]; then
-            open_braces=$(grep -o '{' "$kdl_file" 2>/dev/null | wc -l)
-            close_braces=$(grep -o '}' "$kdl_file" 2>/dev/null | wc -l)
-            if [ "$open_braces" -ne "$close_braces" ]; then
-                warn "Unbalanced braces in $kdl_file - niri config may be invalid"
+            if ! validate_kdl "$kdl_file"; then
                 ERRORS=$((ERRORS + 1))
             fi
         fi

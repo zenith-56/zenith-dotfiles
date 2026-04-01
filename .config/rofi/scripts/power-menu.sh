@@ -4,38 +4,24 @@
 # =============================================================================
 # Description : System power management interface with confirmation dialogs.
 # =============================================================================
-#
-THEME="$HOME/.config/rofi/themes/tokyo-night.rasi"
-SCRIPTS="$HOME/.config/rofi/scripts"
-BIN="$HOME/.local/bin"
 
-rofi_cmd() {
-    rofi -dmenu -i -p "" -theme "$THEME" "$@"
-}
+source "$(dirname "$0")/common.sh"
 
-tmpfile=$(mktemp)
-printf ' ⏻  Shutdown\n 󰩎  Restart\n 󰌾  Lock\n 󰗽  Logout\n 󰜺  Back\n' | rofi_cmd -placeholder "Power..." > "$tmpfile"
-rc=$?
-chosen=$(cat "$tmpfile")
-rm -f "$tmpfile"
+selection=$(rofi_menu "tokyo-night.rasi" " ⏻  Shutdown\n 󰩎  Restart\n 󰌾  Lock\n 󰗽  Logout\n 󰜺  Back" "Power...") || \
+    exec bash "$ROFI_SCRIPTS_DIR/launcher.sh"
 
-if (( rc == 1 )); then
-    exec bash "$SCRIPTS/launcher.sh"
-fi
-
-case "$chosen" in
+case "$selection" in
     *Shutdown)
-        confirm=$(printf 'Yes\nNo' | rofi_cmd -p "Shutdown?")
-        [[ "$confirm" == "Yes" ]] && exec "$BIN/zenith-power-off"
+        confirm=$(rofi_menu "tokyo-night.rasi" "Yes\nNo" "Shutdown?") || exit 0
+        [[ "$confirm" == "Yes" ]] && exec "$ZENITH_BIN/zenith-power-off"
         ;;
     *Restart)
-        confirm=$(printf 'Yes\nNo' | rofi_cmd -p "Restart?")
-        [[ "$confirm" == "Yes" ]] && exec "$BIN/zenith-reboot"
+        confirm=$(rofi_menu "tokyo-night.rasi" "Yes\nNo" "Restart?") || exit 0
+        [[ "$confirm" == "Yes" ]] && exec "$ZENITH_BIN/zenith-reboot"
         ;;
-    *Lock) exec "$BIN/zenith-lock" ;;
-    *Logout) exec "$BIN/zenith-logout" ;;
+    *Lock) exec "$ZENITH_BIN/zenith-lock" ;;
+    *Logout) exec "$ZENITH_BIN/zenith-logout" ;;
     *Back)
-        bash "$SCRIPTS/launcher.sh"
-        exit 0
+        bash "$ROFI_SCRIPTS_DIR/launcher.sh"
         ;;
 esac

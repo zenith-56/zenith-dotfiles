@@ -6,37 +6,19 @@
 #               wallpaper selection and global color scheme transitions.
 # =============================================================================
 
-THEME="$HOME/.config/rofi/themes/tokyo-night.rasi"
-SCRIPTS="$HOME/.config/rofi/scripts"
+source "$(dirname "$0")/common.sh"
 
-rofi_cmd() {
-    rofi -dmenu -i -p "" -theme "$THEME" "$@"
-}
+selection=$(rofi_menu "tokyo-night.rasi" " 󰸉  Wallpapers\n 󰏘  Change Dark/Light\n 󰜺  Back" "Theming...") || \
+    exec bash "$ROFI_SCRIPTS_DIR/launcher.sh"
 
-tmpfile=$(mktemp)
-printf ' 󰸉  Wallpapers\n 󰏘  Change Dark/Light\n 󰜺  Back\n' | rofi_cmd -placeholder "Theming..." > "$tmpfile"
-rc=$?
-chosen=$(cat "$tmpfile")
-rm -f "$tmpfile"
-
-if (( rc == 1 )); then
-    exec bash "$SCRIPTS/launcher.sh"
-fi
-
-case "$chosen" in
+case "$selection" in
     *Wallpapers)
-        bash "$SCRIPTS/wall-selector.sh"
-        exit 0
+        bash "$ROFI_SCRIPTS_DIR/wall-selector.sh"
         ;;
     *Change\ Dark/Light)
-        bash "$SCRIPTS/theme-menu.sh"
-        exit 0
+        bash "$ROFI_SCRIPTS_DIR/theme-menu.sh"
         ;;
     *Back)
-        bash "$SCRIPTS/launcher.sh"
-        exit 0
-        ;;
-    *)
-        exit 0
+        bash "$ROFI_SCRIPTS_DIR/launcher.sh"
         ;;
 esac

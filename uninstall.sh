@@ -33,31 +33,7 @@ fi
 
 # ── Backup Option ─────────────────────────────────────────────────────────────
 echo ""
-if gum confirm "Create backup before removing?"; then
-    mkdir -p "$BACKUP_DIR/.config"
-    mkdir -p "$BACKUP_DIR/.local/share"
-
-    BACKED=0
-    for cfg in "${CONFIGS[@]}"; do
-        if [ -d "$HOME/.config/$cfg" ]; then
-            cp -r "$HOME/.config/$cfg" "$BACKUP_DIR/.config/"
-            BACKED=$((BACKED + 1))
-        fi
-    done
-
-    if [ -d "$HOME/.local/share/dark-mode.d" ]; then
-        cp -r "$HOME/.local/share/dark-mode.d" "$BACKUP_DIR/.local/share/"
-        BACKED=$((BACKED + 1))
-    fi
-    if [ -d "$HOME/.local/share/light-mode.d" ]; then
-        cp -r "$HOME/.local/share/light-mode.d" "$BACKUP_DIR/.local/share/"
-        BACKED=$((BACKED + 1))
-    fi
-
-    log "Backup: ${BACKED} dirs saved to ${BACKUP_DIR}"
-else
-    warn "Skipping backup..."
-fi
+BACKUP_RESULT=$(do_backup_configs)
 
 # ── Selective Removal ─────────────────────────────────────────────────────────
 echo ""

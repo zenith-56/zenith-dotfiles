@@ -6,42 +6,28 @@
 #               automated hot-reloading for the Zenith environment.
 # =============================================================================
 
-THEME="$HOME/.config/rofi/themes/tokyo-night.rasi"
-SCRIPTS="$HOME/.config/rofi/scripts"
-BIN="$HOME/.local/bin"
+source "$(dirname "$0")/common.sh"
 
-rofi_cmd() {
-    rofi -dmenu -i -p "" -theme "$THEME" "$@"
-}
-
-current=$("$BIN/zenith-theme-get")
+current=$("$ZENITH_BIN/zenith-theme-get")
 
 if [[ "$current" == "dark" ]]; then
-    menu_text=' 󰔎  Light Mode\n 󰔎  Dark Mode  [active]\n'
+    menu_text=' 󰔎  Light Mode\n 󰔎  Dark Mode  [active]'
 else
-    menu_text=' 󰔎  Light Mode  [active]\n 󰔎  Dark Mode\n'
+    menu_text=' 󰔎  Light Mode  [active]\n 󰔎  Dark Mode'
 fi
 
-tmpfile=$(mktemp)
-printf "$menu_text" | rofi_cmd -placeholder "Theme..." > "$tmpfile"
-rc=$?
-chosen=$(cat "$tmpfile")
-rm -f "$tmpfile"
+selection=$(rofi_menu "tokyo-night.rasi" "$menu_text" "Theme...") || \
+    exec bash "$ROFI_SCRIPTS_DIR/theming-menu.sh"
 
-if (( rc == 1 )); then
-    exec bash "$SCRIPTS/theming-menu.sh"
-fi
-
-case "$chosen" in
+case "$selection" in
     *Light\ Mode*)
-        "$BIN/zenith-theme-set" light
+        "$ZENITH_BIN/zenith-theme-set" light
         sleep 0.5
-        "$BIN/zenith-restart-all"
+        "$ZENITH_BIN/zenith-restart-all"
         ;;
     *Dark\ Mode*)
-        "$BIN/zenith-theme-set" dark
+        "$ZENITH_BIN/zenith-theme-set" dark
         sleep 0.5
-        "$BIN/zenith-restart-all"
+        "$ZENITH_BIN/zenith-restart-all"
         ;;
-    *) exit 0 ;;
 esac

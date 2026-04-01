@@ -6,11 +6,10 @@
 #               Matugen for automated color palette synchronization.
 # =============================================================================
 
-THEME="$HOME/.config/rofi/themes/wallpaper-gallery.rasi"
-SCRIPTS="$HOME/.config/rofi/scripts"
+source "$(dirname "$0")/common.sh"
+
 WALL_DIR="$HOME/Pictures/Wallpapers"
 CURRENT_LINK="$HOME/.config/rofi/images/current_wallpaper.png"
-BIN="$HOME/.local/bin"
 
 mkdir -p "$(dirname "$CURRENT_LINK")"
 
@@ -28,13 +27,13 @@ for pic in "${pics[@]}"; do
 done
 
 tmpfile=$(mktemp)
-printf '%b' "$menu_items" | rofi -dmenu -i -p "Wallpapers" -theme "$THEME" > "$tmpfile"
+printf '%b' "$menu_items" | rofi -dmenu -i -p "Wallpapers" -theme "$ROFI_THEME_DIR/wallpaper-gallery.rasi" > "$tmpfile"
 rc=$?
 selection=$(cat "$tmpfile")
 rm -f "$tmpfile"
 
 if (( rc == 1 )); then
-    exec bash "$SCRIPTS/theming-menu.sh"
+    exec bash "$ROFI_SCRIPTS_DIR/theming-menu.sh"
 fi
 
 if [[ -n "$selection" ]]; then
@@ -46,10 +45,10 @@ if [[ -n "$selection" ]]; then
 
     sleep 0.5
 
-    current_mode=$("$BIN/zenith-theme-get")
+    current_mode=$("$ZENITH_BIN/zenith-theme-get")
     matugen image "$FULL_PATH" --prefer value -m "$current_mode"
 
-    "$BIN/zenith-restart-all"
+    "$ZENITH_BIN/zenith-restart-all"
 
     notify-send "Wallpaper" "Colors updated" -i "$FULL_PATH"
 fi

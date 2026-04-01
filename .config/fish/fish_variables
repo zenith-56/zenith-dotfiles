@@ -1,4 +1,4 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
 SETUVAR __fish_initialized:4300
-SETUVAR fish_user_paths:/home/maximocruz/\x2elocal/bin\x1e/home/maximocruz/\x2econfig/rofi/scripts
+SETUVAR fish_user_paths:$HOME/.local/bin\x1e$HOME/.config/rofi/scripts
