@@ -23,6 +23,6 @@ if [[ -n "$pkg_names" ]]; then
     --urgency=normal \
     --icon=software-update-available \
     "Packages Installed" \
-    "Selected packages installed" 2>/dev/null || true
+    "${pkg_names} packages installed" 2>/dev/null || true
   zenith-done
 fi
