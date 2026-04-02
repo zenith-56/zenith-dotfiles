@@ -195,5 +195,12 @@
     "on-click": "$HOME/.config/rofi/scripts/power-menu.sh",
     "tooltip": true,
     "tooltip-format": "Open Power Menu"
+  },
+  "custom/power_profile": {
+    "exec": "$HOME/.config/waybar/scripts/power-profile.sh",
+    "interval": 5,
+    "format": "{}",
+    "tooltip": false,
+    "on-click": "/home/maximocruz/zenith-dotfiles/.local/bin/zenith-power-profile cycle"
   }
 }
