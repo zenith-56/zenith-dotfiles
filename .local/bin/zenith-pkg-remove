@@ -24,6 +24,6 @@ if [[ -n "$pkg_names" ]]; then
     --urgency=normal \
     --icon=software-update-available \
     "Packages Removed" \
-    "Selected packages removed" 2>/dev/null || true
+    "${pkg_names} packages removed" 2>/dev/null || true
   zenith-done
 fi

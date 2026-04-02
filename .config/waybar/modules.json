@@ -199,7 +199,7 @@
   "custom/power_profile": {
     "exec": "$HOME/.config/waybar/scripts/power-profile.sh",
     "interval": 5,
-    "format": "{}",
+    "format": "<span size='14pt'>{}</span>",
     "tooltip": false,
     "on-click": "/home/maximocruz/zenith-dotfiles/.local/bin/zenith-power-profile cycle"
   }
