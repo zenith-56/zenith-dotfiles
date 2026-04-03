@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Firewall Manager
+# =============================================================================
+# Manage ufw firewall: toggle, enable custom rules, status
+# =============================================================================
+
+set -euo pipefail
+
+if ! command -v ufw &>/dev/null; then
+    echo "ufw not found. Install it first."
+    exit 1
+fi
+
+get_status() {
+    if [ -f /etc/ufw/ufw.conf ]; then
+        grep -q '^ENABLED=yes' /etc/ufw/ufw.conf 2>/dev/null && echo "active" || echo "inactive"
+    else
+        sudo ufw status verbose 2>/dev/null | head -1 | awk '{print $2}' || echo "unknown"
+    fi
+}
+
+case "${1:-status}" in
+    status)
+        get_status
+        ;;
+    enable)
+        sudo ufw enable
+        notify-send "Firewall" "Firewall enabled" -i network-firewall 2>/dev/null || true
+        ;;
+    disable)
+        sudo ufw disable
+        notify-send "Firewall" "Firewall disabled" -i network-firewall 2>/dev/null || true
+        ;;
+    toggle)
+        current=$(get_status)
+        if [ "$current" = "active" ]; then
+            sudo ufw disable
+            notify-send "Firewall" "Firewall disabled" -i network-firewall 2>/dev/null || true
+        else
+            sudo ufw enable
+            notify-send "Firewall" "Firewall enabled" -i network-firewall 2>/dev/null || true
+        fi
+        ;;
+    rule)
+        if [ -z "${2:-}" ]; then
+            echo "Error: rule required"
+            exit 1
+        fi
+        sudo ufw "$2"
+        notify-send "Firewall" "Rule applied: $2" -i network-firewall 2>/dev/null || true
+        ;;
+    *)
+        echo "Usage: $0 {status|enable|disable|toggle|rule <rule>}"
+        exit 1
+        ;;
+esac

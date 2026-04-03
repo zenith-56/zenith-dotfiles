@@ -59,7 +59,7 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Music** | `zenith-music-show` |
 | **Audio** | `zenith-mic`, `zenith-volume-get`, `zenith-volume-set` |
 | **Display** | `zenith-brightness-get`, `zenith-brightness-set` |
-| **Network** | `zenith-network-status`, `zenith-network-ssid` |
+| **Network** | `zenith-network-status`, `zenith-network-ssid`, `zenith-firewall`, `zenith-dns` |
 | **Battery** | `zenith-battery-capacity`, `zenith-battery-status` |
 | **Power** | `zenith-lock`, `zenith-power-off`, `zenith-reboot`, `zenith-logout` |
 | **Restart** | `zenith-restart-all`, `zenith-restart-waybar`, `zenith-restart-dunst`, `zenith-restart-swayosd` |
@@ -86,6 +86,7 @@ Scripts in `.config/rofi/scripts/`:
 | `power-menu.sh` | Power menu (lock, logout, reboot, poweroff) |
 | `install-menu.sh` | Package installer |
 | `uninstall-menu.sh` | Package remover |
+| `network-menu.sh` | Network config (Firewall + DNS) |
 
 ## Waybar Scripts
 
@@ -221,12 +222,19 @@ done
 ls ~/.config/matugen/templates/
 ```
 
+## Changelog
+
+See `CHANGELOG.md` for the full version history. When making changes, always update the changelog under the `[Unreleased]` section.
+
 ## Notes
 
 - This is a dotfiles repo, not a traditional software project
 - All scripts must use `#!/usr/bin/env bash`
+- All scripts must use `set -euo pipefail`
+- Use `trap` for cleanup when scripts create temporary resources
 - Use error handling (check if commands exist, check if files exist)
 - Waybar modules should output JSON format
-- Rofi scripts should use Gum for interactive UI
+- Rofi scripts should use `common.sh` for shared functions and rofi for interactive UI
 - Package scripts should use FZF for fuzzy selection
 - All configs in `common.sh` must match actual files/dirs
+- When adding new features, add an entry to CHANGELOG.md under `[Unreleased]`

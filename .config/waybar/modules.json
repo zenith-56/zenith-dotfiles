@@ -202,5 +202,12 @@
     "format": "<span size='14pt'>{}</span>",
     "tooltip": false,
     "on-click": "/home/maximocruz/zenith-dotfiles/.local/bin/zenith-power-profile cycle"
+  },
+  "custom/kb_layout": {
+    "exec": "$HOME/.config/waybar/scripts/kb-layout.sh",
+    "interval": 5,
+    "format": "{}",
+    "tooltip": true,
+    "on-click": "zenith-kb-layout toggle"
   }
 }

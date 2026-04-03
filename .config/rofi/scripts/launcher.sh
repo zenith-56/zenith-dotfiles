@@ -15,7 +15,7 @@ rofi_cmd() {
 }
 
 main_menu() {
-    printf ' 󰀻  Applications\n 󰏗  Theming\n 󰇚  Install\n 󰁮  Uninstall\n 󰐥  Power Menu\n'
+    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰇚  Install\n 󰁮  Uninstall\n 󰐥  Power Menu\n'
 }
 
 while true; do
@@ -23,6 +23,7 @@ while true; do
 
     case "$chosen" in
         *Applications) bash "$SCRIPTS/app-launcher.sh"; exit 0 ;;
+        *Network) bash "$SCRIPTS/network-menu.sh"; exit 0 ;;
         *Theming) bash "$SCRIPTS/theming-menu.sh"; exit 0 ;;
         *Install) bash "$SCRIPTS/install-menu.sh"; exit 0 ;;
         *Uninstall) bash "$SCRIPTS/uninstall-menu.sh"; exit 0 ;;

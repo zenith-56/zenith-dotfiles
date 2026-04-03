@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - DNS Switcher
+# =============================================================================
+# Quick DNS changer using resolved or NetworkManager
+# =============================================================================
+
+set -euo pipefail
+
+DNS_FILE="/etc/systemd/resolved.conf"
+
+if [ -z "${1:-}" ]; then
+    echo "Usage: $0 {set <dns>|reset|status}"
+    echo "Examples:"
+    echo "  $0 set 1.1.1.1"
+    echo "  $0 set 8.8.8.8"
+    echo "  $0 set 1.1.1.1,8.8.8.8"
+    echo "  $0 reset"
+    echo "  $0 status"
+    exit 1
+fi
+
+case "$1" in
+    set)
+        if [ -z "${2:-}" ]; then
+            echo "Error: DNS address required"
+            exit 1
+        fi
+
+        dns_servers="$2"
+
+        if command -v resolvectl &>/dev/null; then
+            interfaces=$(resolvectl status 2>/dev/null | grep -E "^[0-9]+" | awk '{print $2}' | tr -d ':')
+            if [ -n "$interfaces" ]; then
+                for iface in $interfaces; do
+                    sudo resolvectl dns "$iface" $dns_servers 2>/dev/null || true
+                done
+                notify-send "DNS" "DNS set to $dns_servers" -i network-wired 2>/dev/null || true
+                echo "DNS set to $dns_servers on interfaces: $interfaces"
+                exit 0
+            fi
+        fi
+
+        if [ -f "$DNS_FILE" ]; then
+            sudo sed -i "s/^#*DNS=.*/DNS=$dns_servers/" "$DNS_FILE"
+            sudo sed -i "s/^#FallbackDNS=.*/#FallbackDNS=$dns_servers/" "$DNS_FILE"
+            sudo systemctl restart systemd-resolved
+            notify-send "DNS" "DNS set to $dns_servers" -i network-wired 2>/dev/null || true
+            echo "DNS set to $dns_servers"
+        else
+            echo "resolved.conf not found"
+            exit 1
+        fi
+        ;;
+    reset)
+        if command -v resolvectl &>/dev/null; then
+            interfaces=$(resolvectl status 2>/dev/null | grep -E "^[0-9]+" | awk '{print $2}' | tr -d ':')
+            if [ -n "$interfaces" ]; then
+                for iface in $interfaces; do
+                    sudo resolvectl revert "$iface" 2>/dev/null || true
+                done
+            fi
+        fi
+
+        if [ -f "$DNS_FILE" ]; then
+            sudo sed -i "s/^DNS=.*/#DNS=/" "$DNS_FILE"
+            sudo sed -i "s/^FallbackDNS=.*/#FallbackDNS=/" "$DNS_FILE"
+            sudo systemctl restart systemd-resolved
+        fi
+        notify-send "DNS" "DNS reset to default" -i network-wired 2>/dev/null || true
+        echo "DNS reset to default"
+        ;;
+    status)
+        if command -v resolvectl &>/dev/null; then
+            resolvectl status 2>/dev/null | grep -A2 "DNS Servers" || echo "No DNS info"
+        elif [ -f "$DNS_FILE" ]; then
+            grep -E "^DNS=" "$DNS_FILE" || echo "No custom DNS configured"
+        else
+            echo "Cannot determine DNS status"
+        fi
+        ;;
+    *)
+        echo "Unknown option: $1"
+        echo "Usage: $0 {set <dns>|reset|status}"
+        exit 1
+        ;;
+esac

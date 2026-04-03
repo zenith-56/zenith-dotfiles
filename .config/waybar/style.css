@@ -18,6 +18,8 @@ window#waybar {
 #custom-cpu_snake:hover,
 #custom-notification:hover,
 #custom-power_profile:hover,
+#custom-vpn_status:hover,
+#custom-wifi_signal:hover,
 #clock:hover,
 #custom-menu:hover,
 #tray:hover,
@@ -25,7 +27,7 @@ window#waybar {
 #network:hover,
 #bluetooth:hover,
 #pulseaudio:hover,
-#pulseaudio.microphone:hover,
+#pulseaudio#microphone:hover,
 #pulseaudio.sink-muted:hover,
 #custom-powermenu:hover {
     opacity: 0.5;
@@ -36,6 +38,8 @@ window#waybar {
 #custom-cpu_snake,
 #custom-notification,
 #custom-power_profile,
+#custom-vpn_status,
+#custom-wifi_signal,
 #clock,
 #custom-menu,
 #tray,
@@ -80,6 +84,23 @@ window#waybar {
 }
 #network.ethernet {
     color: @tertiary;
+}
+
+#custom-wifi_signal.wifi-signal {
+    color: @primary;
+}
+#custom-wifi_signal.wifi-disconnected {
+    color: @error;
+}
+
+#custom-vpn_status.vpn-connected {
+    color: @tertiary;
+}
+#custom-vpn_status.vpn-disconnected {
+    color: @secondary;
+}
+#custom-vpn_status.vpn-no-config {
+    color: @error;
 }
 
 #bluetooth.disabled {
