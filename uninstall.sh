@@ -6,12 +6,43 @@
 #               restores backup or resets to defaults.
 # Author      : Maximocruz (@zenith-56)
 # License     : MIT
+#
+# Flags:
+#   -v, --verbose   Enable verbose output
+#   -f, --force     Skip all confirmations and proceed automatically
 # =============================================================================
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/install/common.sh"
+
+# ── Flags ─────────────────────────────────────────────────────────────────────
+VERBOSE=false
+FORCE=false
+
+usage() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+Options:
+  -v, --verbose    Enable verbose output
+  -f, --force      Skip all confirmations and proceed automatically
+  -h, --help       Show this help message
+EOF
+    exit 0
+}
+
+for arg in "$@"; do
+    case "$arg" in
+        -v|--verbose) VERBOSE=true ;;
+        -f|--force) FORCE=true ;;
+        -h|--help) usage ;;
+    esac
+done
+
+# ── Debug helper ──────────────────────────────────────────────────────────────
+debug() { [ "$VERBOSE" = true ] && echo -e "${YELLOW}[DEBUG]${RESET} $1" || true; }
 
 BACKUP_DIR="$HOME/.config.bak-$(date +%Y%m%d-%H%M%S)"
 DOTFILES_DIR="$HOME/zenith-dotfiles"

@@ -15,6 +15,7 @@ binds {
     Mod+Shift+W hotkey-overlay-title="Wallpaper Launcher" { spawn "~/.config/rofi/scripts/wall-selector.sh"; }
     Mod+Shift+Delete hotkey-overlay-title="Power Launcher" { spawn "~/.config/rofi/scripts/power-menu.sh"; }
     Mod+Shift+T hotkey-overlay-title="Theme Launcher" { spawn "~/.config/rofi/scripts/theme-menu.sh"; }
+    Mod+Period hotkey-overlay-title="Emoji Picker" { spawn "~/.config/rofi/scripts/emoji-picker.sh"; }
     Mod+Shift+E hotkey-overlay-title="Yazi Finder" { spawn-sh "kitty yazi"; }
     Mod+Shift+R hotkey-overlay-title="Screen Region Recorder" { spawn "~/.local/bin/zenith-screen-recorder"; }
 
@@ -88,9 +89,6 @@ binds {
 
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
-
-    Mod+Comma  { consume-window-into-column; }
-    Mod+Period { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     Mod+F { fullscreen-window; }

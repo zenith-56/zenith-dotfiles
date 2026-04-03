@@ -100,6 +100,7 @@ PACMAN_PACKAGES=(
     resvg
     ripgrep
     rofi
+    rofi-emoji
     sddm
     slurp
     snapper

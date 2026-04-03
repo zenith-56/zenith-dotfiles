@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### 0.3.5 - Cleanup & Improvements
+
+#### Added
+- Emoji picker (Mod+.) via rofi-emoji plugin
+- Verbose mode (`-v, --verbose`) to install.sh, update.sh, uninstall.sh, run.sh
+- `--force` flag to install.sh for skipping confirmations
+- `rofi-emoji` to pacman packages
+
+#### Changed
+- Unified logging functions in all main scripts (log, warn, err, info, debug)
+- Added debug logging to verbose mode across all scripts
+- Improved error handling with `set -euo pipefail` in all scripts
+- Expanded troubleshooting section in README.md with categorized issues
+
+#### Fixed
+- install.sh now uses proper `set -euo pipefail`
+- Sourced common.sh correctly in update.sh (was using wrong path)
+- run.sh has proper flag parsing and verbose support
+
+#### Code Review - Potential Cleanup (verify before removing)
+- `zenith-vpn-toggle` - referenced in changelog 0.3.2 but script not found in repo
+- `zenith-theme-sync` - script exists but seems redundant with matugen workflow
+- Consider consolidating `zenith-theme-get/set/toggle` into single script with subcommands
+
 ### 0.3.4 - Utilities Varias
 
 #### Added

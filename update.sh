@@ -11,12 +11,13 @@
 # Flags:
 #   --force     Skip all confirmations and proceed automatically
 #   --dry-run   Show what would be done without making changes
+#   --verbose   Enable verbose output
 # =============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common.sh"
+source "$SCRIPT_DIR/install/common.sh"
 
 REPO_URL="https://github.com/zenith-56/zenith-dotfiles.git"
 DOTFILES_DIR="$HOME/zenith-dotfiles"
@@ -25,20 +26,27 @@ BACKUP_DIR="$HOME/.config.bak-$(date +%Y%m%d-%H%M%S)"
 # ── Flags ─────────────────────────────────────────────────────────────────────
 FORCE=false
 DRY_RUN=false
+VERBOSE=false
+
+usage() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+Options:
+  --force       Skip all confirmations and proceed automatically
+  --dry-run     Show what would be done without making changes
+  -v, --verbose Enable verbose output
+  -h, --help    Show this help message
+EOF
+    exit 0
+}
 
 for arg in "$@"; do
     case "$arg" in
         --force)  FORCE=true ;;
         --dry-run) DRY_RUN=true ;;
-        --help|-h)
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  --force     Skip all confirmations and proceed automatically"
-            echo "  --dry-run   Show what would be done without making changes"
-            echo "  --help, -h  Show this help message"
-            exit 0
-            ;;
+        -v|--verbose) VERBOSE=true ;;
+        --help|-h) usage ;;
         *)
             echo "Unknown option: $arg"
             echo "Use --help for usage information"
@@ -46,6 +54,9 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+# ── Debug helper ──────────────────────────────────────────────────────────────
+debug() { [ "$VERBOSE" = true ] && echo -e "${YELLOW}[DEBUG]${RESET} $1" || true; }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 confirm() {

@@ -14,7 +14,7 @@ Arch Linux desktop with **Niri** (scrollable-tiling compositor), **Material You*
 | **Bar** | Waybar with CPU animation |
 | **OSD** | SwayOSD |
 | **Lock/Idle** | Hyprlock + Hypridle |
-| **Launcher** | Rofi (wallpaper selector, power menu, web apps) |
+| **Launcher** | Rofi (wallpaper selector, power menu, web apps, emoji picker) |
 | **Shell** | Fish |
 | **Terminal** | Kitty (GPU-accelerated) |
 | **Notifications** | Dunst |
@@ -85,6 +85,7 @@ cd ~/zenith-dotfiles && ./update.sh
 | `zenith-webapp-{install,uninstall}` | Web app installer |
 | `zenith-restart-{all,waybar,dunst,swayosd}` | Restart services |
 | `zenith-reload-kitty` | Reload kitty colors |
+| `zenith-theme-sync` | Sync theme colors with matugen |
 | `zenith-done` | Exit prompt with message |
 
 ## Keybindings (Niri)
@@ -96,6 +97,7 @@ cd ~/zenith-dotfiles && ./update.sh
 | `Mod+Shift+Space` | Main launcher |
 | `Mod+Shift+W` | Wallpaper selector |
 | `Mod+Shift+T` | Theme menu |
+| `Mod+.` | Emoji picker |
 | `Mod+Shift+Delete` | Power menu |
 | `Mod+Q` | Close window |
 | `Mod+F` | Fullscreen |
@@ -127,13 +129,90 @@ zenith-dotfiles/
 
 ## Troubleshooting
 
+### Installation Issues
+
 | Issue | Solution |
 |-------|----------|
-| Waybar not showing | `waybar &` or validate JSON: `jq . ~/.config/waybar/config` |
+| Installer hangs on "Installing gum" | Install manually: `sudo pacman -S gum` |
+| yay fails to build | Install `base-devel` first: `sudo pacman -S base-devel` |
+| Permission denied errors | Ensure you're not running as root (installer checks this) |
+
+### Display & Compositor
+
+| Issue | Solution |
+|-------|----------|
+| Niri fails to start | Check logs: `journalctl -xe -b --no-pager | grep niri` |
+| Black screen after login | Check if SDDM started: `systemctl status sddm` |
+| Waybar not showing | Run `waybar &` or validate JSON: `jq . ~/.config/waybar/config` |
+| Waybar crashes on reload | Check JSON syntax in config files |
+| Multiple monitors not detected | Edit `~/.config/niri/output.kdl` to add outputs |
+
+### Theming
+
+| Issue | Solution |
+|-------|----------|
 | Themes not applying | Run: `matugen image ~/Pictures/Wallpapers/wallpaper.png` |
+| Colors wrong after wallpaper change | Run `zenith-theme-sync` to regenerate |
 | Dark mode broken | Enable: `systemctl --user enable --now darkman` |
+| Dark mode not switching automatically | Check `darkman` status: `systemctl --user status darkman` |
+
+### Rofi & Launcher
+
+| Issue | Solution |
+|-------|----------|
 | Rofi crashes | Check theme: `ls ~/.config/rofi/themes/` |
+| Emoji picker not working | Install `wtype`: `yay -S wtype` |
+| Launcher slow to open | Reduce number of apps or check `app-launcher.sh` |
+
+### Audio & Input
+
+| Issue | Solution |
+|-------|----------|
+| No sound | Check `pavucontrol` or run `wireplumber` |
+| Volume keys not working | Check SwayOSD: `systemctl --user status swayosd` |
+| Microphone not working | Run `zenith-mic` to toggle mute |
+| Keyboard layout wrong | Run `zenith-kb-layout` or check Niri binds |
+
+### Terminal & Kitty
+
+| Issue | Solution |
+|-------|----------|
 | Kitty colors wrong | Run: `zenith-reload-kitty` |
+| Font rendering issues | Install fonts: `./install.sh` (fonts step) |
+| Kitty not starting | Check `kitty` in PATH: `which kitty` |
+
+### Packages
+
+| Issue | Solution |
+|-------|----------|
+| yay not found | Install with: `sudo pacman -S yay` |
+| AUR packages failing | Update mirrorlist: `sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist` |
+| Flatpak apps not showing | Run: `flatpak repair` |
+
+### Services
+
+| Issue | Solution |
+|-------|----------|
+| Services not starting | Check logs: `journalctl -xe --no-pager | grep <service>` |
+| Dunst notifications not working | Restart: `pkill dunst && dunst &` |
+| Hyprlock not locking | Check config: `~/.config/hypr/hyprlock.conf` |
+
+### Network & Power
+
+| Issue | Solution |
+|-------|----------|
+| No internet | Check `systemctl status iwd` or `systemd-networkd` |
+| VPN not connecting | Check WireGuard config in `~/.config/` |
+| Battery draining fast | Use `power-profiles-daemon` or TLP |
+| Screen not turning off | Check `hypridle` config |
+
+### Backup & Recovery
+
+| Issue | Solution |
+|-------|----------|
+| Need to restore configs | Check backup dir: `ls ~/.config.bak-*` |
+| Lost theme colors | Run `matugen` again with wallpaper |
+| Shell broken | Reset to bash: `chsh -s /bin/bash` |
 
 ## Uninstall
 

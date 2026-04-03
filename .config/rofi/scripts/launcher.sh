@@ -15,7 +15,7 @@ rofi_cmd() {
 }
 
 main_menu() {
-    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰇚  Install\n 󰁮  Uninstall\n 󰐥  Power Menu\n'
+    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰇚  Install\n 󰁮  Uninstall\n 󰎙  Emoji Picker\n 󰐥  Power Menu\n'
 }
 
 while true; do
@@ -27,6 +27,7 @@ while true; do
         *Theming) bash "$SCRIPTS/theming-menu.sh"; exit 0 ;;
         *Install) bash "$SCRIPTS/install-menu.sh"; exit 0 ;;
         *Uninstall) bash "$SCRIPTS/uninstall-menu.sh"; exit 0 ;;
+        *Emoji\ Picker) bash "$SCRIPTS/emoji-picker.sh"; exit 0 ;;
         *Power\ Menu) bash "$SCRIPTS/power-menu.sh"; exit 0 ;;
         "") exit 0 ;;
     esac
