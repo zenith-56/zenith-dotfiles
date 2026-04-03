@@ -15,7 +15,7 @@ fi
 
 EMOJI=$(rofi -modi emoji -show emoji \
     -emoji-mode stdout \
-    -theme "$HOME/.config/rofi/themes/tokyo-night.rasi")
+    -theme "$HOME/.config/rofi/themes/theme.rasi")
 
 if [ -n "$EMOJI" ]; then
     if command -v wl-copy &>/dev/null; then

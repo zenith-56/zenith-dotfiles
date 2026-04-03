@@ -11,15 +11,15 @@ ZENITH_BIN="$HOME/.local/bin"
 
 # Run rofi with the given theme and arguments
 rofi_run() {
-    local theme="${1:-tokyo-night.rasi}"
+    local theme="${1:-theme.rasi}"
     shift
     rofi -dmenu -i -p "" -theme "$ROFI_THEME_DIR/$theme" "$@"
 }
 
 # Show a rofi menu and return the selection via stdout
-# Usage: selection=$(rofi_menu "tokyo-night.rasi" "Option1\nOption2" "Placeholder")
+# Usage: selection=$(rofi_menu "theme.rasi" "Option1\nOption2" "Placeholder")
 rofi_menu() {
-    local theme="${1:-tokyo-night.rasi}"
+    local theme="${1:-theme.rasi}"
     local items="$2"
     local placeholder="${3:-""}"
 

@@ -8,7 +8,7 @@
 
 source "$(dirname "$0")/common.sh"
 
-selection=$(rofi_menu "tokyo-night.rasi" " 󰏖  Packages\n 󰏖  AUR Packages\n 󰏖  Flatpak Packages\n 󰀱  Web App\n 󰜺  Back" "Install...") || \
+selection=$(rofi_menu "theme.rasi" " 󰏖  Packages\n 󰏖  AUR Packages\n 󰏖  Flatpak Packages\n 󰀱  Web App\n 󰜺  Back" "Install...") || \
     exec bash "$ROFI_SCRIPTS_DIR/launcher.sh"
 
 case "$selection" in

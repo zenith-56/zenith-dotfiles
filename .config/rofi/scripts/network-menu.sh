@@ -20,16 +20,16 @@ firewall_menu() {
     fi
 
     local selection
-    selection=$(rofi_menu "tokyo-night.rasi" " 󰒄  Toggle Firewall ($status_icon)\n 󱓻  Custom Rules\n 󰜺  Back" "Firewall...") || \
+    selection=$(rofi_menu "theme.rasi" " 󰒄  Toggle Firewall ($status_icon)\n 󱓻  Custom Rules\n 󰜺  Back" "Firewall...") || \
         exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
 
     case "$selection" in
         *Toggle*)
             local confirm
             if [ "$status" = "active" ]; then
-                confirm=$(rofi_menu "tokyo-night.rasi" "Yes\nNo" "Disable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Disable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             else
-                confirm=$(rofi_menu "tokyo-night.rasi" "Yes\nNo" "Enable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Enable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             fi
             if [[ "$confirm" == "Yes" ]]; then
                 kitty --class "zenith-network" -e fish -c "zenith-firewall toggle; echo; read -P 'Press Enter to continue...'"
@@ -57,7 +57,7 @@ firewall_menu() {
 # ── DNS Menu ──────────────────────────────────────────────────────────────────
 dns_menu() {
     local selection
-    selection=$(rofi_menu "tokyo-night.rasi" " 󰇖  Set DNS\n 󰇖  Quick DNS (Cloudflare)\n 󰇖  Quick DNS (Google)\n 󰇖  Reset DNS\n 󰇖  DNS Status\n 󰜺  Back" "DNS...") || \
+    selection=$(rofi_menu "theme.rasi" " 󰇖  Set DNS\n 󰇖  Quick DNS (Cloudflare)\n 󰇖  Quick DNS (Google)\n 󰇖  Reset DNS\n 󰇖  DNS Status\n 󰜺  Back" "DNS...") || \
         exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
 
     case "$selection" in
@@ -83,7 +83,7 @@ dns_menu() {
             ;;
         *Reset*)
             local confirm
-            confirm=$(rofi_menu "tokyo-night.rasi" "Yes\nNo" "Reset DNS to default?") || \
+            confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Reset DNS to default?") || \
                 exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             if [[ "$confirm" == "Yes" ]]; then
                 kitty --class "zenith-network" -e fish -c "zenith-dns reset; echo; read -P 'Press Enter to continue...'"
@@ -101,7 +101,7 @@ dns_menu() {
 }
 
 # ── Main Menu ─────────────────────────────────────────────────────────────────
-selection=$(rofi_menu "tokyo-night.rasi" " 󰒄  Firewall\n 󰇖  DNS\n 󰜺  Back" "Network...") || \
+selection=$(rofi_menu "theme.rasi" " 󰒄  Firewall\n 󰇖  DNS\n 󰜺  Back" "Network...") || \
     exec bash "$ROFI_SCRIPTS_DIR/launcher.sh"
 
 case "$selection" in

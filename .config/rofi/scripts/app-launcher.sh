@@ -6,7 +6,7 @@
 #               Displays installed applications with icons and search.
 # =============================================================================
 
-THEME="$HOME/.config/rofi/themes/tokyo-night.rasi"
+THEME="$HOME/.config/rofi/themes/theme.rasi"
 
 rofi -show drun -theme "$THEME" -show-icons \
     -drun-display-format "{name}" \
