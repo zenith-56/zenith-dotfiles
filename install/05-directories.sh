@@ -3,6 +3,8 @@
 # Zenith-Dotfiles Installer - Directories
 # =============================================================================
 
+set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
@@ -15,7 +17,7 @@ DIRS=(
 )
 
 for dir in "${DIRS[@]}"; do
-    mkdir -p "$dir"
+    mkdir -p "$dir" || warn "Failed to create directory: $dir"
 done
 
 log "Directories created"

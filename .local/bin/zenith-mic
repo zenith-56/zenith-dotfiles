@@ -3,11 +3,25 @@
 # Zenith-Dotfiles - Mic Mute/Unmute
 # =============================================================================
 
-wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
-muted=$(wpctl get-mute @DEFAULT_AUDIO_SOURCE@)
+set -euo pipefail
+
+if ! command -v wpctl &>/dev/null; then
+    echo "wpctl not found"
+    exit 1
+fi
+
+wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle || {
+    echo "Failed to toggle mic"
+    exit 1
+}
+
+muted=$(wpctl get-mute @DEFAULT_AUDIO_SOURCE@ 2>/dev/null) || {
+    echo "Failed to get mic status"
+    exit 1
+}
 
 if [[ "$muted" == *"Muted"* ]]; then
-    notify-send "Mic" "🔇 Muted" -t 1000
+    notify-send "Mic" "Muted" -t 1000 2>/dev/null || true
 else
-    notify-send "Mic" "🎤 Unmuted" -t 1000
+    notify-send "Mic" "Unmuted" -t 1000 2>/dev/null || true
 fi

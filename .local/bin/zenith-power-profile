@@ -1,33 +1,46 @@
 #!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Power Profile Manager
+# =============================================================================
 
-PROFILE=$(powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':')
+set -euo pipefail
+
+if ! command -v powerprofilesctl &>/dev/null; then
+    echo "powerprofilesctl not found"
+    exit 1
+fi
+
+get_profile() {
+    powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
+}
 
 case "${1:-}" in
-	list)
-		powerprofilesctl list
-		;;
-	get)
-		echo "$PROFILE"
-		;;
-	balanced)
-		powerprofilesctl set balanced
-		;;
-	power-saver)
-		powerprofilesctl set power-saver
-		;;
-	performance)
-		powerprofilesctl set performance
-		;;
-	cycle)
-		case "$PROFILE" in
-			balanced) powerprofilesctl set power-saver && notify-send "Power: Saver";;
-			power-saver) powerprofilesctl set performance && notify-send "Power: Performance" ;;
-			performance) powerprofilesctl set balanced && notify-send "Power: Balanced" ;;
-			*) powerprofilesctl set balanced ;;
-		esac
-		;;
-	*)
-		echo "Usage: $0 {list|get|balanced|power-saver|performance|cycle}"
-		exit 1
-		;;
+    list)
+        powerprofilesctl list
+        ;;
+    get)
+        get_profile
+        ;;
+    balanced)
+        powerprofilesctl set balanced
+        ;;
+    power-saver)
+        powerprofilesctl set power-saver
+        ;;
+    performance)
+        powerprofilesctl set performance
+        ;;
+    cycle)
+        PROFILE=$(get_profile)
+        case "$PROFILE" in
+            balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" ;;
+            power-saver) powerprofilesctl set performance; notify-send "Power: Performance" ;;
+            performance) powerprofilesctl set balanced; notify-send "Power: Balanced" ;;
+            *)           powerprofilesctl set balanced ;;
+        esac
+        ;;
+    *)
+        echo "Usage: $0 {list|get|balanced|power-saver|performance|cycle}"
+        exit 1
+        ;;
 esac

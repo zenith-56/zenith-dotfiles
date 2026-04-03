@@ -1,2 +1,13 @@
 #!/usr/bin/env bash
-systemctl poweroff
+# =============================================================================
+# Zenith-Dotfiles - Power Off
+# =============================================================================
+
+set -euo pipefail
+
+if ! command -v systemctl &>/dev/null; then
+    echo "systemctl not found"
+    exit 1
+fi
+
+exec systemctl poweroff

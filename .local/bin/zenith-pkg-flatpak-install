@@ -4,6 +4,18 @@
 # =============================================================================
 # Interactive Flatpak package installation using fzf and flatpak
 
+set -euo pipefail
+
+if ! command -v flatpak &>/dev/null; then
+    echo "flatpak not found"
+    exit 1
+fi
+
+if ! command -v fzf &>/dev/null; then
+    echo "fzf not found"
+    exit 1
+fi
+
 fzf_args=(
   --style minimal
   --multi
@@ -15,12 +27,7 @@ fzf_args=(
   --color 'pointer:green,marker:green'
 )
 
-if ! command -v flatpak &>/dev/null; then
-  echo "Error: flatpak is not installed" >&2
-  exit 1
-fi
-
-pkg_names=$(flatpak remote-ls flathub --app --columns=application | fzf "${fzf_args[@]}")
+pkg_names=$(flatpak remote-ls flathub --app --columns=application | fzf "${fzf_args[@]}") || exit 0
 
 if [[ -n "$pkg_names" ]]; then
   echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty flatpak install flathub -y

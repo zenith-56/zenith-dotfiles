@@ -3,6 +3,13 @@
 # Zenith-Dotfiles - Restart Waybar
 # =============================================================================
 
+set -euo pipefail
+
+if ! command -v waybar &>/dev/null; then
+    echo "waybar not found"
+    exit 1
+fi
+
 pkill waybar 2>/dev/null || true
 sleep 0.2
 waybar &>/dev/null &

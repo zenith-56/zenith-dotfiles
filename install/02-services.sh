@@ -3,8 +3,18 @@
 # Zenith-Dotfiles Installer - Services
 # =============================================================================
 
+set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+
+if ! has_cmd systemctl; then
+    err "systemctl not found"
+fi
+
+if ! has_cmd gum; then
+    err "gum not found"
+fi
 
 for svc in "${SYSTEM_SERVICES[@]}"; do
     if systemctl list-unit-files "${svc}.service" &>/dev/null 2>&1 || \

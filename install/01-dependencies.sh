@@ -3,12 +3,29 @@
 # Zenith-Dotfiles Installer - Dependencies
 # =============================================================================
 
+set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+
+cleanup_yay() {
+    rm -rf /tmp/yay 2>/dev/null || true
+}
+
+trap cleanup_yay EXIT INT TERM
 
 # Install yay first (AUR helper)
 if ! has_cmd yay; then
     info "Installing yay (AUR helper)..."
+
+    if ! has_cmd git; then
+        err "git not found. Install base-devel first."
+    fi
+
+    if ! has_cmd make; then
+        err "make not found. Install base-devel first."
+    fi
+
     cd /tmp
     rm -rf yay
     git clone https://aur.archlinux.org/yay.git || err "Failed to clone yay"

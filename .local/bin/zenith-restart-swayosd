@@ -3,6 +3,13 @@
 # Zenith-Dotfiles - Restart SwayOSD
 # =============================================================================
 
+set -euo pipefail
+
+if ! command -v swayosd-server &>/dev/null; then
+    echo "swayosd-server not found"
+    exit 1
+fi
+
 pkill swayosd-server 2>/dev/null || true
 sleep 0.2
 swayosd-server &>/dev/null &

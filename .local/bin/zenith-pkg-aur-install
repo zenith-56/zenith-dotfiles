@@ -4,6 +4,18 @@
 # =============================================================================
 # Interactive AUR package installation using fzf and yay
 
+set -euo pipefail
+
+if ! command -v yay &>/dev/null; then
+    echo "yay not found"
+    exit 1
+fi
+
+if ! command -v fzf &>/dev/null; then
+    echo "fzf not found"
+    exit 1
+fi
+
 fzf_args=(
   --style minimal
   --multi
@@ -17,7 +29,7 @@ fzf_args=(
   --color 'pointer:green,marker:green'
 )
 
-pkg_names=$(yay -Slqa | fzf "${fzf_args[@]}")
+pkg_names=$(yay -Slqa | fzf "${fzf_args[@]}") || exit 0
 
 if [[ -n "$pkg_names" ]]; then
   echo "$pkg_names" | sed 's/^/aur\//' | tr '\n' ' ' | xargs --no-run-if-empty yay -S --noconfirm

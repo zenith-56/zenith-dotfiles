@@ -4,6 +4,18 @@
 # =============================================================================
 # Interactive package removal using fzf and yay
 
+set -euo pipefail
+
+if ! command -v yay &>/dev/null; then
+    echo "yay not found"
+    exit 1
+fi
+
+if ! command -v fzf &>/dev/null; then
+    echo "fzf not found"
+    exit 1
+fi
+
 fzf_args=(
   --style minimal
   --multi
@@ -16,7 +28,7 @@ fzf_args=(
   --color 'pointer:red,marker:red'
 )
 
-pkg_names=$(yay -Qqe | fzf "${fzf_args[@]}")
+pkg_names=$(yay -Qqe | fzf "${fzf_args[@]}") || exit 0
 
 if [[ -n "$pkg_names" ]]; then
   echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty yay -Rns --noconfirm
