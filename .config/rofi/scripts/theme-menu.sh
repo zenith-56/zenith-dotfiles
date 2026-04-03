@@ -2,6 +2,10 @@
 # =============================================================================
 # Rofi Theme Menu
 # =============================================================================
+# Description : Theme mode selector (dark/light) with Matugen integration.
+# =============================================================================
+
+set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
@@ -15,36 +19,45 @@ run_matugen() {
     return 1
 }
 
-current=$("$ZENITH_BIN/zenith-theme-get")
+restart_services() {
+    "$ZENITH_BIN/zenith-restart" all
+}
 
-if [[ "$current" == "dark" ]]; then
-    menu_text=' 󰔎  Light Mode\n 󰔎  Dark Mode  [active]'
-else
-    menu_text=' 󰔎  Light Mode  [active]\n 󰔎  Dark Mode'
-fi
+while true; do
+    current=$("$ZENITH_BIN/zenith-theme" get)
 
-selection=$(rofi_menu "theme.rasi" "$menu_text" "Theme...") || \
-    exec bash "$ROFI_SCRIPTS_DIR/theming-menu.sh"
+    if [[ "$current" == "dark" ]]; then
+        menu_text=' 󰔎  Light Mode\n 󰔎  Dark Mode  [active]'
+    else
+        menu_text=' 󰔎  Light Mode  [active]\n 󰔎  Dark Mode'
+    fi
 
-case "$selection" in
-    *Light\ Mode*)
-        "$ZENITH_BIN/zenith-theme-set" light
+    selection=$(rofi_menu "theme.rasi" "$menu_text" "Theme...") || exit 0
 
-        wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
-        [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
-        [ -f "$wallpaper_path" ] && run_matugen "$wallpaper_path" light
+    case "$selection" in
+        *Light\ Mode*)
+            mode="light"
+            ;;
+        *Dark\ Mode*)
+            mode="dark"
+            ;;
+        *) continue ;;
+    esac
 
-        "$ZENITH_BIN/zenith-theme-sync"
-        "$ZENITH_BIN/zenith-restart-all"
-        ;;
-    *Dark\ Mode*)
-        "$ZENITH_BIN/zenith-theme-set" dark
+    "$ZENITH_BIN/zenith-theme" set "$mode"
 
-        wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
-        [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
-        [ -f "$wallpaper_path" ] && run_matugen "$wallpaper_path" dark
+    wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
+    [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
+    if [ -f "$wallpaper_path" ]; then
+        run_matugen "$wallpaper_path" "$mode"
+    fi
 
-        "$ZENITH_BIN/zenith-theme-sync"
-        "$ZENITH_BIN/zenith-restart-all"
-        ;;
-esac
+    "$ZENITH_BIN/zenith-theme" sync
+    restart_services
+
+    if [[ "$mode" == "dark" ]]; then
+        notify-send "Theme Changed" "Switched to Dark Mode" --icon="preferences-desktop-theme"
+    else
+        notify-send "Theme Changed" "Switched to Light Mode" --icon="preferences-desktop-theme"
+    fi
+done

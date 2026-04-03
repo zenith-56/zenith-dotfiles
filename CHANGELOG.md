@@ -6,7 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### 0.3.5 - Cleanup & Improvements
+### 0.4.0 - Bin Scripts Unification
+
+#### Added
+- `zenith-lib.sh` — Shared library with colors, notifications, dependency checks, fzf args, and done prompt
+- `zenith pkg` — Unified package manager with `install`, `remove`, `list`, `missing` subcommands and `--aur`, `--flatpak` flags
+- `zenith theme` — Unified theme manager with `get`, `set`, `toggle`, `sync` subcommands
+- `zenith restart` — Unified service restarter with `waybar`, `dunst`, `swayosd`, `kitty`, `all` subcommands
+- `zenith power` — Unified power manager with `off`, `reboot`, `lock`, `logout`, `profile` subcommands
+- `zenith screenshot` — Unified screenshot tool with `full`, `region` subcommands
+- `zenith brightness` — Unified brightness control with `get`, `set` subcommands
+- `zenith volume` — Unified volume control with `get`, `set` subcommands
+- `zenith battery` — Unified battery info with `capacity`, `status`, `info` subcommands
+- `zenith network` — Unified network info with `status`, `ssid` subcommands
+- `zenith osd` — Unified OSD control with `volume` and `brightness` subcommands
+- `zenith webapp` — Unified web app manager with `install`, `uninstall`, `list` subcommands
+
+#### Changed
+- Consolidated 45 individual bin scripts into 12 unified scripts with subcommands
+- All unified scripts use `set -euo pipefail` and proper error handling
+- Eliminated copy-paste duplication of fzf args, notification patterns, and dependency checks
+- Updated all rofi scripts, darkman scripts, and update.sh to use new unified interfaces
+- Updated README.md and AGENTS.md documentation
+
+#### Deprecated
+- `zenith-pkg-install`, `zenith-pkg-remove`, `zenith-pkg-list`, `zenith-pkg-missing`, `zenith-pkg-colors`
+- `zenith-pkg-aur-install`, `zenith-pkg-flatpak-install`, `zenith-pkg-flatpak-list`, `zenith-pkg-flatpak-remove`
+- `zenith-theme-get`, `zenith-theme-set`, `zenith-theme-toggle`, `zenith-theme-sync`
+- `zenith-restart-all`, `zenith-restart-waybar`, `zenith-restart-dunst`, `zenith-restart-swayosd`
+- `zenith-reload-kitty`
+- `zenith-power-off`, `zenith-reboot`, `zenith-lock`, `zenith-logout`
+- `zenith-screenshot`, `zenith-screenshot-region`
+- `zenith-brightness-get`, `zenith-brightness-set`
+- `zenith-volume-get`, `zenith-volume-set`
+- `zenith-battery-capacity`, `zenith-battery-status`
+- `zenith-network-status`, `zenith-network-ssid`
+- `zenith-swayosd-volume`, `zenith-swayosd-brightness`
+- `zenith-webapp-install`, `zenith-webapp-uninstall`
+- `zenith-done` (use `zen_done` from `zenith-lib.sh`)
+
+### 0.3.5 - Rofi Navigation Overhaul & Cleanup
 
 #### Added
 - Emoji picker (Mod+.) via rofi-emoji plugin
@@ -19,16 +58,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added debug logging to verbose mode across all scripts
 - Improved error handling with `set -euo pipefail` in all scripts
 - Expanded troubleshooting section in README.md with categorized issues
+- Merged `install-menu.sh` and `uninstall-menu.sh` into single `package-manager.sh` with submenus
+- Refactored all Rofi menu scripts with state-machine navigation pattern (`__menu_state`)
+- Removed `exec` and `exit 0` between menus — Esc now returns to parent menu without closing Rofi
+- Eliminated nested `while` loops in `package-manager.sh` — flat state machine instead
+- Unified `rofi_menu` usage across all scripts — consistent Esc behavior
 
 #### Fixed
 - install.sh now uses proper `set -euo pipefail`
 - Sourced common.sh correctly in update.sh (was using wrong path)
 - run.sh has proper flag parsing and verbose support
+- Typo in wall-selector.sh notification ("aplied" → "applied")
+- Removed redundant `exec bash launcher.sh` calls that caused Rofi flicker on navigation
 
 #### Code Review - Potential Cleanup (verify before removing)
-- `zenith-vpn-toggle` - referenced in changelog 0.3.2 but script not found in repo
-- `zenith-theme-sync` - script exists but seems redundant with matugen workflow
-- Consider consolidating `zenith-theme-get/set/toggle` into single script with subcommands
+- All items from this list have been addressed in 0.4.0
 
 ### 0.3.4 - Utilities Varias
 

@@ -5,6 +5,8 @@
 # Description : Network management interface - Firewall and DNS configuration.
 # =============================================================================
 
+set -euo pipefail
+
 source "$(dirname "$0")/common.sh"
 
 # ── Firewall Menu ─────────────────────────────────────────────────────────────
@@ -20,21 +22,19 @@ firewall_menu() {
     fi
 
     local selection
-    selection=$(rofi_menu "theme.rasi" " 󰒄  Toggle Firewall ($status_icon)\n 󱓻  Custom Rules\n 󰜺  Back" "Firewall...") || \
-        exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+    selection=$(rofi_menu "theme.rasi" " 󰒄  Toggle Firewall ($status_icon)\n 󱓻  Custom Rules\n 󰜺  Back" "Firewall...") || return 1
 
     case "$selection" in
         *Toggle*)
             local confirm
             if [ "$status" = "active" ]; then
-                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Disable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Disable firewall?") || return 1
             else
-                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Enable firewall?") || exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+                confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Enable firewall?") || return 1
             fi
             if [[ "$confirm" == "Yes" ]]; then
                 kitty --class "zenith-network" -e fish -c "zenith-firewall toggle; echo; read -P 'Press Enter to continue...'"
             fi
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
         *Custom*)
             kitty --class "zenith-network" -e fish -c '
@@ -46,19 +46,15 @@ firewall_menu() {
                     read -P "Press Enter to continue..."
                 end
             '
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
-        *Back*)
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
-            ;;
+        *) return 1 ;;
     esac
 }
 
 # ── DNS Menu ──────────────────────────────────────────────────────────────────
 dns_menu() {
     local selection
-    selection=$(rofi_menu "theme.rasi" " 󰇖  Set DNS\n 󰇖  Quick DNS (Cloudflare)\n 󰇖  Quick DNS (Google)\n 󰇖  Reset DNS\n 󰇖  DNS Status\n 󰜺  Back" "DNS...") || \
-        exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+    selection=$(rofi_menu "theme.rasi" " 󰇖  Set DNS\n 󰇖  Quick DNS (Cloudflare)\n 󰇖  Quick DNS (Google)\n 󰇖  Reset DNS\n 󰇖  DNS Status\n 󰜺  Back" "DNS...") || return 1
 
     case "$selection" in
         *Set\ DNS*)
@@ -71,41 +67,43 @@ dns_menu() {
                     read -P "Press Enter to continue..."
                 end
             '
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
         *Cloudflare*)
             kitty --class "zenith-network" -e fish -c "zenith-dns set 1.1.1.1; echo; read -P 'Press Enter to continue...'"
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
         *Google*)
             kitty --class "zenith-network" -e fish -c "zenith-dns set 8.8.8.8; echo; read -P 'Press Enter to continue...'"
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
         *Reset*)
             local confirm
-            confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Reset DNS to default?") || \
-                exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
+            confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Reset DNS to default?") || return 1
             if [[ "$confirm" == "Yes" ]]; then
                 kitty --class "zenith-network" -e fish -c "zenith-dns reset; echo; read -P 'Press Enter to continue...'"
             fi
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
         *Status*)
             kitty --class "zenith-network" -e fish -c "zenith-dns status; echo; read -P 'Press Enter to continue...'"
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
             ;;
-        *Back*)
-            exec bash "$ROFI_SCRIPTS_DIR/network-menu.sh"
-            ;;
+        *) return 1 ;;
     esac
 }
 
 # ── Main Menu ─────────────────────────────────────────────────────────────────
-selection=$(rofi_menu "theme.rasi" " 󰒄  Firewall\n 󰇖  DNS\n 󰜺  Back" "Network...") || \
-    exec bash "$ROFI_SCRIPTS_DIR/launcher.sh"
+__menu_state="main"
 
-case "$selection" in
-    *Firewall) firewall_menu ;;
-    *DNS) dns_menu ;;
-    *Back) exec bash "$ROFI_SCRIPTS_DIR/launcher.sh" ;;
-esac
+while true; do
+    case "$__menu_state" in
+        main)
+            selection=$(rofi_menu "theme.rasi" " 󰒄  Firewall\n 󰇖  DNS\n 󰜺  Back" "Network...") || exit 0
+            case "$selection" in
+                *Firewall)
+                    firewall_menu || __menu_state="main"
+                    ;;
+                *DNS)
+                    dns_menu || __menu_state="main"
+                    ;;
+                *) exit 0 ;;
+            esac
+            ;;
+    esac
+done

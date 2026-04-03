@@ -1,0 +1,432 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Unified Package Manager
+# =============================================================================
+# Usage:
+#   zenith pkg install [--aur] [--flatpak]
+#   zenith pkg remove [--flatpak]
+#   zenith pkg list [--explicit] [--orphans] [--search <pattern>] [--flatpak]
+#   zenith pkg missing <pkg1> <pkg2> ...
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+# ── Install ───────────────────────────────────────────────────────────────────
+pkg_install_pacman() {
+    zen_check_deps fzf
+    local pkg_names
+    pkg_names=$(pacman -Slq | fzf \
+        --style minimal --multi \
+        --preview 'pacman -Sii {1}' \
+        --preview-label 'Package Info' \
+        --preview-label-pos='bottom' \
+        --preview-window 'right:75%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --color 'pointer:green,marker:green') || exit 0
+
+    if [[ -n "$pkg_names" ]]; then
+        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty sudo pacman -S --noconfirm
+        zen_notify "Packages Installed" "$pkg_names"
+        zen_done
+    fi
+}
+
+pkg_install_aur() {
+    zen_check_deps yay fzf
+    local pkg_names
+    pkg_names=$(yay -Slqa | fzf \
+        --style minimal --multi \
+        --preview 'yay -Siia {1}' \
+        --preview-label 'AUR Package Info' \
+        --preview-label-pos='bottom' \
+        --preview-window 'right:75%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --bind 'alt-b:change-preview:yay -Gpa {1} | tail -n +5' \
+        --bind 'alt-B:change-preview:yay -Siia {1}' \
+        --color 'pointer:green,marker:green') || exit 0
+
+    if [[ -n "$pkg_names" ]]; then
+        echo "$pkg_names" | sed 's/^/aur\//' | tr '\n' ' ' | xargs --no-run-if-empty yay -S --noconfirm
+        sudo updatedb
+        zen_notify "AUR Packages Installed" "$pkg_names"
+        zen_done
+    fi
+}
+
+pkg_install_flatpak() {
+    zen_check_deps flatpak fzf
+    local pkg_names
+    pkg_names=$(flatpak remote-ls flathub --app --columns=application | fzf \
+        --style minimal --multi \
+        --preview 'flatpak remote-info flathub {1}' \
+        --preview-label 'Flatpak Info' \
+        --preview-label-pos='bottom' \
+        --preview-window 'right:75%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --color 'pointer:green,marker:green') || exit 0
+
+    if [[ -n "$pkg_names" ]]; then
+        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty flatpak install flathub -y
+        zen_notify "Flatpak Packages Installed" "$pkg_names"
+        zen_done
+    fi
+}
+
+# ── Remove ────────────────────────────────────────────────────────────────────
+pkg_remove_pacman() {
+    zen_check_deps yay fzf
+    local pkg_names
+    pkg_names=$(yay -Qqe | fzf \
+        --style minimal --multi \
+        --preview 'yay -Qi {1}' \
+        --preview-label 'Package Info' \
+        --preview-label-pos='bottom' \
+        --preview-window 'right:65%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --color 'pointer:red,marker:red') || exit 0
+
+    if [[ -n "$pkg_names" ]]; then
+        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty yay -Rns --noconfirm
+        zen_notify "Packages Removed" "$pkg_names"
+        zen_done
+    fi
+}
+
+pkg_remove_flatpak() {
+    zen_check_deps flatpak fzf
+    local pkg_names
+    pkg_names=$(flatpak list --app --columns=application | fzf \
+        --style minimal --multi \
+        --preview 'flatpak info {1}' \
+        --preview-label 'Flatpak Info' \
+        --preview-label-pos='bottom' \
+        --preview-window 'right:65%:wrap' \
+        --bind 'alt-p:toggle-preview' \
+        --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up' \
+        --bind 'alt-k:preview-up,alt-j:preview-down' \
+        --color 'pointer:red,marker:red') || exit 0
+
+    if [[ -n "$pkg_names" ]]; then
+        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty flatpak uninstall -y
+        zen_notify "Flatpak Packages Removed" "$pkg_names"
+        zen_done
+    fi
+}
+
+# ── List ──────────────────────────────────────────────────────────────────────
+pkg_list_pacman() {
+    zen_check_deps fzf gum
+    zen_no_root
+
+    case "${1:-}" in
+        --explicit|-e)
+            local packages
+            packages=$(pacman -Qeq | sort)
+            local count
+            count=$(echo "$packages" | wc -l)
+            echo -e "${ZEN_GREEN}Explicitly installed packages ($count):${ZEN_RESET}"
+            echo ""
+            echo "$packages" | fzf \
+                --preview 'pacman -Qi {} 2>/dev/null' \
+                --preview-label='Package Info' \
+                --preview-window 'down:50%:wrap' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --prompt 'Explicit> '
+            ;;
+        --orphans|-t)
+            local packages
+            packages=$(pacman -Qtdq 2>/dev/null | sort -u) || true
+            local count
+            count=$(echo "$packages" | grep -c . 2>/dev/null || echo "0")
+            echo -e "${ZEN_YELLOW}Orphan packages ($count):${ZEN_RESET}"
+            echo ""
+            if [[ -z "$packages" ]]; then
+                echo -e "${ZEN_GREEN}✓ No orphan packages found${ZEN_RESET}"
+                return 0
+            fi
+            echo "$packages" | fzf \
+                --preview 'pacman -Qi {} 2>/dev/null' \
+                --preview-label='Orphan Package Info' \
+                --preview-window 'down:50%:wrap' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --prompt 'Orphan> ' \
+                --header 'Remove with: sudo pacman -Rns <package>'
+            ;;
+        --search|-s)
+            local pattern="${2:-}"
+            if [[ -z "$pattern" ]]; then
+                echo -e "${ZEN_RED}Error: Search pattern required${ZEN_RESET}" >&2
+                echo "Usage: zenith pkg list --search <pattern>" >&2
+                exit 1
+            fi
+            local packages
+            packages=$(pacman -Qq | grep -i "$pattern" | sort)
+            local count
+            count=$(echo "$packages" | grep -c . 2>/dev/null || echo "0")
+            echo -e "${ZEN_CYAN}Search results for '$pattern' ($count):${ZEN_RESET}"
+            echo ""
+            if [[ -z "$packages" || "$count" -eq 0 ]]; then
+                echo -e "${ZEN_YELLOW}No packages found matching '$pattern'${ZEN_RESET}"
+                return 0
+            fi
+            echo "$packages" | fzf \
+                --preview 'pacman -Qi {} 2>/dev/null' \
+                --preview-label='Package Info' \
+                --preview-window 'down:50%:wrap' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --prompt 'Result> '
+            ;;
+        --help|-h)
+            show_help "list"
+            ;;
+        *)
+            local packages
+            packages=$(pacman -Qq | sort)
+            local count
+            count=$(echo "$packages" | wc -l)
+            echo -e "${ZEN_GREEN}Installed packages ($count):${ZEN_RESET}"
+            echo ""
+            echo "$packages" | fzf \
+                --preview 'pacman -Qi {} 2>/dev/null' \
+                --preview-label='Package Info' \
+                --preview-window 'down:50%:wrap' \
+                --bind 'alt-p:toggle-preview' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --header 'Press Ctrl+C to exit' \
+                --prompt 'Package> '
+            ;;
+    esac
+}
+
+pkg_list_flatpak() {
+    zen_check_deps fzf gum flatpak
+    zen_no_root
+
+    case "${1:-}" in
+        --search|-s)
+            local pattern="${2:-}"
+            if [[ -z "$pattern" ]]; then
+                echo -e "${ZEN_RED}Error: Search pattern required${ZEN_RESET}" >&2
+                echo "Usage: zenith pkg list --flatpak --search <pattern>" >&2
+                exit 1
+            fi
+            local packages
+            packages=$(flatpak list --app --columns=application | grep -i "$pattern" | sort)
+            local count
+            count=$(echo "$packages" | grep -c . 2>/dev/null || echo "0")
+            echo -e "${ZEN_CYAN}Search results for '$pattern' ($count):${ZEN_RESET}"
+            echo ""
+            if [[ -z "$packages" || "$count" -eq 0 ]]; then
+                echo -e "${ZEN_YELLOW}No flatpak packages found matching '$pattern'${ZEN_RESET}"
+                return 0
+            fi
+            echo "$packages" | fzf \
+                --preview 'flatpak info {} 2>/dev/null' \
+                --preview-label='Flatpak Info' \
+                --preview-window 'down:50%:wrap' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --prompt 'Result> '
+            ;;
+        --help|-h)
+            show_help "list"
+            ;;
+        *)
+            local packages
+            packages=$(flatpak list --app --columns=application | sort)
+            local count
+            count=$(echo "$packages" | wc -l)
+            echo -e "${ZEN_GREEN}Installed flatpak packages ($count):${ZEN_RESET}"
+            echo ""
+            echo "$packages" | fzf \
+                --preview 'flatpak info {} 2>/dev/null' \
+                --preview-label='Flatpak Info' \
+                --preview-window 'down:50%:wrap' \
+                --bind 'alt-p:toggle-preview' \
+                --color "$ZEN_FZF_COLOR_PINK" \
+                --header 'Press Ctrl+C to exit' \
+                --prompt 'Flatpak> '
+            ;;
+    esac
+}
+
+# ── Missing ───────────────────────────────────────────────────────────────────
+pkg_missing() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: zenith pkg missing <pkg1> <pkg2> ..." >&2
+        exit 1
+    fi
+    for pkg in "$@"; do
+        if ! pacman -Q "$pkg" &>/dev/null; then
+            exit 0
+        fi
+    done
+    exit 1
+}
+
+# ── Help ──────────────────────────────────────────────────────────────────────
+show_help() {
+    local subcmd="${1:-}"
+    case "$subcmd" in
+        install)
+            cat << EOF
+${ZEN_CYAN}zenith pkg install${RESET} — Interactive package installation
+
+${YELLOW}USAGE:${RESET}
+    zenith pkg install [OPTIONS]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--aur${RESET}       Install from AUR (uses yay)
+    ${GREEN}--flatpak${RESET}   Install from Flathub
+    ${GREEN}--help, -h${RESET}  Show this help message
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith pkg install              # pacman interactive
+    zenith pkg install --aur        # AUR interactive
+    zenith pkg install --flatpak    # Flatpak interactive
+
+EOF
+            ;;
+        remove)
+            cat << EOF
+${ZEN_CYAN}zenith pkg remove${RESET} — Interactive package removal
+
+${YELLOW}USAGE:${RESET}
+    zenith pkg remove [OPTIONS]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--flatpak${RESET}   Remove flatpak packages
+    ${GREEN}--help, -h${RESET}  Show this help message
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith pkg remove               # pacman/yay interactive
+    zenith pkg remove --flatpak     # Flatpak interactive
+
+EOF
+            ;;
+        list)
+            cat << EOF
+${ZEN_CYAN}zenith pkg list${RESET} — List installed packages
+
+${YELLOW}USAGE:${RESET}
+    zenith pkg list [OPTIONS]
+
+${YELLOW}OPTIONS:${RESET}
+    ${GREEN}--explicit, -e${RESET}         List explicitly installed (pacman)
+    ${GREEN}--orphans, -t${RESET}          List orphan packages (pacman)
+    ${GREEN}--search, -s <pattern>${RESET} Search packages by name
+    ${GREEN}--flatpak${RESET}              Operate on flatpak packages
+    ${GREEN}--help, -h${RESET}             Show this help message
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith pkg list                        # Interactive pacman list
+    zenith pkg list --orphans              # Find orphan packages
+    zenith pkg list --search firefox       # Search for firefox
+    zenith pkg list --explicit             # List explicitly installed
+    zenith pkg list --flatpak              # Interactive flatpak list
+    zenith pkg list --flatpak --search spotify  # Search flatpak
+
+EOF
+            ;;
+        *)
+            cat << EOF
+${ZEN_CYAN}zenith pkg${RESET} — Unified package manager
+
+${YELLOW}USAGE:${RESET}
+    zenith pkg <command> [OPTIONS]
+
+${YELLOW}COMMANDS:${RESET}
+    ${GREEN}install${RESET}    Interactive package installation
+    ${GREEN}remove${RESET}     Interactive package removal
+    ${GREEN}list${RESET}       List installed packages
+    ${GREEN}missing${RESET}    Check if packages are installed
+
+${YELLOW}EXAMPLES:${RESET}
+    zenith pkg install                  # Install from pacman
+    zenith pkg install --aur            # Install from AUR
+    zenith pkg install --flatpak        # Install from Flathub
+    zenith pkg remove                   # Remove pacman packages
+    zenith pkg remove --flatpak         # Remove flatpak packages
+    zenith pkg list                     # List pacman packages
+    zenith pkg list --flatpak           # List flatpak packages
+    zenith pkg list --orphans           # Find orphan packages
+    zenith pkg missing firefox git      # Check if packages exist
+
+EOF
+            ;;
+    esac
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        install)
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --aur)      pkg_install_aur; return ;;
+                    --flatpak)  pkg_install_flatpak; return ;;
+                    --help|-h)  show_help "install"; return ;;
+                    *)          echo -e "${ZEN_RED}Error: Unknown option: $1${ZEN_RESET}" >&2; show_help "install"; exit 1 ;;
+                esac
+            done
+            pkg_install_pacman
+            ;;
+        remove)
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --flatpak)  pkg_remove_flatpak; return ;;
+                    --help|-h)  show_help "remove"; return ;;
+                    *)          echo -e "${ZEN_RED}Error: Unknown option: $1${ZEN_RESET}" >&2; show_help "remove"; exit 1 ;;
+                esac
+            done
+            pkg_remove_pacman
+            ;;
+        list)
+            local flatpak=false
+            local args=()
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --flatpak)  flatpak=true ;;
+                    --help|-h)  show_help "list"; return ;;
+                    *)          args+=("$1") ;;
+                esac
+                shift
+            done
+            if $flatpak; then
+                pkg_list_flatpak "${args[@]:-}"
+            else
+                pkg_list_pacman "${args[@]:-}"
+            fi
+            ;;
+        missing)
+            pkg_missing "$@"
+            ;;
+        --help|-h|help)
+            show_help
+            ;;
+        *)
+            echo -e "${ZEN_RED}Error: Unknown command: $cmd${ZEN_RESET}" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -292,7 +292,7 @@ else
         pkill dunst && dunst &
 
         info "Reloading kitty..."
-        zenith-reload-kitty 2>/dev/null || true
+        "$HOME/.local/bin/zenith-restart" kitty 2>/dev/null || true
 
         info "Reloading niri..."
         niri msg action reload-config 2>/dev/null || true

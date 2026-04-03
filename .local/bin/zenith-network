@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Network Info
+# =============================================================================
+# Usage:
+#   zenith network status
+#   zenith network ssid
+# =============================================================================
+set -euo pipefail
+
+network_status() {
+    if command -v impalactl &>/dev/null; then
+        if impalactl gateway status 2>/dev/null | grep -qi "connected"; then
+            echo "connected"
+        else
+            echo "disconnected"
+        fi
+    else
+        echo "disconnected"
+    fi
+}
+
+network_ssid() {
+    if command -v impalactl &>/dev/null; then
+        impalactl gateway status 2>/dev/null | grep "SSID" | awk '{print $2}' || echo ""
+    else
+        echo ""
+    fi
+}
+
+show_help() {
+    cat << EOF
+Network info
+
+USAGE:
+    zenith network <command>
+
+COMMANDS:
+    status          Check network connection status
+    ssid            Get current WiFi SSID
+
+EXAMPLES:
+    zenith network status
+    zenith network ssid
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        status)  network_status ;;
+        ssid)    network_ssid ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -57,7 +57,7 @@ if [[ -n "$selection" ]]; then
 
     sleep 2
 
-    current_mode=$("$ZENITH_BIN/zenith-theme-get")
+    current_mode=$("$ZENITH_BIN/zenith-theme" get)
     run_matugen "$FULL_PATH" "$current_mode"
 
     if [ -f "$WAYBAR_DIR/colors.css" ]; then
@@ -67,7 +67,7 @@ if [[ -n "$selection" ]]; then
         done
     fi
 
-    "$ZENITH_BIN/zenith-restart-all"
+    "$ZENITH_BIN/zenith-restart" all
 
-    notify-send "Wallpaper" "Wallpaper n Colors aplied."
+    notify-send "Wallpaper" "Wallpaper & Colors applied."
 fi

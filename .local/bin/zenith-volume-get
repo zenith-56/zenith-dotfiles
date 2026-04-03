@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# =============================================================================
-# Zenith-Dotfiles - Get Volume
-# =============================================================================
-
-command -v pamixer >/dev/null 2>&1 || { echo "0"; exit 1; }
-pamixer --get-volume 2>/dev/null || echo "0"

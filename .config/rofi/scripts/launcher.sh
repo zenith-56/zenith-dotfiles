@@ -3,31 +3,27 @@
 # Rofi Main Launcher Menu
 # =============================================================================
 # Description : Main menu launcher for Rofi.
-#               Provides quick access to Applications, Theming,
-#               Install, Uninstall, and Power Menu.
+#               Provides quick access to Applications, Network, Theming,
+#               Package Management, and Power Menu.
 # =============================================================================
 
-THEME="$HOME/.config/rofi/themes/theme.rasi"
-SCRIPTS="$HOME/.config/rofi/scripts"
+set -euo pipefail
 
-rofi_cmd() {
-    rofi -dmenu -i -p "" -theme "$THEME" "$@"
-}
+source "$(dirname "$0")/common.sh"
 
 main_menu() {
-    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰇚  Install\n 󰁮  Uninstall\n 󰐥  Power Menu\n'
+    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰏗  Package Management\n 󰐥  Power Menu\n'
 }
 
 while true; do
-    chosen=$(main_menu | rofi_cmd -placeholder "Search...")
+    chosen=$(main_menu | rofi_run "theme.rasi" -placeholder "Search...") || exit 0
 
     case "$chosen" in
-        *Applications) bash "$SCRIPTS/app-launcher.sh"; exit 0 ;;
-        *Network) bash "$SCRIPTS/network-menu.sh"; exit 0 ;;
-        *Theming) bash "$SCRIPTS/theming-menu.sh"; exit 0 ;;
-        *Install) bash "$SCRIPTS/install-menu.sh"; exit 0 ;;
-        *Uninstall) bash "$SCRIPTS/uninstall-menu.sh"; exit 0 ;;
-        *Power\ Menu) bash "$SCRIPTS/power-menu.sh"; exit 0 ;;
+        *Applications) bash "$ROFI_SCRIPTS_DIR/app-launcher.sh" || true ;;
+        *Network) bash "$ROFI_SCRIPTS_DIR/network-menu.sh" || true ;;
+        *Theming) bash "$ROFI_SCRIPTS_DIR/theming-menu.sh" || true ;;
+        *Package\ Management) bash "$ROFI_SCRIPTS_DIR/package-manager.sh" || true ;;
+        *Power\ Menu) bash "$ROFI_SCRIPTS_DIR/power-menu.sh" || true ;;
         "") exit 0 ;;
     esac
 done

@@ -1,0 +1,354 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Web Apps Manager
+# =============================================================================
+# Usage:
+#   zenith webapp install [name] [url] [icon]
+#   zenith webapp uninstall
+#   zenith webapp list
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+ICON_DIR="$HOME/.local/share/applications/icons"
+APPS_DIR="$HOME/.local/share/applications"
+mkdir -p "$ICON_DIR" "$APPS_DIR"
+
+# ── Browser detection ─────────────────────────────────────────────────────────
+APPMODE_BROWSERS=(
+    chromium chromium-browser
+    google-chrome google-chrome-stable google-chrome-beta
+    brave-browser brave
+    microsoft-edge microsoft-edge-stable
+    vivaldi vivaldi-stable
+    opera
+)
+
+find_binary() {
+    for b in "$@"; do
+        if command -v "$b" &>/dev/null; then
+            echo "$b"; return
+        fi
+    done
+}
+
+get_xdg_default() {
+    local desktop
+    desktop=$(xdg-settings get default-web-browser 2>/dev/null || true)
+    desktop="${desktop%.desktop}"
+    desktop="${desktop,,}"
+    case "$desktop" in
+        chromium|chromium-browser)   echo "chromium" ;;
+        google-chrome*)              echo "google-chrome-stable" ;;
+        brave-browser*)              echo "brave-browser" ;;
+        microsoft-edge*)             echo "microsoft-edge-stable" ;;
+        vivaldi*)                    echo "vivaldi-stable" ;;
+        firefox*)                    echo "firefox" ;;
+        zen*)                        echo "zen-browser" ;;
+        librewolf*)                  echo "librewolf" ;;
+        *)                           echo "$desktop" ;;
+    esac
+}
+
+supports_appmode() {
+    local bin="$1"
+    for b in "${APPMODE_BROWSERS[@]}"; do
+        [[ "$bin" == "$b" ]] && return 0
+    done
+    return 1
+}
+
+installed_appmode_browsers() {
+    local found=()
+    for b in "${APPMODE_BROWSERS[@]}"; do
+        command -v "$b" &>/dev/null && found+=("$b")
+    done
+    printf '%s\n' "${found[@]}"
+}
+
+pick_browser() {
+    local default_bin
+    default_bin=$(get_xdg_default)
+    default_bin=$(find_binary "$default_bin" "$default_bin-stable" "$default_bin-browser" || true)
+
+    if [[ -n "$default_bin" ]] && supports_appmode "$default_bin"; then
+        echo "$default_bin"
+        return
+    fi
+
+    local choices
+    mapfile -t choices < <(installed_appmode_browsers)
+
+    if (( ${#choices[@]} == 0 )); then
+        echo -e "\e[31mNo Chromium-family browser found. App mode requires Chromium, Brave, etc.\e[0m" >&2
+        local use_ff
+        use_ff=$(gum choose --header "No --app mode browser found. Proceed with?" \
+            "firefox" "zen-browser" "librewolf" "cancel")
+        [[ "$use_ff" == "cancel" ]] && exit 1
+        echo "$use_ff"
+        return
+    fi
+
+    if (( ${#choices[@]} == 1 )); then
+        echo "${choices[0]}"
+        return
+    fi
+
+    gum choose --header "Default browser doesn't support app mode. Pick one:" "${choices[@]}"
+}
+
+build_exec() {
+    local browser="$1" url="$2"
+    case "$browser" in
+        firefox|zen-browser|librewolf|waterfox)
+            echo "$browser --new-window $url"
+            ;;
+        *)
+            echo "$browser --app=$url"
+            ;;
+    esac
+}
+
+# ── Icon resolution ───────────────────────────────────────────────────────────
+DASHICONS_BASE="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png"
+FAVICON_BASE="https://www.google.com/s2/favicons?domain"
+
+download_icon() {
+    local url="$1" dest="$2"
+    curl -fsSL --max-time 10 -o "$dest" "$url" 2>/dev/null && [[ -s "$dest" ]]
+}
+
+resolve_icon() {
+    local name="$1" app_url="$2" icon_hint="$3"
+    local dest="$ICON_DIR/$name.png"
+
+    if [[ -n "$icon_hint" && ! "$icon_hint" =~ ^https?:// && ! "$icon_hint" =~ / ]]; then
+        local di_url="$DASHICONS_BASE/${icon_hint}.png"
+        if download_icon "$di_url" "$dest"; then
+            echo "$dest"; return
+        fi
+        echo -e "\e[33mDashboard icon '$icon_hint' not found, falling back to favicon.\e[0m" >&2
+    fi
+
+    if [[ "$icon_hint" =~ ^https?:// ]]; then
+        if download_icon "$icon_hint" "$dest"; then
+            echo "$dest"; return
+        fi
+        echo -e "\e[33mFailed to download icon URL, falling back to favicon.\e[0m" >&2
+    fi
+
+    local favicon_url="$FAVICON_BASE=${app_url}&sz=128"
+    if download_icon "$favicon_url" "$dest"; then
+        echo "$dest"; return
+    fi
+
+    echo -e "\e[33mCould not fetch icon automatically.\e[0m" >&2
+    local manual_url
+    manual_url=$(gum input \
+        --prompt "Icon> " \
+        --placeholder "dashboardicons name or https://... (see dashboardicons.com)")
+    resolve_icon "$name" "$app_url" "$manual_url"
+}
+
+# ── Install ───────────────────────────────────────────────────────────────────
+webapp_install() {
+    local interactive=false
+    local app_name app_url icon_hint
+
+    if (( $# < 2 )); then
+        interactive=true
+        echo -e "\e[32m── Zenith-Dotfiles Web App Installer ──\e[0m\n"
+        app_name=$(gum input --prompt "Name> " --placeholder "Notion, Linear, Figma…")
+        app_url=$(gum input --prompt "URL> " --placeholder "https://example.com")
+        icon_hint=$(gum input --prompt "Icon> " --placeholder "dashboardicons name, URL, or leave empty for auto favicon")
+    else
+        app_name="$1"
+        app_url="$2"
+        icon_hint="${3:-}"
+    fi
+
+    [[ "$app_url" =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]] || app_url="https://$app_url"
+
+    if [[ -z "$app_name" || -z "$app_url" ]]; then
+        echo "Name and URL are required." >&2
+        exit 1
+    fi
+
+    local safe_name="${app_name// /_}"
+    safe_name="${safe_name//[^a-zA-Z0-9_.-]/}"
+
+    echo -e "\e[2mDetecting browser…\e[0m"
+    local browser
+    browser=$(pick_browser)
+
+    echo -e "\e[2mFetching icon…\e[0m"
+    local icon_path
+    icon_path=$(resolve_icon "$safe_name" "$app_url" "$icon_hint")
+
+    local exec_cmd
+    exec_cmd=$(build_exec "$browser" "$app_url")
+
+    local desktop_file="$APPS_DIR/$safe_name.desktop"
+    cat > "$desktop_file" <<EOF
+[Desktop Entry]
+Version=1.0
+Name=$app_name
+Comment=Web app — $app_url
+Exec=$exec_cmd
+Terminal=false
+Type=Application
+Icon=$icon_path
+StartupNotify=true
+StartupWMClass=$safe_name
+Categories=WebApp;Network;
+EOF
+    chmod +x "$desktop_file"
+    update-desktop-database "$APPS_DIR" 2>/dev/null || true
+
+    if [[ "$interactive" == "true" ]]; then
+        zen_notify "Web app installed" "$app_name is ready in your app launcher" "$icon_path"
+        echo -e "\n\e[32m✓ $app_name installed\e[0m"
+        echo -e "  Browser : $browser"
+        echo -e "  URL     : $app_url"
+        echo -e "  Icon    : $icon_path"
+        echo -e "  Desktop : $desktop_file\n"
+        zen_done
+    fi
+}
+
+# ── Uninstall ─────────────────────────────────────────────────────────────────
+webapp_uninstall() {
+    mapfile -t webapps < <(
+        grep -l 'Categories=WebApp;' "$APPS_DIR"/*.desktop 2>/dev/null | \
+        while read -r f; do
+            grep '^Name=' "$f" | head -1 | sed 's/^Name=//'
+        done | sort
+    )
+
+    if (( ${#webapps[@]} == 0 )); then
+        echo -e "\e[33mNo web apps installed.\e[0m"
+        exit 0
+    fi
+
+    echo -e "\e[32m── Zenith-Dotfiles Web App Uninstaller ──\e[0m\n"
+    echo -e "\e[2mUse Space to select, Enter to confirm\e[0m\n"
+
+    local selected=()
+    mapfile -t selected < <(
+        gum choose --no-limit --header "Select web apps to uninstall:" "${webapps[@]}"
+    )
+
+    if (( ${#selected[@]} == 0 )); then
+        echo -e "\e[33mNo apps selected.\e[0m"
+        exit 0
+    fi
+
+    echo ""
+    echo -e "\e[31mThe following apps will be removed:\e[0m"
+    for app in "${selected[@]}"; do
+        echo "  • $app"
+    done
+    echo ""
+
+    local confirm
+    confirm=$(gum choose --header "Proceed?" "Yes" "No")
+    [[ "$confirm" != "Yes" ]] && exit 0
+
+    for app in "${selected[@]}"; do
+        local safe_name="${app// /_}"
+        safe_name="${safe_name//[^a-zA-Z0-9_.-]/}"
+        local desktop_file="$APPS_DIR/$safe_name.desktop"
+
+        if [[ -f "$desktop_file" ]]; then
+            local icon_path
+            icon_path=$(grep '^Icon=' "$desktop_file" | sed 's/^Icon=//' || true)
+            rm -f "$desktop_file"
+            echo -e "\e[32m✓ Removed $app\e[0m"
+            if [[ -n "$icon_path" && "$icon_path" == "$HOME/.local/share/applications/icons/"* ]]; then
+                rm -f "$icon_path"
+                echo -e "\e[2m  Cleaned up icon\e[0m"
+            fi
+        else
+            echo -e "\e[33m Desktop file not found for $app\e[0m"
+        fi
+    done
+
+    update-desktop-database "$APPS_DIR" 2>/dev/null || true
+    echo -e "\n\e[32mDone. ${#selected[@]} app(s) removed.\e[0m"
+    zen_done
+}
+
+# ── List ──────────────────────────────────────────────────────────────────────
+webapp_list() {
+    mapfile -t webapps < <(
+        grep -l 'Categories=WebApp;' "$APPS_DIR"/*.desktop 2>/dev/null | \
+        while read -r f; do
+            local name url
+            name=$(grep '^Name=' "$f" | head -1 | sed 's/^Name=//')
+            url=$(grep '^Comment=Web app — ' "$f" | head -1 | sed 's/^Comment=Web app — //')
+            if [[ -n "$url" ]]; then
+                echo "$name ($url)"
+            else
+                echo "$name"
+            fi
+        done | sort
+    )
+
+    if (( ${#webapps[@]} == 0 )); then
+        echo -e "\e[33mNo web apps installed.\e[0m"
+        exit 0
+    fi
+
+    echo -e "\e[32mInstalled web apps (${#webapps[@]}):${ZEN_RESET}"
+    echo ""
+    for app in "${webapps[@]}"; do
+        echo "  • $app"
+    done
+}
+
+# ── Help ──────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << EOF
+Web apps manager
+
+USAGE:
+    zenith webapp <command> [args]
+
+COMMANDS:
+    install [name] [url] [icon]  Install a web app
+    uninstall                    Remove web apps
+    list                         List installed web apps
+
+EXAMPLES:
+    zenith webapp install                          # interactive
+    zenith webapp install Notion https://notion.so # scripted
+    zenith webapp uninstall
+    zenith webapp list
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        install)    shift; webapp_install "$@" ;;
+        uninstall)  webapp_uninstall ;;
+        list)       webapp_list ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

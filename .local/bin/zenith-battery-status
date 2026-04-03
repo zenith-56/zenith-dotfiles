@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# =============================================================================
-# Zenith-Dotfiles - Battery Status
-# =============================================================================
-
-BAT0="/sys/class/power_supply/BAT0"
-[ -f "$BAT0/status" ] && cat "$BAT0/status" || echo "Unknown"

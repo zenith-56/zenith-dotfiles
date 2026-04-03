@@ -3,8 +3,8 @@
  * ============================================================================= */
 
 window {
-    background-color: #11140e;
-    color: #e1e4d9;
+    background-color: #1a1111;
+    color: #f0dede;
     font-family: "JetBrains Mono Nerd Font";
     font-size: 12px;
     border-radius: 0px;
@@ -13,19 +13,19 @@ window {
 }
 
 -osd-bar {
-    background-color: #acd28f;
-    color: #1a3705;
+    background-color: #ffb3b5;
+    color: #561d22;
     min-width: 80px;
     min-height: 8px;
 }
 
 -osd-label {
-    color: #e1e4d9;
+    color: #f0dede;
     font-size: 10px;
 }
 
 -osd-icon {
-    color: #acd28f;
+    color: #ffb3b5;
 }
 
 .content {
@@ -34,13 +34,13 @@ window {
 
 .brightness-slider slider,
 .volume-slider slider {
-    background-color: #acd28f;
+    background-color: #ffb3b5;
 }
 
 .icon {
-    color: #acd28f;
+    color: #ffb3b5;
 }
 
 .bar {
-    background-color: #acd28f;
+    background-color: #ffb3b5;
 }

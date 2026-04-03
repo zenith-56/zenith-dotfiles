@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - OSD Control
+# =============================================================================
+# Usage:
+#   zenith osd volume up
+#   zenith osd volume down
+#   zenith osd volume toggle
+#   zenith osd brightness up
+#   zenith osd brightness down
+# =============================================================================
+set -euo pipefail
+
+osd_volume() {
+    case "${1:-}" in
+        up)
+            swayosd-client --output-volume raise 2>/dev/null || pamixer -i 5
+            ;;
+        down)
+            swayosd-client --output-volume lower 2>/dev/null || pamixer -d 5
+            ;;
+        toggle|mute)
+            swayosd-client --output-volume mute-toggle 2>/dev/null || pamixer -t
+            ;;
+        *)
+            echo "Usage: zenith osd volume {up|down|toggle}"
+            exit 1
+            ;;
+    esac
+}
+
+osd_brightness() {
+    case "${1:-}" in
+        up)
+            swayosd-client --brightness raise 2>/dev/null || brightnessctl set +10%
+            ;;
+        down)
+            swayosd-client --brightness lower 2>/dev/null || brightnessctl set 10%-
+            ;;
+        *)
+            echo "Usage: zenith osd brightness {up|down}"
+            exit 1
+            ;;
+    esac
+}
+
+show_help() {
+    cat << EOF
+OSD control
+
+USAGE:
+    zenith osd <type> <action>
+
+TYPES:
+    volume          Volume control
+    brightness      Brightness control
+
+ACTIONS:
+    volume:    up, down, toggle
+    brightness: up, down
+
+EXAMPLES:
+    zenith osd volume up
+    zenith osd volume down
+    zenith osd volume toggle
+    zenith osd brightness up
+    zenith osd brightness down
+
+EOF
+}
+
+main() {
+    if [[ $# -lt 2 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        volume)       osd_volume "$2" ;;
+        brightness)   osd_brightness "$2" ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown type: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

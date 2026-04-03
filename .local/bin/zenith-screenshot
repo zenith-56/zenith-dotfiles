@@ -2,6 +2,51 @@
 # =============================================================================
 # Zenith-Dotfiles - Screenshot
 # =============================================================================
+# Usage:
+#   zenith screenshot full
+#   zenith screenshot region
+# =============================================================================
+set -euo pipefail
 
-command -v awww >/dev/null 2>&1 || { echo "awww not installed"; exit 1; }
-awww shot --no-notification
+if ! command -v awww &>/dev/null; then
+    echo "awww not installed"
+    exit 1
+fi
+
+show_help() {
+    cat << EOF
+Screenshot
+
+USAGE:
+    zenith screenshot <mode>
+
+MODES:
+    full            Capture entire screen
+    region          Select region to capture
+
+EXAMPLES:
+    zenith screenshot full
+    zenith screenshot region
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        full)     awww shot --no-notification ;;
+        region)   awww shot -s --no-notification ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown mode: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

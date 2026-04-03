@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PROFILE=$(/home/maximocruz/zenith-dotfiles/.local/bin/zenith-power-profile get)
+PROFILE=$(zenith power profile get)
 
 case "$PROFILE" in
 	balanced) echo "" ;;

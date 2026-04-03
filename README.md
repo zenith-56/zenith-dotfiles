@@ -60,33 +60,35 @@ cd ~/zenith-dotfiles && ./update.sh
 
 ## Zenith Bin Scripts
 
+All scripts under `~/.local/bin/` use subcommands for a unified interface.
+
 | Script | Description |
 |--------|-------------|
-| `zenith-theme-{get,set,toggle}` | Theme control |
-| `zenith-swayosd-{volume,brightness}` | OSD controls |
-| `zenith-mic` | Toggle mic mute |
-| `zenith-kb-layout` | Keyboard layout (us/es) |
-| `zenith-lock` | Lock screen |
-| `zenith-power-off` / `zenith-reboot` / `zenith-logout` | Power actions |
-| `zenith-screenshot` / `zenith-screenshot-region` | Screenshot |
-| `zenith-screen-recorder` | Screen recording |
-| `zenith-music-show` | Current track (hyprlock) |
-| `zenith-battery-{capacity,status}` | Battery info |
-| `zenith-brightness-{get,set}` | Brightness control |
-| `zenith-volume-{get,set}` | Volume control |
-| `zenith-network-{status,ssid}` | Network info |
-| `zenith-pkg-install` | FZF pacman install |
-| `zenith-pkg-aur-install` | FZF AUR install |
-| `zenith-pkg-flatpak-install` | Flatpak install |
-| `zenith-pkg-flatpak-remove` | Flatpak remove |
-| `zenith-pkg-list` | List packages |
-| `zenith-pkg-remove` | FZF remove package |
-| `zenith-pkg-colors` | Package info colors |
-| `zenith-webapp-{install,uninstall}` | Web app installer |
-| `zenith-restart-{all,waybar,dunst,swayosd}` | Restart services |
-| `zenith-reload-kitty` | Reload kitty colors |
-| `zenith-theme-sync` | Sync theme colors with matugen |
-| `zenith-done` | Exit prompt with message |
+| `zenith theme {get,set,toggle,sync}` | Theme management |
+| `zenith pkg install [--aur] [--flatpak]` | Interactive package installation |
+| `zenith pkg remove [--flatpak]` | Interactive package removal |
+| `zenith pkg list [--explicit] [--orphans] [--search] [--flatpak]` | List packages |
+| `zenith pkg missing <pkg1> <pkg2>` | Check if packages are installed |
+| `zenith webapp install [name] [url] [icon]` | Web app installer |
+| `zenith webapp uninstall` | Web app remover |
+| `zenith webapp list` | List installed web apps |
+| `zenith restart {waybar,dunst,swayosd,kitty,all}` | Restart services |
+| `zenith power {off,reboot,lock,logout}` | Power actions |
+| `zenith power profile {list,get,balanced,etc}` | Power profile management |
+| `zenith screenshot {full,region}` | Screenshot |
+| `zenith screen-recorder` | Screen recording |
+| `zenith brightness {get,set}` | Brightness control |
+| `zenith volume {get,set}` | Volume control |
+| `zenith battery {capacity,status,info}` | Battery info |
+| `zenith network {status,ssid}` | Network info |
+| `zenith osd volume {up,down,toggle}` | Volume OSD |
+| `zenith osd brightness {up,down}` | Brightness OSD |
+| `zenith mic` | Toggle mic mute |
+| `zenith kb-layout` | Keyboard layout (us/es) |
+| `zenith music-show` | Current track (hyprlock) |
+| `zenith firewall` | UFW firewall manager |
+| `zenith dns` | DNS switcher |
+| `zenith check` | System health check |
 
 ## Keybindings (Niri)
 
@@ -152,17 +154,55 @@ zenith-dotfiles/
 | Issue | Solution |
 |-------|----------|
 | Themes not applying | Run: `matugen image ~/Pictures/Wallpapers/wallpaper.png` |
-| Colors wrong after wallpaper change | Run `zenith-theme-sync` to regenerate |
+| Colors wrong after wallpaper change | Run `zenith theme sync` to regenerate |
 | Dark mode broken | Enable: `systemctl --user enable --now darkman` |
 | Dark mode not switching automatically | Check `darkman` status: `systemctl --user status darkman` |
 
-### Rofi & Launcher
+### Rofi Launcher
+
+The Rofi launcher uses a **state-machine navigation pattern** — Esc always returns to the parent menu without closing Rofi.
+
+| Script | Description |
+|--------|-------------|
+| `launcher.sh` | Main menu (Apps, Network, Theming, Packages, Power) |
+| `app-launcher.sh` | Application launcher (drun mode) |
+| `network-menu.sh` | Firewall & DNS management |
+| `theming-menu.sh` | Wallpaper & theme mode selector |
+| `package-manager.sh` | Install/Uninstall packages (pacman, AUR, Flatpak, Web Apps) |
+| `power-menu.sh` | Shutdown, Restart, Lock, Logout |
+| `wall-selector.sh` | Wallpaper gallery with Matugen integration |
+| `theme-menu.sh` | Dark/Light mode toggle |
+| `emoji-picker.sh` | Emoji picker (rofi-emoji plugin) |
+
+#### Navigation
+
+```
+launcher.sh
+├── app-launcher.sh (rofi drun)
+├── network-menu.sh
+│   ├── firewall_menu() → Esc → back to network
+│   └── dns_menu() → Esc → back to network
+├── theming-menu.sh
+│   ├── wall-selector.sh (gallery)
+│   └── theme-menu.sh (dark/light) → Esc → back to theming
+├── package-manager.sh
+│   ├── install → Esc → back to package-manager
+│   └── uninstall → Esc → back to package-manager
+└── power-menu.sh (direct actions)
+```
+
+**Rules:**
+- `Esc` → return to parent menu (no Rofi flicker)
+- `Back` option → return to parent menu
+- Empty selection → close Rofi
+- Power actions → execute immediately (with confirmation for shutdown/restart)
 
 | Issue | Solution |
 |-------|----------|
 | Rofi crashes | Check theme: `ls ~/.config/rofi/themes/` |
 | Emoji picker not working | Install `wtype`: `yay -S wtype` |
 | Launcher slow to open | Reduce number of apps or check `app-launcher.sh` |
+
 
 ### Audio & Input
 
@@ -177,7 +217,7 @@ zenith-dotfiles/
 
 | Issue | Solution |
 |-------|----------|
-| Kitty colors wrong | Run: `zenith-reload-kitty` |
+| Kitty colors wrong | Run: `zenith restart kitty` |
 | Font rendering issues | Install fonts: `./install.sh` (fonts step) |
 | Kitty not starting | Check `kitty` in PATH: `which kitty` |
 

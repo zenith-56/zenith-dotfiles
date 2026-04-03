@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Theme Manager
+# =============================================================================
+# Usage:
+#   zenith theme get
+#   zenith theme set dark|light
+#   zenith theme toggle
+#   zenith theme sync
+# =============================================================================
+set -euo pipefail
+
+DARKMAN_CFG="$HOME/.config/darkman.cfg"
+
+theme_get() {
+    if [[ -f "$DARKMAN_CFG" ]]; then
+        local theme
+        theme=$(cat "$DARKMAN_CFG")
+        if [[ -z "$theme" ]]; then
+            echo "light"
+        else
+            echo "$theme"
+        fi
+    elif pgrep -x darkman &>/dev/null; then
+        echo "dark"
+    else
+        echo "light"
+    fi
+}
+
+theme_set() {
+    local mode="${1:-}"
+    if [[ "$mode" != "dark" && "$mode" != "light" ]]; then
+        echo "Usage: zenith theme set {dark|light}"
+        exit 1
+    fi
+    echo "$mode" > "$DARKMAN_CFG"
+    darkman set "$mode" 2>/dev/null || true
+}
+
+theme_toggle() {
+    local current
+    current=$(cat "$DARKMAN_CFG" 2>/dev/null || echo "light")
+    if [[ "$current" = "dark" ]]; then
+        theme_set "light"
+    else
+        theme_set "dark"
+    fi
+}
+
+theme_sync() {
+    local waybar_dir="$HOME/.config/waybar"
+
+    if ! command -v matugen &>/dev/null; then
+        echo "matugen not found"
+        exit 1
+    fi
+
+    if [[ ! -f "$waybar_dir/colors.css" ]]; then
+        echo "colors.css not found in $waybar_dir"
+        exit 1
+    fi
+
+    matugen theme "$waybar_dir/colors.css" || {
+        echo "Failed to generate theme"
+        exit 1
+    }
+
+    pkill -SIGUSR2 waybar 2>/dev/null || true
+    echo "Colores regenerados"
+}
+
+show_help() {
+    cat << EOF
+Theme manager
+
+USAGE:
+    zenith theme <command> [args]
+
+COMMANDS:
+    get             Get current theme (dark/light)
+    set <theme>     Set theme (dark or light)
+    toggle          Toggle between dark and light
+    sync            Regenerate theme with matugen
+
+EXAMPLES:
+    zenith theme get
+    zenith theme set dark
+    zenith theme toggle
+    zenith theme sync
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        get)      theme_get ;;
+        set)      theme_set "${2:-}" ;;
+        toggle)   theme_toggle ;;
+        sync)     theme_sync ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

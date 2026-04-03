@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Restart Services
+# =============================================================================
+# Usage:
+#   zenith restart waybar
+#   zenith restart dunst
+#   zenith restart swayosd
+#   zenith restart kitty
+#   zenith restart all
+# =============================================================================
+set -euo pipefail
+
+restart_service() {
+    local name="$1"
+    local cmd="$2"
+
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "$cmd not found"
+        exit 1
+    fi
+
+    pkill "$cmd" 2>/dev/null || true
+    sleep 0.2
+    $cmd &>/dev/null &
+    echo "$name restarted"
+}
+
+reload_kitty() {
+    local pids
+    pids=$(pidof kitty 2>/dev/null) || true
+    if [[ -n "$pids" ]]; then
+        for pid in $pids; do
+            kill -SIGUSR1 "$pid" 2>/dev/null || true
+        done
+    fi
+}
+
+show_help() {
+    cat << EOF
+Restart services
+
+USAGE:
+    zenith restart <service>
+
+SERVICES:
+    waybar      Restart waybar
+    dunst       Restart dunst
+    swayosd     Restart swayosd-server
+    kitty       Reload kitty colors (SIGUSR1)
+    all         Restart all services + reload kitty
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        waybar)   restart_service "Waybar" "waybar" ;;
+        dunst)    restart_service "Dunst" "dunst" ;;
+        swayosd)  restart_service "SwayOSD" "swayosd-server" ;;
+        kitty)    reload_kitty ;;
+        all)
+            pkill waybar 2>/dev/null || true
+            pkill dunst 2>/dev/null || true
+            pkill swayosd-server 2>/dev/null || true
+            sleep 0.3
+            waybar &>/dev/null &
+            dunst &>/dev/null &
+            swayosd-server &>/dev/null &
+            reload_kitty
+            echo "All services restarted"
+            ;;
+        --help|-h|help)
+            show_help
+            ;;
+        *)
+            echo "Unknown service: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

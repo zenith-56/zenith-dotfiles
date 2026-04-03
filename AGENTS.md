@@ -54,23 +54,22 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 
 | Category | Scripts |
 |----------|---------|
-| **Theme** | `zenith-theme-get`, `zenith-theme-set`, `zenith-theme-toggle` |
-| **OSD** | `zenith-swayosd-volume`, `zenith-swayosd-brightness` |
+| **Theme** | `zenith theme {get,set,toggle,sync}` |
+| **OSD** | `zenith osd volume {up,down,toggle}`, `zenith osd brightness {up,down}` |
 | **Music** | `zenith-music-show` |
-| **Audio** | `zenith-mic`, `zenith-volume-get`, `zenith-volume-set` |
-| **Display** | `zenith-brightness-get`, `zenith-brightness-set` |
-| **Network** | `zenith-network-status`, `zenith-network-ssid`, `zenith-firewall`, `zenith-dns` |
-| **Battery** | `zenith-battery-capacity`, `zenith-battery-status` |
-| **Power** | `zenith-lock`, `zenith-power-off`, `zenith-reboot`, `zenith-logout` |
-| **Restart** | `zenith-restart-all`, `zenith-restart-waybar`, `zenith-restart-dunst`, `zenith-restart-swayosd` |
-| **Screenshot** | `zenith-screenshot`, `zenith-screenshot-region` |
+| **Audio** | `zenith-mic`, `zenith volume {get,set}` |
+| **Display** | `zenith brightness {get,set}` |
+| **Network** | `zenith network {status,ssid}`, `zenith-firewall`, `zenith-dns` |
+| **Battery** | `zenith battery {capacity,status,info}` |
+| **Power** | `zenith power {off,reboot,lock,logout}`, `zenith power profile` |
+| **Restart** | `zenith restart {waybar,dunst,swayosd,kitty,all}` |
+| **Screenshot** | `zenith screenshot {full,region}` |
 | **Screen Record** | `zenith-screen-recorder` |
 | **Keyboard** | `zenith-kb-layout` |
-| **Kitty** | `zenith-reload-kitty` |
-| **Web Apps** | `zenith-webapp-install`, `zenith-webapp-uninstall` |
-| **Packages (pacman)** | `zenith-pkg-install`, `zenith-pkg-aur-install`, `zenith-pkg-missing`, `zenith-pkg-remove`, `zenith-pkg-list`, `zenith-pkg-colors` |
-| **Packages (Flatpak)** | `zenith-pkg-flatpak-install`, `zenith-pkg-flatpak-remove`, `zenith-pkg-flatpak-list` |
-| **Utils** | `zenith-done` |
+| **Kitty** | `zenith restart kitty` |
+| **Web Apps** | `zenith webapp {install,uninstall,list}` |
+| **Packages** | `zenith pkg {install,remove,list,missing}` with `--aur`, `--flatpak` flags |
+| **Utils** | `zenith-done` (deprecated, use `zen_done` from `zenith-lib.sh`) |
 
 ## Rofi Scripts
 
@@ -84,8 +83,7 @@ Scripts in `.config/rofi/scripts/`:
 | `theme-menu.sh` | Theme selector (dark/light) |
 | `theming-menu.sh` | Theming submenu |
 | `power-menu.sh` | Power menu (lock, logout, reboot, poweroff) |
-| `install-menu.sh` | Package installer |
-| `uninstall-menu.sh` | Package remover |
+| `package-manager.sh` | Unified package management (install/uninstall) |
 | `network-menu.sh` | Network config (Firewall + DNS) |
 
 ## Waybar Scripts
@@ -190,8 +188,10 @@ Place in `.local/share/dark-mode.d/` or `light-mode.d/`
 ### Add zenith-bin
 Create script in `.local/bin/` with:
 - `#!/usr/bin/env bash`
+- `set -euo pipefail`
 - Error handling (check if commands exist)
 - Exit codes for failures
+- Source `zenith-lib.sh` for shared functions
 
 ### Add waybar module
 Create script in `.config/waybar/scripts/`:

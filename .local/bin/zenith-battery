@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Battery Info
+# =============================================================================
+# Usage:
+#   zenith battery capacity
+#   zenith battery status
+#   zenith battery info
+# =============================================================================
+set -euo pipefail
+
+BAT0="/sys/class/power_supply/BAT0"
+
+battery_capacity() {
+    if [[ -f "$BAT0/capacity" ]]; then
+        cat "$BAT0/capacity"
+    else
+        echo "0"
+    fi
+}
+
+battery_status() {
+    if [[ -f "$BAT0/status" ]]; then
+        cat "$BAT0/status"
+    else
+        echo "Unknown"
+    fi
+}
+
+battery_info() {
+    echo "Capacity: $(battery_capacity)%"
+    echo "Status:   $(battery_status)"
+}
+
+show_help() {
+    cat << EOF
+Battery info
+
+USAGE:
+    zenith battery <command>
+
+COMMANDS:
+    capacity        Get battery capacity percentage
+    status          Get battery charging status
+    info            Show both capacity and status
+
+EXAMPLES:
+    zenith battery capacity
+    zenith battery status
+    zenith battery info
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        capacity)  battery_capacity ;;
+        status)    battery_status ;;
+        info)      battery_info ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
