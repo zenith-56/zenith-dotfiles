@@ -13,4 +13,5 @@ if [[ -n "$WALL" && -f "$WALL" ]]; then
     matugen image "$WALL" --prefer value -m dark
 fi
 
+"$BIN/zenith-theme-sync"
 "$BIN/zenith-restart-all"

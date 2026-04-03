@@ -10,8 +10,20 @@ source "$(dirname "$0")/common.sh"
 
 WALL_DIR="$HOME/Pictures/Wallpapers"
 CURRENT_LINK="$HOME/.config/rofi/images/current_wallpaper.png"
+WAYBAR_DIR="$HOME/.config/waybar"
 
 mkdir -p "$(dirname "$CURRENT_LINK")"
+
+run_matugen() {
+    local wallpaper="$1"
+    local mode="$2"
+    local output
+    
+    output=$(matugen image "$wallpaper" --prefer value -m "$mode" 2>&1) && return 0
+    
+    echo "Matugen errors: $output"
+    return 1
+}
 
 mapfile -d '' pics < <(find "$WALL_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print0 2>/dev/null | sort -z)
 
@@ -43,12 +55,19 @@ if [[ -n "$selection" ]]; then
     awww img "$FULL_PATH" --transition-type random --transition-step 120 --transition-fps 120
     ln -sf "$FULL_PATH" "$CURRENT_LINK"
 
-    sleep 0.5
+    sleep 2
 
     current_mode=$("$ZENITH_BIN/zenith-theme-get")
-    matugen image "$FULL_PATH" --prefer value -m "$current_mode"
+    run_matugen "$FULL_PATH" "$current_mode"
+
+    if [ -f "$WAYBAR_DIR/colors.css" ]; then
+        for preset_dir in "$WAYBAR_DIR"/presets/*/; do
+            [ -d "$preset_dir" ] || continue
+            cp -f "$WAYBAR_DIR/colors.css" "${preset_dir}colors.css" 2>/dev/null || true
+        done
+    fi
 
     "$ZENITH_BIN/zenith-restart-all"
 
-    notify-send "Wallpaper" "Colors updated" -i "$FULL_PATH"
+    notify-send "Wallpaper" "Wallpaper n Colors aplied."
 fi

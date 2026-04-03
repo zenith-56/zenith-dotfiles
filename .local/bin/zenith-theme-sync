@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith Theme Sync
+# =============================================================================
+# Regenera los colores de waybar usando matugen
+# =============================================================================
+
+WAYBAR_DIR="$HOME/.config/waybar"
+
+main() {
+    if command -v matugen &>/dev/null; then
+        matugen theme "$WAYBAR_DIR/colors.css"
+        pkill -SIGUSR2 waybar 2>/dev/null || true
+        echo "Colores regenerados"
+    else
+        echo "matugen no encontrado"
+        exit 1
+    fi
+}
+
+main "$@"

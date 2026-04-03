@@ -2,11 +2,18 @@
 # =============================================================================
 # Rofi Theme Menu
 # =============================================================================
-# Description : Global theme switcher with active state detection and
-#               automated hot-reloading for the Zenith environment.
-# =============================================================================
 
 source "$(dirname "$0")/common.sh"
+
+run_matugen() {
+    local wallpaper="$1"
+    local mode="$2"
+    
+    matugen image "$wallpaper" --prefer value -m "$mode" && return 0
+    matugen image "$wallpaper" --prefer most -m "$mode" && return 0
+    matugen image "$wallpaper" --prefer vibrant -m "$mode" && return 0
+    return 1
+}
 
 current=$("$ZENITH_BIN/zenith-theme-get")
 
@@ -22,12 +29,22 @@ selection=$(rofi_menu "tokyo-night.rasi" "$menu_text" "Theme...") || \
 case "$selection" in
     *Light\ Mode*)
         "$ZENITH_BIN/zenith-theme-set" light
-        sleep 0.5
+        
+        wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
+        [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
+        [ -f "$wallpaper_path" ] && run_matugen "$wallpaper_path" light
+        
+        "$ZENITH_BIN/zenith-theme-sync"
         "$ZENITH_BIN/zenith-restart-all"
         ;;
     *Dark\ Mode*)
         "$ZENITH_BIN/zenith-theme-set" dark
-        sleep 0.5
+        
+        wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
+        [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
+        [ -f "$wallpaper_path" ] && run_matugen "$wallpaper_path" dark
+        
+        "$ZENITH_BIN/zenith-theme-sync"
         "$ZENITH_BIN/zenith-restart-all"
         ;;
 esac

@@ -29,10 +29,6 @@ output_path = '~/.config/hypr/hyprlock.conf'
 input_path = '~/.config/matugen/templates/kitty.conf'
 output_path = '~/.config/kitty/theme.conf'
 
-[templates.zed]
-input_path = '~/.config/matugen/templates/zed-theme.json'
-output_path = '~/.config/zed/themes/matugen.json'
-
 [templates.btop]
 input_path = '~/.config/matugen/templates/btop.theme'
 output_path = '~/.config/btop/themes/matugen.theme'
