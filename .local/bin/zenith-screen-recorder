@@ -45,26 +45,26 @@ stop_recording() {
     elif pgrep -x "wf-recorder" >/dev/null; then
         pkill -INT wf-recorder
     fi
-    notify-send "Recording" "Recording finished and saved to $VIDEO_DIR" 2>/dev/null || true
+    zen_notify "Recording" "Recording finished and saved to $VIDEO_DIR"
 }
 
 start_recording() {
     local filename="$VIDEO_DIR/ScreenRecord_$(date +%Y%m%d_%H%M%S).mp4"
 
-    notify-send "Recording" "Select area to record..." 2>/dev/null || true
+    zen_notify "Recording" "Select area to record..."
 
     local geom
     geom=$(slurp 2>/dev/null) || {
-        notify-send "Recording" "Selection cancelled" 2>/dev/null || true
+        zen_notify "Recording" "Selection cancelled"
         exit 0
     }
 
     if [[ -n "$geom" ]]; then
         wf-recorder -g "$geom" -p yuv420p -f "$filename" &
         echo $! > "$PID_FILE"
-        notify-send "Recording" "Recording started ($geom)" 2>/dev/null || true
+        zen_notify "Recording" "Recording started ($geom)"
     else
-        notify-send "Recording" "No area selected" 2>/dev/null || true
+        zen_notify "Recording" "No area selected"
     fi
 }
 

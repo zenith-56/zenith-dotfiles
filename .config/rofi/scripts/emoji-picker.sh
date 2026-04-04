@@ -8,8 +8,10 @@
 
 set -euo pipefail
 
+source "$(dirname "$0")/common.sh"
+
 if ! command -v rofi &>/dev/null; then
-    notify-send "Emoji Picker" "rofi not installed"
+    rofi_notify "Emoji Picker" "rofi not installed" "error"
     exit 1
 fi
 
@@ -23,5 +25,5 @@ if [ -n "$EMOJI" ]; then
     elif command -v xclip &>/dev/null; then
         echo -n "$EMOJI" | xclip -selection clipboard
     fi
-    notify-send "Emoji Selected" "$EMOJI"
+    rofi_notify "Emoji Selected" "$EMOJI"
 fi

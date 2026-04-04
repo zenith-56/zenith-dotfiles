@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # =============================================================================
 # Rofi Scripts - Common Functions
 # =============================================================================
@@ -8,6 +7,14 @@
 ROFI_THEME_DIR="$HOME/.config/rofi/themes"
 ROFI_SCRIPTS_DIR="$HOME/.config/rofi/scripts"
 ZENITH_BIN="$HOME/.local/bin"
+
+# ── Notification ──────────────────────────────────────────────────────────────
+rofi_notify() {
+    local summary="$1"
+    local body="${2:-}"
+    local icon="${3:-software-update-available}"
+    notify-send --urgency=normal --icon="$icon" "$summary" "$body" 2>/dev/null || true
+}
 
 # Run rofi with the given theme and arguments
 rofi_run() {

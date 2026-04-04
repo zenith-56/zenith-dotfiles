@@ -33,8 +33,8 @@ while true; do
     "$ZENITH_BIN/zenith-theme" set "$mode"
 
     if [[ "$mode" == "dark" ]]; then
-        notify-send "Theme Changed" "Switched to Dark Mode" --icon="preferences-desktop-theme"
+        rofi_notify "Theme Changed" "Switched to Dark Mode" "preferences-desktop-theme"
     else
-        notify-send "Theme Changed" "Switched to Light Mode" --icon="preferences-desktop-theme"
+        rofi_notify "Theme Changed" "Switched to Light Mode" "preferences-desktop-theme"
     fi
 done

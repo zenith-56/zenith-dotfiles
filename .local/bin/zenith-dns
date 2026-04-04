@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
 DNS_FILE="/etc/systemd/resolved.conf"
 
 if [ -z "${1:-}" ]; then
@@ -35,7 +38,7 @@ case "$1" in
                 for iface in $interfaces; do
                     sudo resolvectl dns "$iface" $dns_servers 2>/dev/null || true
                 done
-                notify-send "DNS" "DNS set to $dns_servers" -i network-wired 2>/dev/null || true
+                zen_notify "DNS" "DNS set to $dns_servers" "network-wired"
                 echo "DNS set to $dns_servers on interfaces: $interfaces"
                 exit 0
             fi
@@ -45,7 +48,7 @@ case "$1" in
             sudo sed -i "s/^#*DNS=.*/DNS=$dns_servers/" "$DNS_FILE"
             sudo sed -i "s/^#FallbackDNS=.*/#FallbackDNS=$dns_servers/" "$DNS_FILE"
             sudo systemctl restart systemd-resolved
-            notify-send "DNS" "DNS set to $dns_servers" -i network-wired 2>/dev/null || true
+            zen_notify "DNS" "DNS set to $dns_servers" "network-wired"
             echo "DNS set to $dns_servers"
         else
             echo "resolved.conf not found"
@@ -67,7 +70,7 @@ case "$1" in
             sudo sed -i "s/^FallbackDNS=.*/#FallbackDNS=/" "$DNS_FILE"
             sudo systemctl restart systemd-resolved
         fi
-        notify-send "DNS" "DNS reset to default" -i network-wired 2>/dev/null || true
+        zen_notify "DNS" "DNS reset to default" "network-wired"
         echo "DNS reset to default"
         ;;
     status)

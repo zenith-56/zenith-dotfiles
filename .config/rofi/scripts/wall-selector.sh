@@ -30,7 +30,7 @@ run_matugen() {
 mapfile -d '' pics < <(find "$WALL_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print0 2>/dev/null | sort -z)
 
 if (( ${#pics[@]} == 0 )); then
-    notify-send "Wallpapers" "No wallpapers found in $WALL_DIR" -i error
+    rofi_notify "Wallpapers" "No wallpapers found in $WALL_DIR" "error"
     exit 1
 fi
 
@@ -71,5 +71,5 @@ if [[ -n "$selection" ]]; then
 
     "$ZENITH_BIN/zenith-restart" all
 
-    notify-send "Wallpaper" "Wallpaper & Colors applied." -i "$FULL_PATH"
+    rofi_notify "Wallpaper" "Wallpaper & Colors applied." "$FULL_PATH"
 fi

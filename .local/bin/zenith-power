@@ -60,9 +60,9 @@ power_profile() {
             local profile
             profile=$(get_profile)
             case "$profile" in
-                balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" 2>/dev/null || true ;;
-                power-saver) powerprofilesctl set performance; notify-send "Power: Performance" 2>/dev/null || true ;;
-                performance) powerprofilesctl set balanced; notify-send "Power: Balanced" 2>/dev/null || true ;;
+                balanced)    powerprofilesctl set power-saver; zen_notify "Power: Saver" "" "power-profile" ;;
+                power-saver) powerprofilesctl set performance; zen_notify "Power: Performance" "" "power-profile" ;;
+                performance) powerprofilesctl set balanced; zen_notify "Power: Balanced" "" "power-profile" ;;
                 *)           powerprofilesctl set balanced ;;
             esac
             ;;
