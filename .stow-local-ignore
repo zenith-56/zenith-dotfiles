@@ -5,6 +5,7 @@ update\.sh
 uninstall\.sh
 version
 README\.md
+CHANGELOG\.md
 LICENSE
 \install
 \images

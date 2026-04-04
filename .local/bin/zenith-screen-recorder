@@ -16,46 +16,61 @@
 set -euo pipefail
 
 VIDEO_DIR="$HOME/Videos"
-FILENAME="$VIDEO_DIR/ScreenRecord_$(date +%Y%m%d_%H%M%S).mp4"
-RECORDING_PID=""
+PID_FILE="/tmp/zenith-screen-recorder.pid"
 
-cleanup() {
-    if [ -n "$RECORDING_PID" ] && kill -0 "$RECORDING_PID" 2>/dev/null; then
-        kill -INT "$RECORDING_PID" 2>/dev/null || true
-        wait "$RECORDING_PID" 2>/dev/null || true
-    fi
-}
-
-trap cleanup EXIT INT TERM
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
 
 if ! command -v wf-recorder &>/dev/null; then
-    echo "wf-recorder not found"
+    echo "wf-recorder not found" >&2
     exit 1
 fi
 
 if ! command -v slurp &>/dev/null; then
-    echo "slurp not found"
+    echo "slurp not found" >&2
     exit 1
 fi
 
 mkdir -p "$VIDEO_DIR"
 
-if pgrep -x "wf-recorder" >/dev/null; then
-    pkill -INT wf-recorder
-    notify-send "Recording" "Recording finished and saved to $VIDEO_DIR" -i video-display 2>/dev/null || true
-else
-    notify-send "Recording" "Select area to record..." -i video-camera-symbolic 2>/dev/null || true
+stop_recording() {
+    if [[ -f "$PID_FILE" ]]; then
+        local pid
+        pid=$(cat "$PID_FILE")
+        if kill -0 "$pid" 2>/dev/null; then
+            kill -INT "$pid" 2>/dev/null
+            wait "$pid" 2>/dev/null || true
+        fi
+        rm -f "$PID_FILE"
+    elif pgrep -x "wf-recorder" >/dev/null; then
+        pkill -INT wf-recorder
+    fi
+    notify-send "Recording" "Recording finished and saved to $VIDEO_DIR" 2>/dev/null || true
+}
 
-    GEOM=$(slurp 2>/dev/null) || {
-        notify-send "Recording" "Selection cancelled" -i dialog-warning 2>/dev/null || true
+start_recording() {
+    local filename="$VIDEO_DIR/ScreenRecord_$(date +%Y%m%d_%H%M%S).mp4"
+
+    notify-send "Recording" "Select area to record..." 2>/dev/null || true
+
+    local geom
+    geom=$(slurp 2>/dev/null) || {
+        notify-send "Recording" "Selection cancelled" 2>/dev/null || true
         exit 0
     }
 
-    if [ -n "$GEOM" ]; then
-        wf-recorder -g "$GEOM" -p yuv420p -f "$FILENAME" &
-        RECORDING_PID=$!
-        wait "$RECORDING_PID" || true
+    if [[ -n "$geom" ]]; then
+        wf-recorder -g "$geom" -p yuv420p -f "$filename" &
+        echo $! > "$PID_FILE"
+        notify-send "Recording" "Recording started ($geom)" 2>/dev/null || true
     else
-        notify-send "Recording" "No area selected" -i dialog-warning 2>/dev/null || true
+        notify-send "Recording" "No area selected" 2>/dev/null || true
     fi
+}
+
+if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    stop_recording
+else
+    rm -f "$PID_FILE"
+    start_recording
 fi

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-PROFILE=$("$HOME/.local/bin/zenith-power-profile" get 2>/dev/null)
+PROFILE=$("$HOME/.local/bin/zenith" power profile get 2>/dev/null || true)
 
 case "$PROFILE" in
 	balanced) echo "" ;;

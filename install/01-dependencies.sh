@@ -34,29 +34,15 @@ if ! has_cmd yay; then
 fi
 
 info "Installing pacman packages..."
-FAILED=0
-for pkg in "${PACMAN_PACKAGES[@]}"; do
-    if ! sudo pacman -S --noconfirm --needed "$pkg" &>/dev/null; then
-        warn "Failed to install: $pkg"
-        FAILED=$((FAILED + 1))
-    fi
-done
-if [ "$FAILED" -gt 0 ]; then
-    warn "$FAILED pacman package(s) failed to install"
+if ! sudo pacman -S --noconfirm --needed "${PACMAN_PACKAGES[@]}" &>/dev/null; then
+    warn "Some pacman packages failed to install"
 else
     log "All pacman packages installed"
 fi
 
 info "Installing AUR packages..."
-FAILED=0
-for pkg in "${AUR_PACKAGES[@]}"; do
-    if ! yay -S --noconfirm --needed "$pkg" &>/dev/null; then
-        warn "Failed to install: $pkg"
-        FAILED=$((FAILED + 1))
-    fi
-done
-if [ "$FAILED" -gt 0 ]; then
-    warn "$FAILED AUR package(s) failed to install"
+if ! yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" &>/dev/null; then
+    warn "Some AUR packages failed to install"
 else
     log "All AUR packages installed"
 fi

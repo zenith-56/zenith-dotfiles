@@ -7,47 +7,47 @@
                 consistent and accessible TUI experience.
 # =============================================================================
 
-theme[main_bg]="#11140e"
+theme[main_bg]="#0e1416"
 
 # Main text color
-theme[main_fg]="#e1e4d9"
+theme[main_fg]="#dee3e5"
 
 # Title color for boxes
-theme[title]="#acd28f"
+theme[title]="#83d2e4"
 
 # Highlight color for keyboard shortcuts
-theme[hi_fg]="#bdcbaf"
+theme[hi_fg]="#b2cbd1"
 
 # Background color of selected item in processes box
-theme[selected_bg]="#304f1a"
+theme[selected_bg]="#004e5a"
 
 # Foreground color of selected item in processes box
-theme[selected_fg]="#c7eea9"
+theme[selected_fg]="#a3eeff"
 
 # Color of inactive/disabled text
-theme[inactive_fg]="#c4c8bb"
+theme[inactive_fg]="#bfc8cb"
 
 # Color of text handles on scrollbars
-theme[proc_misc]="#a0cfce"
+theme[proc_misc]="#bcc5eb"
 
 # CPU graph colors (Gradient: Low -> Mid -> High)
-theme[cpu_low]="#acd28f"
-theme[cpu_mid]="#bdcbaf"
+theme[cpu_low]="#83d2e4"
+theme[cpu_mid]="#b2cbd1"
 theme[cpu_high]="#ffb4ab"
 
 # Mem box outline color and arrows
-theme[mem_box]="#acd28f"
+theme[mem_box]="#83d2e4"
 
 # Net box outline color and arrows
-theme[net_box]="#a0cfce"
+theme[net_box]="#bcc5eb"
 
 # Processes box outline color
-theme[proc_box]="#bdcbaf"
+theme[proc_box]="#b2cbd1"
 
 # Box divider line and small boxes line color
-theme[div_line]="#8e9286"
+theme[div_line]="#899295"
 
 # Temperature graph colors
-theme[temp_low]="#acd28f"
-theme[temp_mid]="#bdcbaf"
+theme[temp_low]="#83d2e4"
+theme[temp_mid]="#b2cbd1"
 theme[temp_high]="#ffb4ab"

@@ -6,6 +6,8 @@
 #               Matugen for automated color palette synchronization.
 # =============================================================================
 
+set -uo pipefail
+
 source "$(dirname "$0")/common.sh"
 
 WALL_DIR="$HOME/Pictures/Wallpapers"
@@ -18,9 +20,9 @@ run_matugen() {
     local wallpaper="$1"
     local mode="$2"
     local output
-    
-    output=$(matugen image "$wallpaper" --prefer value -m "$mode" 2>&1) && return 0
-    
+
+    output=$(matugen image "$wallpaper" --source-color-index 0 -m "$mode" 2>&1) && return 0
+
     echo "Matugen errors: $output"
     return 1
 }

@@ -5,23 +5,23 @@
 
 set -euo pipefail
 
-if ! command -v wpctl &>/dev/null; then
-    echo "wpctl not found"
-    exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+zen_check_deps wpctl
 
 wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle || {
-    echo "Failed to toggle mic"
+    echo "Failed to toggle mic" >&2
     exit 1
 }
 
 muted=$(wpctl get-mute @DEFAULT_AUDIO_SOURCE@ 2>/dev/null) || {
-    echo "Failed to get mic status"
+    echo "Failed to get mic status" >&2
     exit 1
 }
 
 if [[ "$muted" == *"Muted"* ]]; then
-    notify-send "Mic" "Muted" -t 1000 2>/dev/null || true
+    zen_notify "Mic" "Muted"
 else
-    notify-send "Mic" "Unmuted" -t 1000 2>/dev/null || true
+    zen_notify "Mic" "Unmuted"
 fi

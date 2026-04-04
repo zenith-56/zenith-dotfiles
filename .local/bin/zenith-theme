@@ -106,7 +106,7 @@ theme_sync() {
     }
 
     pkill -SIGUSR2 waybar 2>/dev/null || true
-    echo "Colores regenerados"
+    echo "Colors regenerated"
 }
 
 show_help() {

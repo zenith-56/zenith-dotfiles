@@ -22,7 +22,7 @@ zenith-dotfiles/
 │   └── 08-display-manager.sh
 ├── update.sh              # Config updater
 ├── uninstall.sh           # Removal script
-├── version                # Version file (e.g., 0.2.0)
+├── version                # Version file (e.g., 0.4.1)
 ├── .local/
 │   └── bin/               # Zenith bin scripts
 │   └── share/
@@ -37,12 +37,12 @@ zenith-dotfiles/
 │   ├── kitty/
 │   ├── matugen/           # Config + templates
 │   │   └── templates/     # Matugen templates
+│   ├── mpv/               # Media player config
 │   ├── niri/
 │   ├── rofi/              # + scripts (launcher, wall-selector, etc.)
 │   ├── swayosd/           # OSD config + template
 │   ├── waybar/            # + scripts (braille-snake, etc.)
-│   ├── yazi/
-│   └── zed/
+│   └── yazi/
 ├── .github/
 │   └── workflows/         # GitHub Actions (test-install, lint, validate, etc.)
 └── images/                # Screenshots
@@ -69,7 +69,7 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Kitty** | `zenith restart kitty` |
 | **Web Apps** | `zenith webapp {install,uninstall,list}` |
 | **Packages** | `zenith pkg {install,remove,list,missing}` with `--aur`, `--flatpak` flags |
-| **Utils** | `zenith-done` (deprecated, use `zen_done` from `zenith-lib.sh`) |
+| **Utils** | `zen_done` from `zenith-lib.sh` |
 
 ## Rofi Scripts
 
@@ -103,7 +103,6 @@ Located in `.config/matugen/templates/`:
 | `dunstrc` | Dunst |
 | `hyprlock.conf` | Hyprlock |
 | `kitty.conf` | Kitty |
-| `zed-theme.json` | Zed |
 | `btop.theme` | Btop |
 | `swayosd.css` | SwayOSD |
 

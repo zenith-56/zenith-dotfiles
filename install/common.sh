@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # =============================================================================
 # Zenith-Dotfiles Installer - Common Functions & Variables
 # =============================================================================
@@ -151,7 +150,7 @@ ESSENTIAL_PACKAGES=(
 
 # ── Config Lists ──────────────────────────────────────────────────────────────
 CONFIGS=(
-    btop dunst fastfetch fish hypr kitty matugen niri rofi swayosd waybar yazi zed
+    btop dunst fastfetch fish hypr kitty matugen mpv niri rofi swayosd waybar yazi
 )
 
 # ── Dark/Light Mode Scripts ───────────────────────────────────────────────

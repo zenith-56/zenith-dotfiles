@@ -82,11 +82,11 @@ pkg_install_flatpak() {
 
 # ── Remove ────────────────────────────────────────────────────────────────────
 pkg_remove_pacman() {
-    zen_check_deps yay fzf
+    zen_check_deps fzf
     local pkg_names
-    pkg_names=$(yay -Qqe | fzf \
+    pkg_names=$(pacman -Qq | fzf \
         --style minimal --multi \
-        --preview 'yay -Qi {1}' \
+        --preview 'pacman -Qi {1}' \
         --preview-label 'Package Info' \
         --preview-label-pos='bottom' \
         --preview-window 'right:65%:wrap' \
@@ -96,7 +96,7 @@ pkg_remove_pacman() {
         --color 'pointer:red,marker:red') || exit 0
 
     if [[ -n "$pkg_names" ]]; then
-        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty yay -Rns --noconfirm
+        echo "$pkg_names" | tr '\n' ' ' | xargs --no-run-if-empty sudo pacman -Rns --noconfirm
         zen_notify "Packages Removed" "$pkg_names"
         zen_done
     fi
@@ -265,12 +265,18 @@ pkg_missing() {
         echo "Usage: zenith pkg missing <pkg1> <pkg2> ..." >&2
         exit 1
     fi
+    local missing=()
     for pkg in "$@"; do
         if ! pacman -Q "$pkg" &>/dev/null; then
-            exit 0
+            missing+=("$pkg")
         fi
     done
-    exit 1
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        exit 0
+    else
+        echo "Missing packages: ${missing[*]}" >&2
+        exit 1
+    fi
 }
 
 # ── Help ──────────────────────────────────────────────────────────────────────

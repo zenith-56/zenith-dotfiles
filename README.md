@@ -18,7 +18,7 @@ Arch Linux desktop with **Niri** (scrollable-tiling compositor), **Material You*
 | **Shell** | Fish |
 | **Terminal** | Kitty (GPU-accelerated) |
 | **Notifications** | Dunst |
-| **Editor** | Zed |
+| **Editor** | Zed (config not included) |
 | **File Manager** | Yazi (Kitty image preview) |
 | **System Monitor** | Btop |
 | **Display** | Fastfetch |
@@ -112,7 +112,7 @@ All scripts under `~/.local/bin/` use subcommands for a unified interface.
 ## Matugen Integration
 
 Templates in `.config/matugen/templates/` generate colors for:
-- Waybar, Rofi, Dunst, Hyprlock, Kitty, Zed, Btop, SwayOSD
+- Waybar, Rofi, Dunst, Hyprlock, Kitty, Btop, SwayOSD
 
 Wallpaper changes (`Mod+Shift+W`) auto-regenerate all themes.
 

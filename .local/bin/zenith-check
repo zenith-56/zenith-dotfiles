@@ -125,11 +125,12 @@ check_bin_scripts() {
         done
 
         local expected_scripts=(
-            "zenith-theme-get" "zenith-theme-set" "zenith-theme-toggle"
-            "zenith-screenshot" "zenith-screenshot-region"
-            "zenith-lock" "zenith-logout" "zenith-reboot" "zenith-power-off"
-            "zenith-restart-all" "zenith-restart-waybar" "zenith-restart-dunst"
-            "zenith-reload-kitty"
+            "zenith" "zenith-lib.sh"
+            "zenith-theme" "zenith-pkg" "zenith-restart" "zenith-power"
+            "zenith-screenshot" "zenith-screen-recorder" "zenith-brightness"
+            "zenith-volume" "zenith-battery" "zenith-network" "zenith-osd"
+            "zenith-mic" "zenith-music-show" "zenith-kb-layout"
+            "zenith-firewall" "zenith-dns" "zenith-check" "zenith-webapp"
         )
 
         for script in "${expected_scripts[@]}"; do

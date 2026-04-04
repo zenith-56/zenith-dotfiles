@@ -1,46 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Zenith-Dotfiles - Power Profile Manager
+# Zenith-Dotfiles - Power Profile Manager (DEPRECATED)
+# =============================================================================
+# This script is deprecated. Use 'zenith power profile' instead.
+# Kept for backward compatibility with waybar modules.
 # =============================================================================
 
 set -euo pipefail
 
-if ! command -v powerprofilesctl &>/dev/null; then
-    echo "powerprofilesctl not found"
-    exit 1
-fi
-
-get_profile() {
-    powerprofilesctl get 2>/dev/null || powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
-}
-
-case "${1:-}" in
-    list)
-        powerprofilesctl list
-        ;;
-    get)
-        get_profile
-        ;;
-    balanced)
-        powerprofilesctl set balanced
-        ;;
-    power-saver)
-        powerprofilesctl set power-saver
-        ;;
-    performance)
-        powerprofilesctl set performance
-        ;;
-    cycle)
-        PROFILE=$(get_profile)
-        case "$PROFILE" in
-            balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" 2>/dev/null || true ;;
-            power-saver) powerprofilesctl set performance; notify-send "Power: Performance" 2>/dev/null || true ;;
-            performance) powerprofilesctl set balanced; notify-send "Power: Balanced" 2>/dev/null || true ;;
-            *)           powerprofilesctl set balanced ;;
-        esac
-        ;;
-    *)
-        echo "Usage: $0 {list|get|balanced|power-saver|performance|cycle}"
-        exit 1
-        ;;
-esac
+exec "$(dirname "${BASH_SOURCE[0]}")/zenith" power profile "$@"

@@ -163,6 +163,7 @@ fi
 
 # ── Step 4: Deploy selected configs ──────────────────────────────────────────
 echo ""
+UPDATED=0
 if [ "$DRY_RUN" = true ]; then
     info "Would update the following configs:"
     for cfg in $SELECTED; do

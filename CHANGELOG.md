@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### 0.4.1 - Bug Fixes & Hardening
+
+#### Fixed
+- `zenith-check` now validates unified bin scripts instead of deprecated ones
+- `zenith pkg missing` now returns correct exit codes (0 = all found, 1 = missing)
+- `zenith-kb-layout` now uses `niri msg action reload-config` instead of `hyprctl`
+- `zenith-screen-recorder` toggle now works correctly with PID file instead of blocking `wait`
+- `zenith-power logout` now uses `niri msg action quit` instead of `hyprctl dispatch exit`
+- Removed trailing commas from `waybar/config.jsonc` (now valid JSON for `jq`)
+- Fixed `$UPDATED` variable being empty in `update.sh` dry-run mode
+- Removed hardcoded `intel_backlight` from waybar modules (auto-detects device)
+- `zenith-battery` now auto-detects battery device (`BAT*`) instead of hardcoding `BAT0`
+- `zenith-network` now falls back to `nmcli`, `iwgetid`, and `iwdctl` when `impalactl` is unavailable
+- `zenith-pkg remove` now uses `pacman -Rns` instead of `yay -Rns` for pacman packages
+- Unified Spanish strings to English (`zenith-theme sync`, waybar battery tooltip)
+
+#### Changed
+- Pacman and AUR packages now install in a single batch call instead of one-by-one
+- `zenith-power-profile` is now a thin wrapper that delegates to `zenith power profile`
+- Waybar `power-profile.sh` and modules.json now use `zenith power profile` instead of standalone script
+- All bin scripts now source `zenith-lib.sh` for shared functions (`zen_notify`, `zen_done`, `zen_check_deps`)
+- `zenith-firewall` now uses `zen_notify` instead of raw `notify-send -i`
+- `install/03-deploy-configs.sh` and `install/04-deploy-bin.sh` now use `set -euo pipefail`
+- Removed shebangs from sourced files (`common.sh`, `03-deploy-configs.sh`, `04-deploy-bin.sh`)
+- Cleaned hardcoded user paths from `fish_variables`
+- Added `.gitignore` for generated configs and editor files
+- Removed `zed` from CONFIGS array (no config directory exists)
+- Added `mpv` to CONFIGS array
+
 ### 0.4.0 - Bin Scripts Unification
 
 #### Added

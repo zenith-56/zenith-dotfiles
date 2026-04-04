@@ -29,8 +29,8 @@ power_lock() {
 }
 
 power_logout() {
-    zen_check_deps hyprctl
-    exec hyprctl dispatch exit
+    zen_check_deps niri
+    exec niri msg action quit
 }
 
 power_profile() {

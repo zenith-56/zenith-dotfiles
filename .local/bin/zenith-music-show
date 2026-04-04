@@ -3,32 +3,37 @@
 # Zenith-Dotfiles - Music Show (for hyprlock)
 # =============================================================================
 
-if ! command -v playerctl >/dev/null 2>&1; then
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+if ! command -v playerctl &>/dev/null; then
     exit 0
 fi
 
-status=$(playerctl status 2>/dev/null)
+status=$(playerctl status 2>/dev/null || true)
 
-if [ -z "$status" ]; then
+if [[ -z "$status" ]]; then
     exit 0
 fi
 
-artist=$(playerctl metadata artist 2>/dev/null || echo "")
-title=$(playerctl metadata title 2>/dev/null || echo "")
+artist=$(playerctl metadata artist 2>/dev/null || true)
+title=$(playerctl metadata title 2>/dev/null || true)
 
-if [ -z "$artist" ] && [ -z "$title" ]; then
+if [[ -z "$artist" && -z "$title" ]]; then
     exit 0
 fi
 
-if [ "$status" = "Playing" ]; then
+if [[ "$status" = "Playing" ]]; then
     icon="▶"
 else
     icon="⏸"
 fi
 
-if [ -n "$artist" ] && [ -n "$title" ]; then
+if [[ -n "$artist" && -n "$title" ]]; then
     echo "$icon $title - $artist"
-elif [ -n "$title" ]; then
+elif [[ -n "$title" ]]; then
     echo "$icon $title"
 else
     echo "$icon $artist"

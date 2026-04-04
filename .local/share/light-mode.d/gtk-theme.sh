@@ -10,7 +10,7 @@ gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita' 2>/dev/null || tru
 
 WALL=$(readlink -f "$HOME/.config/rofi/images/current_wallpaper.png" 2>/dev/null)
 if [[ -n "$WALL" && -f "$WALL" ]]; then
-    matugen image "$WALL" --prefer value -m light
+    matugen image "$WALL" --source-color-index 0 -m light
 fi
 
 "$BIN/zenith-theme" sync

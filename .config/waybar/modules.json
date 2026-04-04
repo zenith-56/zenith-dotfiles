@@ -159,11 +159,9 @@
   "backlight/slider": {
     "min": 0,
     "max": 100,
-    "orientation": "vertical",
-    "device": "intel_backlight"
+    "orientation": "vertical"
   },
   "backlight": {
-    "device": "intel_backlight",
     "format": "{icon}",
     "format-icons": ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞", "󰃟", "󰃠"],
     "reverse-scrolling": true,
@@ -188,7 +186,7 @@
     "tooltip": true,
     "tooltip-format": "{timeTo} , Now: {capacity}%",
     "tooltip-format-charging": "{timeTo}, Now: {capacity}%",
-    "on-click": "notify-send 'ESTADO ENERGÍA' \"Nivel: $(cat /sys/class/power_supply/BAT0/capacity)% \nEstado: $(cat /sys/class/power_supply/BAT0/status)\" -u low"
+    "on-click": "notify-send 'BATTERY STATUS' \"Level: $(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1)%\nStatus: $(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1)\" -u low"
   },
   "custom/powermenu": {
     "format": "<span size='13pt'>󰐥</span>",
@@ -201,6 +199,6 @@
     "interval": 5,
     "format": "<span size='14pt'>{}</span>",
     "tooltip": false,
-    "on-click": "zenith-power-profile cycle"
+    "on-click": "zenith power profile cycle"
   }
 }

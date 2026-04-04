@@ -13,7 +13,7 @@
     "custom/cachy",
     "clock",
     "custom/cpu_snake",
-    "custom/power_profile",
+    "custom/power_profile"
   ],
   "modules-center": ["niri/workspaces", "privacy"],
   "modules-right": [
@@ -24,6 +24,6 @@
     "group/audio",
     "group/brightness",
     "battery",
-    "custom/powermenu",
-  ],
+    "custom/powermenu"
+  ]
 }

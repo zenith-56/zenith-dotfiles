@@ -12,20 +12,63 @@ network_status() {
     if command -v impalactl &>/dev/null; then
         if impalactl gateway status 2>/dev/null | grep -qi "connected"; then
             echo "connected"
-        else
-            echo "disconnected"
+            return
         fi
-    else
-        echo "disconnected"
     fi
+
+    if command -v nmcli &>/dev/null; then
+        if nmcli -t -f GENERAL.STATE dev show 2>/dev/null | grep -qi "connected"; then
+            echo "connected"
+            return
+        fi
+    fi
+
+    if command -v iwgetid &>/dev/null; then
+        if iwgetid -r 2>/dev/null | grep -q .; then
+            echo "connected"
+            return
+        fi
+    fi
+
+    if command -v iwdctl &>/dev/null; then
+        if iwdctl station list 2>/dev/null | grep -qi "connected"; then
+            echo "connected"
+            return
+        fi
+    fi
+
+    echo "disconnected"
 }
 
 network_ssid() {
     if command -v impalactl &>/dev/null; then
-        impalactl gateway status 2>/dev/null | grep "SSID" | awk '{print $2}' || echo ""
-    else
-        echo ""
+        local ssid
+        ssid=$(impalactl gateway status 2>/dev/null | grep "SSID" | awk '{print $2}' || true)
+        if [[ -n "$ssid" ]]; then
+            echo "$ssid"
+            return
+        fi
     fi
+
+    if command -v iwgetid &>/dev/null; then
+        local ssid
+        ssid=$(iwgetid -r 2>/dev/null || true)
+        if [[ -n "$ssid" ]]; then
+            echo "$ssid"
+            return
+        fi
+    fi
+
+    if command -v nmcli &>/dev/null; then
+        local ssid
+        ssid=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep "^yes" | cut -d: -f2 || true)
+        if [[ -n "$ssid" ]]; then
+            echo "$ssid"
+            return
+        fi
+    fi
+
+    echo ""
 }
 
 show_help() {

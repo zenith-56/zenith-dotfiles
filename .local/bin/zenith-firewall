@@ -7,10 +7,10 @@
 
 set -euo pipefail
 
-if ! command -v ufw &>/dev/null; then
-    echo "ufw not found. Install it first."
-    exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+zen_check_deps ufw
 
 get_status() {
     if [ -f /etc/ufw/ufw.conf ]; then
@@ -26,20 +26,20 @@ case "${1:-status}" in
         ;;
     enable)
         sudo ufw enable
-        notify-send "Firewall" "Firewall enabled" -i network-firewall 2>/dev/null || true
+        zen_notify "Firewall" "Firewall enabled" "network-firewall"
         ;;
     disable)
         sudo ufw disable
-        notify-send "Firewall" "Firewall disabled" -i network-firewall 2>/dev/null || true
+        zen_notify "Firewall" "Firewall disabled" "network-firewall"
         ;;
     toggle)
         current=$(get_status)
         if [ "$current" = "active" ]; then
             sudo ufw disable
-            notify-send "Firewall" "Firewall disabled" -i network-firewall 2>/dev/null || true
+            zen_notify "Firewall" "Firewall disabled" "network-firewall"
         else
             sudo ufw enable
-            notify-send "Firewall" "Firewall enabled" -i network-firewall 2>/dev/null || true
+            zen_notify "Firewall" "Firewall enabled" "network-firewall"
         fi
         ;;
     rule)
@@ -48,7 +48,7 @@ case "${1:-status}" in
             exit 1
         fi
         sudo ufw "$2"
-        notify-send "Firewall" "Rule applied: $2" -i network-firewall 2>/dev/null || true
+        zen_notify "Firewall" "Rule applied: $2" "network-firewall"
         ;;
     *)
         echo "Usage: $0 {status|enable|disable|toggle|rule <rule>}"

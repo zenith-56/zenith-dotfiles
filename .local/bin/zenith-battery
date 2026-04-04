@@ -9,10 +9,28 @@
 # =============================================================================
 set -euo pipefail
 
-BAT0="/sys/class/power_supply/BAT0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+BAT_DIR="/sys/class/power_supply"
+BAT0=""
+
+detect_battery() {
+    if [[ -n "$BAT0" ]]; then
+        return
+    fi
+    for bat in "$BAT_DIR"/BAT*; do
+        if [[ -d "$bat" ]]; then
+            BAT0="$bat"
+            return
+        fi
+    done
+    BAT0=""
+}
 
 battery_capacity() {
-    if [[ -f "$BAT0/capacity" ]]; then
+    detect_battery
+    if [[ -n "$BAT0" && -f "$BAT0/capacity" ]]; then
         cat "$BAT0/capacity"
     else
         echo "0"
@@ -20,7 +38,8 @@ battery_capacity() {
 }
 
 battery_status() {
-    if [[ -f "$BAT0/status" ]]; then
+    detect_battery
+    if [[ -n "$BAT0" && -f "$BAT0/status" ]]; then
         cat "$BAT0/status"
     else
         echo "Unknown"
