@@ -9,20 +9,6 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-run_matugen() {
-    local wallpaper="$1"
-    local mode="$2"
-
-    matugen image "$wallpaper" --prefer value -m "$mode" && return 0
-    matugen image "$wallpaper" --prefer most -m "$mode" && return 0
-    matugen image "$wallpaper" --prefer vibrant -m "$mode" && return 0
-    return 1
-}
-
-restart_services() {
-    "$ZENITH_BIN/zenith-restart" all
-}
-
 while true; do
     current=$("$ZENITH_BIN/zenith-theme" get)
 
@@ -45,15 +31,6 @@ while true; do
     esac
 
     "$ZENITH_BIN/zenith-theme" set "$mode"
-
-    wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
-    [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
-    if [ -f "$wallpaper_path" ]; then
-        run_matugen "$wallpaper_path" "$mode"
-    fi
-
-    "$ZENITH_BIN/zenith-theme" sync
-    restart_services
 
     if [[ "$mode" == "dark" ]]; then
         notify-send "Theme Changed" "Switched to Dark Mode" --icon="preferences-desktop-theme"

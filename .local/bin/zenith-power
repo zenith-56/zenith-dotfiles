@@ -11,6 +11,8 @@
 # =============================================================================
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/zenith-lib.sh"
+
 power_off() {
     zen_check_deps systemctl
     exec systemctl poweroff
@@ -35,7 +37,7 @@ power_profile() {
     zen_check_deps powerprofilesctl
 
     get_profile() {
-        powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
+        powerprofilesctl get 2>/dev/null || powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
     }
 
     case "${1:-}" in
@@ -58,9 +60,9 @@ power_profile() {
             local profile
             profile=$(get_profile)
             case "$profile" in
-                balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" ;;
-                power-saver) powerprofilesctl set performance; notify-send "Power: Performance" ;;
-                performance) powerprofilesctl set balanced; notify-send "Power: Balanced" ;;
+                balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" 2>/dev/null || true ;;
+                power-saver) powerprofilesctl set performance; notify-send "Power: Performance" 2>/dev/null || true ;;
+                performance) powerprofilesctl set balanced; notify-send "Power: Balanced" 2>/dev/null || true ;;
                 *)           powerprofilesctl set balanced ;;
             esac
             ;;

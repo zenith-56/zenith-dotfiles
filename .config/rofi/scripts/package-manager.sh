@@ -38,16 +38,16 @@ while true; do
             choice=$(install_menu | rofi_run "theme.rasi" -placeholder "Install...") || { __menu_state="main"; continue; }
             case "$choice" in
                 *AUR*)
-                    kitty --class "zenith-installer" -e fish -c "zenith pkg install --aur;"
+                    kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install --aur;"
                     ;;
                 *Flatpak*)
-                    kitty --class "zenith-installer" -e fish -c "zenith pkg install --flatpak;"
+                    kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install --flatpak;"
                     ;;
                 *Web\ App)
-                    kitty --class "zenith-installer" -e fish -c "zenith webapp install;"
+                    kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-webapp install;"
                     ;;
                 *Packages)
-                    kitty --class "zenith-installer" -e fish -c "zenith pkg install;"
+                    kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install;"
                     ;;
                 *) __menu_state="main" ;;
             esac
@@ -56,13 +56,13 @@ while true; do
             choice=$(uninstall_menu | rofi_run "theme.rasi" -placeholder "Uninstall...") || { __menu_state="main"; continue; }
             case "$choice" in
                 *Flatpak*)
-                    kitty --class "zenith-uninstaller" -e fish -c "zenith pkg remove --flatpak" &
+                    kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-pkg remove --flatpak" &
                     ;;
                 *Web\ App)
-                    kitty --class "zenith-uninstaller" -e fish -c "zenith webapp uninstall" &
+                    kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-webapp uninstall" &
                     ;;
                 *Packages)
-                    kitty --class "zenith-uninstaller" -e fish -c "zenith pkg remove" &
+                    kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-pkg remove" &
                     ;;
                 *) __menu_state="main" ;;
             esac

@@ -35,7 +35,46 @@ theme_set() {
         exit 1
     fi
     echo "$mode" > "$DARKMAN_CFG"
-    darkman set "$mode" 2>/dev/null || true
+
+    # Apply GTK theme
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-${mode}" 2>/dev/null || true
+    if [[ "$mode" == "dark" ]]; then
+        gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark' 2>/dev/null || true
+    else
+        gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita' 2>/dev/null || true
+    fi
+
+    # Run matugen with wallpaper
+    local wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
+    [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
+    if [[ -f "$wallpaper_path" ]]; then
+        matugen image "$wallpaper_path" --prefer value -m "$mode" 2>/dev/null || true
+    fi
+
+    # Regenerate colors
+    local waybar_dir="$HOME/.config/waybar"
+    if command -v matugen &>/dev/null && [[ -f "$waybar_dir/colors.css" ]]; then
+        matugen theme "$waybar_dir/colors.css" 2>/dev/null || true
+    fi
+
+    # Reload waybar
+    pkill -SIGUSR2 waybar 2>/dev/null || true
+
+    # Reload kitty
+    local pids
+    pids=$(pidof kitty 2>/dev/null) || true
+    if [[ -n "$pids" ]]; then
+        for pid in $pids; do
+            kill -SIGUSR1 "$pid" 2>/dev/null || true
+        done
+    fi
+
+    # Reload dunst
+    pkill dunst 2>/dev/null || true
+    sleep 0.2
+    dunst &>/dev/null &
+
+    echo "Theme set to $mode"
 }
 
 theme_toggle() {

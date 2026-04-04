@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Main Dispatcher
+# =============================================================================
+# Usage:
+#   zenith theme {get,set,toggle,sync}
+#   zenith power {off,reboot,lock,logout}
+#   zenith power profile {list,get,balanced,power-saver,performance,cycle}
+#   zenith pkg {install,remove,list,missing}
+#   zenith restart {waybar,dunst,swayosd,kitty,all}
+#   zenith osd {volume,brightness}
+#   zenith screenshot {full,region}
+#   zenith webapp {install,uninstall,list}
+#   zenith music-show
+#   zenith mic
+#   zenith volume {get,set}
+#   zenith brightness {get,set}
+#   zenith battery {capacity,status,info}
+#   zenith network {status,ssid}
+#   zenith kb-layout
+# =============================================================================
+set -euo pipefail
+
+ZENITH_BIN="$(dirname "${BASH_SOURCE[0]}")"
+
+show_help() {
+    cat << EOF
+Zenith Dotfiles Manager
+
+USAGE:
+    zenith <command> [subcommand] [args]
+
+COMMANDS:
+    theme           Theme management (dark/light)
+    power           Power management (off, reboot, lock, logout)
+    pkg             Package management (install, remove, list)
+    restart         Restart services (waybar, dunst, kitty, all)
+    osd             On-screen display (volume, brightness)
+    screenshot      Take screenshots (full, region)
+    webapp          Web app management (install, uninstall, list)
+    music-show      Show current music track
+    mic             Toggle microphone
+    volume          Volume control (get, set)
+    brightness      Brightness control (get, set)
+    battery         Battery info (capacity, status, info)
+    network         Network info (status, ssid)
+    kb-layout       Keyboard layout toggle
+
+EXAMPLES:
+    zenith theme set dark
+    zenith pkg install --aur
+    zenith restart all
+    zenith screenshot region
+
+EOF
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        theme)          exec "$ZENITH_BIN/zenith-theme" "$@" ;;
+        power)          exec "$ZENITH_BIN/zenith-power" "$@" ;;
+        pkg)            exec "$ZENITH_BIN/zenith-pkg" "$@" ;;
+        restart)        exec "$ZENITH_BIN/zenith-restart" "$@" ;;
+        osd)            exec "$ZENITH_BIN/zenith-osd" "$@" ;;
+        screenshot)     exec "$ZENITH_BIN/zenith-screenshot" "$@" ;;
+        webapp)         exec "$ZENITH_BIN/zenith-webapp" "$@" ;;
+        music-show)     exec "$ZENITH_BIN/zenith-music-show" "$@" ;;
+        mic)            exec "$ZENITH_BIN/zenith-mic" "$@" ;;
+        volume)         exec "$ZENITH_BIN/zenith-volume" "$@" ;;
+        brightness)     exec "$ZENITH_BIN/zenith-brightness" "$@" ;;
+        battery)        exec "$ZENITH_BIN/zenith-battery" "$@" ;;
+        network)        exec "$ZENITH_BIN/zenith-network" "$@" ;;
+        kb-layout)      exec "$ZENITH_BIN/zenith-kb-layout" "$@" ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $cmd" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

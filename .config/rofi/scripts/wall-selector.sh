@@ -69,5 +69,5 @@ if [[ -n "$selection" ]]; then
 
     "$ZENITH_BIN/zenith-restart" all
 
-    notify-send "Wallpaper" "Wallpaper & Colors applied."
+    notify-send "Wallpaper" "Wallpaper & Colors applied." -i "$FULL_PATH"
 fi

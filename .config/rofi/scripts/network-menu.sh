@@ -12,7 +12,7 @@ source "$(dirname "$0")/common.sh"
 # ── Firewall Menu ─────────────────────────────────────────────────────────────
 firewall_menu() {
     local status
-    status=$(zenith-firewall status 2>/dev/null) || status="unknown"
+    status=$("$ZENITH_BIN/zenith-firewall" status 2>/dev/null) || status="unknown"
 
     local status_icon
     if [ "$status" = "active" ]; then
@@ -33,19 +33,19 @@ firewall_menu() {
                 confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Enable firewall?") || return 1
             fi
             if [[ "$confirm" == "Yes" ]]; then
-                kitty --class "zenith-network" -e fish -c "zenith-firewall toggle; echo; read -P 'Press Enter to continue...'"
+                kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-firewall toggle; echo; read -P 'Press Enter to continue...'"
             fi
             ;;
         *Custom*)
-            kitty --class "zenith-network" -e fish -c '
-                set rule (read -P "Rule (e.g. allow 22/tcp): ")
-                if test -n "$rule"
-                    echo ""
-                    sudo ufw $rule
-                    echo ""
-                    read -P "Press Enter to continue..."
+            kitty --class "zenith-network" -e fish -c "
+                set rule (read -P \"Rule (e.g. allow 22/tcp): \")
+                if test -n \"\$rule\"
+                    echo \"\"
+                    sudo ufw \$rule
+                    echo \"\"
+                    read -P \"Press Enter to continue...\"
                 end
-            '
+            "
             ;;
         *) return 1 ;;
     esac
@@ -58,31 +58,23 @@ dns_menu() {
 
     case "$selection" in
         *Set\ DNS*)
-            kitty --class "zenith-network" -e fish -c '
-                set dns (read -P "DNS (e.g. 1.1.1.1): ")
-                if test -n "$dns"
-                    echo ""
-                    zenith-dns set $dns
-                    echo ""
-                    read -P "Press Enter to continue..."
-                end
-            '
+            kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-dns set (read -P 'DNS (e.g. 1.1.1.1): '); echo; read -P 'Press Enter to continue...'"
             ;;
         *Cloudflare*)
-            kitty --class "zenith-network" -e fish -c "zenith-dns set 1.1.1.1; echo; read -P 'Press Enter to continue...'"
+            kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-dns set 1.1.1.1; echo; read -P 'Press Enter to continue...'"
             ;;
         *Google*)
-            kitty --class "zenith-network" -e fish -c "zenith-dns set 8.8.8.8; echo; read -P 'Press Enter to continue...'"
+            kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-dns set 8.8.8.8; echo; read -P 'Press Enter to continue...'"
             ;;
         *Reset*)
             local confirm
             confirm=$(rofi_menu "theme.rasi" "Yes\nNo" "Reset DNS to default?") || return 1
             if [[ "$confirm" == "Yes" ]]; then
-                kitty --class "zenith-network" -e fish -c "zenith-dns reset; echo; read -P 'Press Enter to continue...'"
+                kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-dns reset; echo; read -P 'Press Enter to continue...'"
             fi
             ;;
         *Status*)
-            kitty --class "zenith-network" -e fish -c "zenith-dns status; echo; read -P 'Press Enter to continue...'"
+            kitty --class "zenith-network" -e fish -c "$ZENITH_BIN/zenith-dns status; echo; read -P 'Press Enter to continue...'"
             ;;
         *) return 1 ;;
     esac

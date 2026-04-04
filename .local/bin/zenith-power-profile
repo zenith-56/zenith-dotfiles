@@ -11,7 +11,7 @@ if ! command -v powerprofilesctl &>/dev/null; then
 fi
 
 get_profile() {
-    powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
+    powerprofilesctl get 2>/dev/null || powerprofilesctl list | grep -E '^\*' | awk '{print $2}' | tr -d ':'
 }
 
 case "${1:-}" in
@@ -33,9 +33,9 @@ case "${1:-}" in
     cycle)
         PROFILE=$(get_profile)
         case "$PROFILE" in
-            balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" ;;
-            power-saver) powerprofilesctl set performance; notify-send "Power: Performance" ;;
-            performance) powerprofilesctl set balanced; notify-send "Power: Balanced" ;;
+            balanced)    powerprofilesctl set power-saver; notify-send "Power: Saver" 2>/dev/null || true ;;
+            power-saver) powerprofilesctl set performance; notify-send "Power: Performance" 2>/dev/null || true ;;
+            performance) powerprofilesctl set balanced; notify-send "Power: Balanced" 2>/dev/null || true ;;
             *)           powerprofilesctl set balanced ;;
         esac
         ;;

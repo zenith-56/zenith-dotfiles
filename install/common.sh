@@ -77,6 +77,7 @@ PACMAN_PACKAGES=(
     jq
     kitty
     libsecret
+    libnotify
     libvirt
     mediainfo
     mpv
@@ -110,6 +111,7 @@ PACMAN_PACKAGES=(
     ttf-liberation
     ttf-nerd-fonts-symbols
     ttf-nerd-fonts-symbols-common
+    ufw
     unzip
     virt-manager
     virt-viewer
@@ -150,6 +152,12 @@ ESSENTIAL_PACKAGES=(
 # ── Config Lists ──────────────────────────────────────────────────────────────
 CONFIGS=(
     btop dunst fastfetch fish hypr kitty matugen niri rofi swayosd waybar yazi zed
+)
+
+# ── Dark/Light Mode Scripts ───────────────────────────────────────────────
+MODE_SCRIPTS=(
+    dark-mode.d
+    light-mode.d
 )
 
 # ── Service Lists ─────────────────────────────────────────────────────────────
