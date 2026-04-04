@@ -19,17 +19,17 @@ binds {
     Mod+Shift+E hotkey-overlay-title="Yazi Finder" { spawn-sh "kitty yazi"; }
     Mod+Shift+R hotkey-overlay-title="Screen Region Recorder" { spawn "~/.local/bin/zenith-screen-recorder"; }
 
-    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume up"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume down"; }
-    XF86AudioMute        allow-when-locked=true { spawn-sh "~/.local/bin/zenith-swayosd-volume toggle"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-osd volume up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "~/.local/bin/zenith-osd volume down"; }
+    XF86AudioMute        allow-when-locked=true { spawn-sh "~/.local/bin/zenith-osd volume toggle"; }
 
     XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
     XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
     XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
 
-    XF86MonBrightnessUp allow-when-locked=true { spawn "~/.local/bin/zenith-swayosd-brightness" "up"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "~/.local/bin/zenith-swayosd-brightness" "down"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "~/.local/bin/zenith-osd brightness up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "~/.local/bin/zenith-osd brightness down"; }
 
     XF86AudioMicMute allow-when-locked=true { spawn "~/.local/bin/zenith-mic"; }
     Mod+Shift+K { spawn "~/.local/bin/zenith-kb-layout" "toggle"; }
