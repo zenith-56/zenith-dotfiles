@@ -10,6 +10,7 @@
 # =============================================================================
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DARKMAN_CFG="$HOME/.config/darkman.cfg"
 
 theme_get() {
@@ -48,7 +49,7 @@ theme_set() {
     local wallpaper_path="$HOME/.config/rofi/images/current_wallpaper.png"
     [ -L "$wallpaper_path" ] && wallpaper_path=$(readlink -f "$wallpaper_path")
     if [[ -f "$wallpaper_path" ]]; then
-        matugen image "$wallpaper_path" --prefer value -m "$mode" 2>/dev/null || true
+        matugen image "$wallpaper_path" --source-color-index 0 -m "$mode" 2>/dev/null || true
     fi
 
     # Regenerate colors
@@ -57,22 +58,8 @@ theme_set() {
         matugen theme "$waybar_dir/colors.css" 2>/dev/null || true
     fi
 
-    # Reload waybar
-    pkill -SIGUSR2 waybar 2>/dev/null || true
-
-    # Reload kitty
-    local pids
-    pids=$(pidof kitty 2>/dev/null) || true
-    if [[ -n "$pids" ]]; then
-        for pid in $pids; do
-            kill -SIGUSR1 "$pid" 2>/dev/null || true
-        done
-    fi
-
-    # Reload dunst
-    pkill dunst 2>/dev/null || true
-    sleep 0.5
-    dunst &>/dev/null &
+    # Reload services
+    "$SCRIPT_DIR/zenith-restart" all 2>/dev/null || true
 
     echo "Theme set to $mode"
 }
@@ -105,7 +92,7 @@ theme_sync() {
         exit 1
     }
 
-    pkill -SIGUSR2 waybar 2>/dev/null || true
+    "$SCRIPT_DIR/zenith-restart" all 2>/dev/null || true
     echo "Colors regenerated"
 }
 
