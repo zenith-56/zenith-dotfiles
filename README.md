@@ -25,13 +25,29 @@ Arch Linux desktop with **Niri** (scrollable-tiling compositor), **Material You*
 
 ## Screenshots
 
-| 1-Niri | 2-Rofi | 3-Awww |
-|--------|--------|--------|
-| ![Niri](images/1-niriwm.png) | ![Rofi](images/2-rofi.png) | ![Awww](images/3-awww.png) |
+### Desktop & Menus
 
-| 4-WebApps | 5-Launcher | 6-Themes |
-|-----------|------------|----------|
-| ![Web Apps](images/4-webapp.png) | ![Launcher](images/5-applauncher.png) | ![Themes](images/6-dltheme.png) |
+| Niri WM | Rofi Menu | App Launcher |
+|---------|-----------|--------------|
+| ![Niri](images/1-niriwm.png) | ![Rofi Menu](images/2-rofimenu.png) | ![App Launcher](images/3-applauncher.png) |
+
+### Rofi Submenus
+
+| Network | Theming | Wallpaper Selector |
+|---------|---------|-------------------|
+| ![Network](images/4-networkmenu.png) | ![Theming](images/5-themingmenu.png) | ![Wallpaper Selector](images/6-wallselector.png) |
+
+### Theming & Packages
+
+| Light Mode | Package Manager | Package Lister |
+|------------|----------------|----------------|
+| ![Light Mode](images/7-lightmodesupport.png) | ![Package Manager](images/8-pkguninstaller.png) | ![Package Lister](images/9-applister.png) |
+
+### Web Apps & Animations
+
+| Web App Installer | Animations |
+|-------------------|------------|
+| ![Web Apps](images/10-webapp-support.png) | ![Animations](images/11-animations.gif) |
 
 ## Quick Install
 

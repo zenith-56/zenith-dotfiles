@@ -17,25 +17,25 @@
     padding = 15
     horizontal_padding = 15
 
-    frame_color = "#191113"
-    separator_color = "#9e8c90"
+    frame_color = "#16130b"
+    separator_color = "#979080"
 
     font = JetBrainsMono Nerd Font 10
     alignment = left
     vertical_alignment = center
 
-    format = "<span foreground='#ffb1c7' weight='bold'>%s</span>\n%b"
+    format = "<span foreground='#dfc56d' weight='bold'>%s</span>\n%b"
 
 [urgency_low]
-    background = "#191113"
-    foreground = "#efdfe1"
-    frame_color = "#191113"
+    background = "#16130b"
+    foreground = "#e9e2d4"
+    frame_color = "#16130b"
     timeout = 3
 
 [urgency_normal]
-    background = "#191113"
-    foreground = "#efdfe1"
-    frame_color = "#191113"
+    background = "#16130b"
+    foreground = "#e9e2d4"
+    frame_color = "#16130b"
     timeout = 3
 
 [urgency_critical]
