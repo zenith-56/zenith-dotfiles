@@ -26,18 +26,38 @@ kb_set() {
     niri msg action reload-config 2>/dev/null || true
 }
 
+kb_get_layouts() {
+    grep -oP 'layout "\K[a-z]+' "$NIRI_INPUT" 2>/dev/null || echo "us"
+}
+
 kb_get() {
-    grep -oP 'layout "\K[a-z]+' "$NIRI_INPUT" 2>/dev/null | head -1 || echo "us"
+    kb_get_layouts | head -1
 }
 
 kb_toggle() {
+    local layouts
+    mapfile -t layouts < <(kb_get_layouts)
     local current
     current=$(kb_get)
-    if [[ "$current" = "us" ]]; then
-        kb_set "es"
-    else
-        kb_set "us"
+
+    if (( ${#layouts[@]} < 2 )); then
+        echo "Only one layout configured ($current), cannot toggle" >&2
+        exit 1
     fi
+
+    local next=""
+    for (( i=0; i<${#layouts[@]}; i++ )); do
+        if [[ "${layouts[$i]}" == "$current" ]]; then
+            next="${layouts[$(( (i + 1) % ${#layouts[@]} ))]}"
+            break
+        fi
+    done
+
+    if [[ -z "$next" ]]; then
+        next="${layouts[0]}"
+    fi
+
+    kb_set "$next"
 }
 
 case "${1:-}" in

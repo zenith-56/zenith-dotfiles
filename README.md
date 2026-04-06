@@ -84,7 +84,7 @@ All scripts under `~/.local/bin/` use subcommands for a unified interface.
 | `zenith osd volume {up,down,toggle}` | Volume OSD |
 | `zenith osd brightness {up,down}` | Brightness OSD |
 | `zenith mic` | Toggle mic mute |
-| `zenith kb-layout` | Keyboard layout (us/es) |
+| `zenith kb-layout {us,es,toggle,get}` | Keyboard layout switcher |
 | `zenith music-show` | Current track (hyprlock) |
 | `zenith firewall` | UFW firewall manager |
 | `zenith dns` | DNS switcher |

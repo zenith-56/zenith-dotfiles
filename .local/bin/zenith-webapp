@@ -83,7 +83,7 @@ pick_browser() {
     mapfile -t choices < <(installed_appmode_browsers)
 
     if (( ${#choices[@]} == 0 )); then
-        echo -e "\e[31mNo Chromium-family browser found. App mode requires Chromium, Brave, etc.\e[0m" >&2
+        echo -e "${ZEN_RED}No Chromium-family browser found. App mode requires Chromium, Brave, etc.${ZEN_RESET}" >&2
         local use_ff
         use_ff=$(gum choose --header "No --app mode browser found. Proceed with?" \
             "firefox" "zen-browser" "librewolf" "cancel")
@@ -104,10 +104,10 @@ build_exec() {
     local browser="$1" url="$2"
     case "$browser" in
         firefox|zen-browser|librewolf|waterfox)
-            echo "$browser --new-window $url"
+            echo "$browser --new-window \"$url\""
             ;;
         *)
-            echo "$browser --app=$url"
+            echo "$browser --app=\"$url\""
             ;;
     esac
 }
@@ -130,14 +130,14 @@ resolve_icon() {
         if download_icon "$di_url" "$dest"; then
             echo "$dest"; return
         fi
-        echo -e "\e[33mDashboard icon '$icon_hint' not found, falling back to favicon.\e[0m" >&2
+        echo -e "${ZEN_YELLOW}Dashboard icon '$icon_hint' not found, falling back to favicon.${ZEN_RESET}" >&2
     fi
 
     if [[ "$icon_hint" =~ ^https?:// ]]; then
         if download_icon "$icon_hint" "$dest"; then
             echo "$dest"; return
         fi
-        echo -e "\e[33mFailed to download icon URL, falling back to favicon.\e[0m" >&2
+        echo -e "${ZEN_YELLOW}Failed to download icon URL, falling back to favicon.${ZEN_RESET}" >&2
     fi
 
     local favicon_url="$FAVICON_BASE=${app_url}&sz=128"
@@ -145,7 +145,7 @@ resolve_icon() {
         echo "$dest"; return
     fi
 
-    echo -e "\e[33mCould not fetch icon automatically.\e[0m" >&2
+    echo -e "${ZEN_YELLOW}Could not fetch icon automatically.${ZEN_RESET}" >&2
     local manual_url
     manual_url=$(gum input \
         --prompt "Icon> " \
@@ -160,7 +160,7 @@ webapp_install() {
 
     if (( $# < 2 )); then
         interactive=true
-        echo -e "\e[32m── Zenith-Dotfiles Web App Installer ──\e[0m\n"
+        echo -e "${ZEN_GREEN}── Zenith-Dotfiles Web App Installer ──${ZEN_RESET}\n"
         app_name=$(gum input --prompt "Name> " --placeholder "Notion, Linear, Figma…")
         app_url=$(gum input --prompt "URL> " --placeholder "https://example.com")
         icon_hint=$(gum input --prompt "Icon> " --placeholder "dashboardicons name, URL, or leave empty for auto favicon")
@@ -180,11 +180,11 @@ webapp_install() {
     local safe_name="${app_name// /_}"
     safe_name="${safe_name//[^a-zA-Z0-9_.-]/}"
 
-    echo -e "\e[2mDetecting browser…\e[0m"
+    echo "Detecting browser…"
     local browser
     browser=$(pick_browser)
 
-    echo -e "\e[2mFetching icon…\e[0m"
+    echo "Fetching icon…"
     local icon_path
     icon_path=$(resolve_icon "$safe_name" "$app_url" "$icon_hint")
 
@@ -210,7 +210,7 @@ EOF
 
     if [[ "$interactive" == "true" ]]; then
         zen_notify "Web app installed" "$app_name is ready in your app launcher" "$icon_path"
-        echo -e "\n\e[32m✓ $app_name installed\e[0m"
+        echo -e "\n${ZEN_GREEN}✓ $app_name installed${ZEN_RESET}"
         echo -e "  Browser : $browser"
         echo -e "  URL     : $app_url"
         echo -e "  Icon    : $icon_path"
@@ -229,12 +229,12 @@ webapp_uninstall() {
     )
 
     if (( ${#webapps[@]} == 0 )); then
-        echo -e "\e[33mNo web apps installed.\e[0m"
+        echo -e "${ZEN_YELLOW}No web apps installed.${ZEN_RESET}"
         exit 0
     fi
 
-    echo -e "\e[32m── Zenith-Dotfiles Web App Uninstaller ──\e[0m\n"
-    echo -e "\e[2mUse Space to select, Enter to confirm\e[0m\n"
+    echo -e "${ZEN_GREEN}── Zenith-Dotfiles Web App Uninstaller ──${ZEN_RESET}\n"
+    echo -e "${ZEN_YELLOW}Use Space to select, Enter to confirm${ZEN_RESET}\n"
 
     local selected=()
     mapfile -t selected < <(
@@ -242,12 +242,12 @@ webapp_uninstall() {
     )
 
     if (( ${#selected[@]} == 0 )); then
-        echo -e "\e[33mNo apps selected.\e[0m"
+        echo -e "${ZEN_YELLOW}No apps selected.${ZEN_RESET}"
         exit 0
     fi
 
     echo ""
-    echo -e "\e[31mThe following apps will be removed:\e[0m"
+    echo -e "${ZEN_RED}The following apps will be removed:${ZEN_RESET}"
     for app in "${selected[@]}"; do
         echo "  • $app"
     done
@@ -266,18 +266,18 @@ webapp_uninstall() {
             local icon_path
             icon_path=$(grep '^Icon=' "$desktop_file" | sed 's/^Icon=//' || true)
             rm -f "$desktop_file"
-            echo -e "\e[32m✓ Removed $app\e[0m"
+            echo -e "${ZEN_GREEN}✓ Removed $app${ZEN_RESET}"
             if [[ -n "$icon_path" && "$icon_path" == "$HOME/.local/share/applications/icons/"* ]]; then
                 rm -f "$icon_path"
-                echo -e "\e[2m  Cleaned up icon\e[0m"
+                echo -e "  Cleaned up icon"
             fi
         else
-            echo -e "\e[33m Desktop file not found for $app\e[0m"
+            echo -e "${ZEN_YELLOW} Desktop file not found for $app${ZEN_RESET}"
         fi
     done
 
     update-desktop-database "$APPS_DIR" 2>/dev/null || true
-    echo -e "\n\e[32mDone. ${#selected[@]} app(s) removed.\e[0m"
+    echo -e "\n${ZEN_GREEN}Done. ${#selected[@]} app(s) removed.${ZEN_RESET}"
     zen_done
 }
 
@@ -298,11 +298,11 @@ webapp_list() {
     )
 
     if (( ${#webapps[@]} == 0 )); then
-        echo -e "\e[33mNo web apps installed.\e[0m"
+        echo -e "${ZEN_YELLOW}No web apps installed.${ZEN_RESET}"
         exit 0
     fi
 
-    echo -e "\e[32mInstalled web apps (${#webapps[@]}):${ZEN_RESET}"
+    echo -e "${ZEN_GREEN}Installed web apps (${#webapps[@]}):${ZEN_RESET}"
     echo ""
     for app in "${webapps[@]}"; do
         echo "  • $app"

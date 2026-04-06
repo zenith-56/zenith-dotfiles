@@ -6,7 +6,7 @@
 #               Matugen for automated color palette synchronization.
 # =============================================================================
 
-set -uo pipefail
+set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
@@ -47,7 +47,7 @@ selection=$(cat "$tmpfile")
 rm -f "$tmpfile"
 
 if (( rc == 1 )); then
-    exec bash "$ROFI_SCRIPTS_DIR/theming-menu.sh"
+    exit 1
 fi
 
 if [[ -n "$selection" ]]; then
@@ -57,7 +57,7 @@ if [[ -n "$selection" ]]; then
     awww img "$FULL_PATH" --transition-type random --transition-step 120 --transition-fps 120
     ln -sf "$FULL_PATH" "$CURRENT_LINK"
 
-    sleep 2
+    sleep 0.5
 
     current_mode=$("$ZENITH_BIN/zenith-theme" get)
     run_matugen "$FULL_PATH" "$current_mode"
@@ -73,3 +73,5 @@ if [[ -n "$selection" ]]; then
 
     rofi_notify "Wallpaper" "Wallpaper & Colors applied." "$FULL_PATH"
 fi
+
+exit 0

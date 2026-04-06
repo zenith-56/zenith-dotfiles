@@ -243,9 +243,13 @@ else
         sudo pacman -S --noconfirm --needed "${PACMAN_PACKAGES[@]}" || \
             warn "Some packages not available in official repos"
 
-        info "Installing missing packages (AUR via yay)..."
-        yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" || \
-            warn "Some AUR packages failed"
+        info "Installing missing packages (AUR)..."
+        if command -v yay &>/dev/null; then
+            yay -S --noconfirm --needed "${AUR_PACKAGES[@]}" || \
+                warn "Some AUR packages failed"
+        else
+            warn "yay not found, skipping AUR packages"
+        fi
 
         log "Packages verified"
     fi

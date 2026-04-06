@@ -26,11 +26,11 @@ if ! has_cmd yay; then
         err "make not found. Install base-devel first."
     fi
 
-    cd /tmp
+    pushd /tmp >/dev/null
     rm -rf yay
     git clone https://aur.archlinux.org/yay.git || err "Failed to clone yay"
     cd yay && makepkg -si --noconfirm || err "Failed to build yay"
-    cd -
+    popd >/dev/null || true
 fi
 
 info "Installing pacman packages..."

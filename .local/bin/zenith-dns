@@ -30,7 +30,7 @@ case "$1" in
             exit 1
         fi
 
-        dns_servers="$2"
+        dns_servers="${2//,/ }"
 
         if command -v resolvectl &>/dev/null; then
             interfaces=$(resolvectl status 2>/dev/null | grep -E "^[0-9]+" | awk '{print $2}' | tr -d ':')

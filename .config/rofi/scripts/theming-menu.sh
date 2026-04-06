@@ -10,16 +10,25 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-while true; do
-    selection=$(rofi_menu "theme.rasi" " 󰸉  Wallpapers\n 󰏘  Change Dark/Light\n 󰜺  Back" "Theming...") || exit 0
+__menu_state="main"
 
-    case "$selection" in
-        *Wallpapers)
-            bash "$ROFI_SCRIPTS_DIR/wall-selector.sh" || true
+while true; do
+    case "$__menu_state" in
+        main)
+            selection=$(rofi_menu "theme.rasi" " 󰸉  Wallpapers\n 󰏘  Change Dark/Light\n 󰜺  Back" "Theming...") || exit 0
+            case "$selection" in
+                *Wallpapers) __menu_state="wallpapers" ;;
+                *Change\ Dark/Light) __menu_state="theme" ;;
+                *) exit 0 ;;
+            esac
             ;;
-        *Change\ Dark/Light)
-            bash "$ROFI_SCRIPTS_DIR/theme-menu.sh" || true
+        wallpapers)
+            bash "$ROFI_SCRIPTS_DIR/wall-selector.sh" || { __menu_state="main"; continue; }
+            exit 0
             ;;
-        *) exit 0 ;;
+        theme)
+            bash "$ROFI_SCRIPTS_DIR/theme-menu.sh" || { __menu_state="main"; continue; }
+            exit 0
+            ;;
     esac
 done

@@ -71,7 +71,7 @@ theme_set() {
 
     # Reload dunst
     pkill dunst 2>/dev/null || true
-    sleep 0.2
+    sleep 0.5
     dunst &>/dev/null &
 
     echo "Theme set to $mode"

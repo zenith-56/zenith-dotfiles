@@ -6,6 +6,8 @@
 #               Displays installed applications with icons and search.
 # =============================================================================
 
+set -euo pipefail
+
 THEME="$HOME/.config/rofi/themes/theme.rasi"
 
 rofi -show drun -theme "$THEME" -show-icons \

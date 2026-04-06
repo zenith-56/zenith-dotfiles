@@ -27,11 +27,11 @@ __menu_state="main"
 while true; do
     case "$__menu_state" in
         main)
-            selection=$(main_menu | rofi_run "theme.rasi" -placeholder "Package Management...") || exit 0
+            selection=$(main_menu | rofi_run "theme.rasi" -placeholder "Package Management...") || exit 1
             case "$selection" in
                 *Install) __menu_state="install" ;;
                 *Uninstall) __menu_state="uninstall" ;;
-                *) exit 0 ;;
+                *) exit 1 ;;
             esac
             ;;
         install)
@@ -39,15 +39,19 @@ while true; do
             case "$choice" in
                 *AUR*)
                     kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install --aur;"
+                    exit 0
                     ;;
                 *Flatpak*)
                     kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install --flatpak;"
+                    exit 0
                     ;;
                 *Web\ App)
                     kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-webapp install;"
+                    exit 0
                     ;;
                 *Packages)
                     kitty --class "zenith-installer" -e fish -c "$ZENITH_BIN/zenith-pkg install;"
+                    exit 0
                     ;;
                 *) __menu_state="main" ;;
             esac
@@ -57,12 +61,15 @@ while true; do
             case "$choice" in
                 *Flatpak*)
                     kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-pkg remove --flatpak" &
+                    exit 0
                     ;;
                 *Web\ App)
                     kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-webapp uninstall" &
+                    exit 0
                     ;;
                 *Packages)
                     kitty --class "zenith-uninstaller" -e fish -c "$ZENITH_BIN/zenith-pkg remove" &
+                    exit 0
                     ;;
                 *) __menu_state="main" ;;
             esac

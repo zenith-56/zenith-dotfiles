@@ -21,8 +21,8 @@ restart_service() {
     zen_check_deps "$cmd"
 
     pkill "$cmd" 2>/dev/null || true
-    sleep 0.2
-    $cmd &>/dev/null &
+    sleep 0.5
+    "$cmd" &>/dev/null &
     zen_notify "$name restarted" ""
 }
 
@@ -65,13 +65,18 @@ main() {
         swayosd)  restart_service "SwayOSD" "swayosd-server" ;;
         kitty)    reload_kitty ;;
         all)
-            pkill waybar 2>/dev/null || true
-            pkill dunst 2>/dev/null || true
-            pkill swayosd-server 2>/dev/null || true
-            sleep 0.3
-            waybar &>/dev/null &
-            dunst &>/dev/null &
-            swayosd-server &>/dev/null &
+            local all_cmds=("waybar" "dunst" "swayosd-server")
+            for svc in "${all_cmds[@]}"; do
+                if command -v "$svc" &>/dev/null; then
+                    pkill "$svc" 2>/dev/null || true
+                fi
+            done
+            sleep 0.5
+            for svc in "${all_cmds[@]}"; do
+                if command -v "$svc" &>/dev/null; then
+                    "$svc" &>/dev/null &
+                fi
+            done
             reload_kitty
             zen_notify "All services restarted" ""
             ;;

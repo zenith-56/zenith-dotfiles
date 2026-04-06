@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### 0.4.2 - Code Hardening & Quality Improvements
+
+#### Fixed
+- `wall-selector.sh` now uses `set -euo pipefail` (was missing `-e` flag)
+- `app-launcher.sh` now uses `set -euo pipefail` for consistency
+- `zenith-dns` now properly handles comma-separated DNS servers by converting to space-delimited format
+- `zenith-restart` now quotes command execution and checks command existence before restarting in `all` case
+- `install/01-dependencies.sh` now uses `pushd`/`popd` instead of `cd -` to avoid `OLDPWD` failures
+- `install.sh` now uses `pushd`/`popd` in `install_gum()` for safe directory navigation
+- `update.sh` now checks for `yay` existence before attempting AUR package installation
+- `zenith-webapp` now uses `$ZEN_*` color constants from `zenith-lib.sh` instead of raw ANSI escape codes
+- `install/00-banner.sh` removed duplicate banner display (was printing twice)
+- `install/02-services.sh` removed redundant `2>&1` after `&>/dev/null`
+- `zenith-kb-layout` now reads all configured layouts from niri config and cycles through them instead of hardcoding `us`/`es` toggle
+- `zenith-screen-recorder` replaced ineffective `wait` with `sleep` + `kill -0` check for cross-process PID handling
+- `zenith-pkg` now uses shared `zen_fzf_args_install` and `zen_fzf_args_remove` from `zenith-lib.sh` instead of duplicating FZF arguments
+
+#### Changed
+- `zenith-restart` `all` case now iterates over an array and checks each command before pkill/restart
+- `zenith-webapp` `build_exec` now properly quotes URL in desktop file Exec lines
+- `zenith-kb-layout` toggle now dynamically reads all layouts from `input.kdl` and cycles through them in order
+
 ### 0.4.1 - Bug Fixes & Hardening
 
 #### Fixed

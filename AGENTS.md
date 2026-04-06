@@ -191,6 +191,11 @@ Create script in `.local/bin/` with:
 - Error handling (check if commands exist)
 - Exit codes for failures
 - Source `zenith-lib.sh` for shared functions
+- Use `$ZEN_*` color constants (never raw ANSI like `\e[31m`)
+- Use `zen_fzf_args_install` / `zen_fzf_args_remove` for FZF arguments
+- Quote all variables in command execution (`"$cmd"` not `$cmd`)
+- Use `pushd`/`popd` instead of `cd -` for directory changes
+- Check command existence before running in batch/`all` cases
 
 ### Add waybar module
 Create script in `.config/waybar/scripts/`:
@@ -230,8 +235,13 @@ See `CHANGELOG.md` for the full version history. When making changes, always upd
 - This is a dotfiles repo, not a traditional software project
 - All scripts must use `#!/usr/bin/env bash`
 - All scripts must use `set -euo pipefail`
+- Use `pushd`/`popd` instead of `cd -` for safe directory navigation (avoids `OLDPWD` failures)
 - Use `trap` for cleanup when scripts create temporary resources
 - Use error handling (check if commands exist, check if files exist)
+- Always quote variables in command execution (`"$cmd"` not `$cmd`)
+- Always check command existence before running in batch/`all` cases
+- Use `$ZEN_*` color constants from `zenith-lib.sh` — never use raw ANSI escape codes (`\e[31m`, etc.)
+- Use shared FZF args functions (`zen_fzf_args_install`, `zen_fzf_args_remove`) from `zenith-lib.sh`
 - Waybar modules should output JSON format
 - Rofi scripts should use `common.sh` for shared functions and rofi for interactive UI
 - Package scripts should use FZF for fuzzy selection

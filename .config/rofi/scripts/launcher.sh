@@ -19,11 +19,26 @@ while true; do
     chosen=$(main_menu | rofi_run "theme.rasi" -placeholder "Search...") || exit 0
 
     case "$chosen" in
-        *Applications) bash "$ROFI_SCRIPTS_DIR/app-launcher.sh" || true ;;
-        *Network) bash "$ROFI_SCRIPTS_DIR/network-menu.sh" || true ;;
-        *Theming) bash "$ROFI_SCRIPTS_DIR/theming-menu.sh" || true ;;
-        *Package\ Management) bash "$ROFI_SCRIPTS_DIR/package-manager.sh" || true ;;
-        *Power\ Menu) bash "$ROFI_SCRIPTS_DIR/power-menu.sh" || true ;;
+        *Applications)
+            bash "$ROFI_SCRIPTS_DIR/app-launcher.sh" || continue
+            exit 0
+            ;;
+        *Network)
+            bash "$ROFI_SCRIPTS_DIR/network-menu.sh" || continue
+            exit 0
+            ;;
+        *Theming)
+            bash "$ROFI_SCRIPTS_DIR/theming-menu.sh" || continue
+            exit 0
+            ;;
+        *Package\ Management)
+            bash "$ROFI_SCRIPTS_DIR/package-manager.sh" || continue
+            exit 0
+            ;;
+        *Power\ Menu)
+            bash "$ROFI_SCRIPTS_DIR/power-menu.sh" || continue
+            exit 0
+            ;;
         "") exit 0 ;;
     esac
 done
