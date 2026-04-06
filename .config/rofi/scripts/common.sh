@@ -4,6 +4,8 @@
 # Shared utilities for all Rofi menu scripts
 # =============================================================================
 
+set -euo pipefail
+
 ROFI_THEME_DIR="$HOME/.config/rofi/themes"
 ROFI_SCRIPTS_DIR="$HOME/.config/rofi/scripts"
 ZENITH_BIN="$HOME/.local/bin"

@@ -4,6 +4,8 @@
 # Shared utilities for all installation scripts
 # =============================================================================
 
+set -euo pipefail
+
 # ── Colors ────────────────────────────────────────────────────────────────────
 export GREEN='\033[0;32m'
 export YELLOW='\033[1;33m'
