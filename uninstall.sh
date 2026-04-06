@@ -56,8 +56,16 @@ gum style --foreground 212 --border-foreground 212 --border rounded \
     "Remove configurations safely"
 echo ""
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+confirm() {
+    if [ "$FORCE" = true ]; then
+        return 0
+    fi
+    gum confirm "$1"
+}
+
 # ── Confirmation ──────────────────────────────────────────────────────────────
-if ! gum confirm "This will remove Zenith-Dotfiles configurations. Continue?"; then
+if ! confirm "This will remove Zenith-Dotfiles configurations. Continue?"; then
     info "Aborted"
     exit 0
 fi
@@ -86,10 +94,10 @@ case "$SELECTED" in
             fi
         done
 
-        # Remove bin scripts
+        # Remove bin scripts (including main dispatcher)
         if [ -d "$HOME/.local/bin" ]; then
-            rm -f "$HOME/.local/bin/zenith-"*
-            log "Removed: zenith-* bin scripts"
+            rm -f "$HOME/.local/bin/zenith" "$HOME/.local/bin/zenith-"*
+            log "Removed: zenith bin scripts"
         fi
 
         # Remove darkman scripts
@@ -98,7 +106,7 @@ case "$SELECTED" in
         log "Removed: darkman scripts"
 
         # Remove dotfiles repo
-        if gum confirm "Remove zenith-dotfiles repo from ~/?"; then
+        if confirm "Remove zenith-dotfiles repo from ~/?"; then
             rm -rf "$DOTFILES_DIR"
             log "Removed: $DOTFILES_DIR"
         fi
@@ -117,8 +125,8 @@ case "$SELECTED" in
     "Bin scripts")
         info "Removing bin scripts..."
         if [ -d "$HOME/.local/bin" ]; then
-            rm -f "$HOME/.local/bin/zenith-"*
-            log "Removed: zenith-* bin scripts"
+            rm -f "$HOME/.local/bin/zenith" "$HOME/.local/bin/zenith-"*
+            log "Removed: zenith bin scripts"
         fi
         ;;
 
@@ -137,7 +145,7 @@ esac
 
 # ── Reset Fish Shell ──────────────────────────────────────────────────────────
 echo ""
-if gum confirm "Reset fish shell to bash?"; then
+if confirm "Reset fish shell to bash?"; then
     if command -v bash &>/dev/null; then
         chsh -s "$(command -v bash)" 2>/dev/null || warn "Could not change shell"
         log "Default shell reset to bash"
@@ -148,7 +156,7 @@ fi
 
 # ── Disable Services ──────────────────────────────────────────────────────────
 echo ""
-if gum confirm "Disable systemd services enabled by Zenith?"; then
+if confirm "Disable systemd services enabled by Zenith?"; then
     for svc in "${SYSTEM_SERVICES[@]}"; do
         if systemctl is-enabled "${svc}.service" &>/dev/null; then
             sudo systemctl disable --now "${svc}.service" 2>/dev/null || true
@@ -164,7 +172,7 @@ fi
 
 # ── Remove SDDM ───────────────────────────────────────────────────────────────
 echo ""
-if gum confirm "Disable SDDM display manager?"; then
+if confirm "Disable SDDM display manager?"; then
     sudo systemctl disable sddm.service 2>/dev/null || true
     log "SDDM disabled"
 fi

@@ -285,17 +285,17 @@ show_help() {
     case "$subcmd" in
         install)
             cat << EOF
-${ZEN_CYAN}zenith pkg install${RESET} — Interactive package installation
+${ZEN_CYAN}zenith pkg install${ZEN_RESET} — Interactive package installation
 
-${YELLOW}USAGE:${RESET}
+${ZEN_YELLOW}USAGE:${ZEN_RESET}
     zenith pkg install [OPTIONS]
 
-${YELLOW}OPTIONS:${RESET}
-    ${GREEN}--aur${RESET}       Install from AUR (uses yay)
-    ${GREEN}--flatpak${RESET}   Install from Flathub
-    ${GREEN}--help, -h${RESET}  Show this help message
+${ZEN_YELLOW}OPTIONS:${ZEN_RESET}
+    ${ZEN_GREEN}--aur${ZEN_RESET}       Install from AUR (uses yay)
+    ${ZEN_GREEN}--flatpak${ZEN_RESET}   Install from Flathub
+    ${ZEN_GREEN}--help, -h${ZEN_RESET}  Show this help message
 
-${YELLOW}EXAMPLES:${RESET}
+${ZEN_YELLOW}EXAMPLES:${ZEN_RESET}
     zenith pkg install              # pacman interactive
     zenith pkg install --aur        # AUR interactive
     zenith pkg install --flatpak    # Flatpak interactive
@@ -304,16 +304,16 @@ EOF
             ;;
         remove)
             cat << EOF
-${ZEN_CYAN}zenith pkg remove${RESET} — Interactive package removal
+${ZEN_CYAN}zenith pkg remove${ZEN_RESET} — Interactive package removal
 
-${YELLOW}USAGE:${RESET}
+${ZEN_YELLOW}USAGE:${ZEN_RESET}
     zenith pkg remove [OPTIONS]
 
-${YELLOW}OPTIONS:${RESET}
-    ${GREEN}--flatpak${RESET}   Remove flatpak packages
-    ${GREEN}--help, -h${RESET}  Show this help message
+${ZEN_YELLOW}OPTIONS:${ZEN_RESET}
+    ${ZEN_GREEN}--flatpak${ZEN_RESET}   Remove flatpak packages
+    ${ZEN_GREEN}--help, -h${ZEN_RESET}  Show this help message
 
-${YELLOW}EXAMPLES:${RESET}
+${ZEN_YELLOW}EXAMPLES:${ZEN_RESET}
     zenith pkg remove               # pacman/yay interactive
     zenith pkg remove --flatpak     # Flatpak interactive
 
@@ -321,19 +321,19 @@ EOF
             ;;
         list)
             cat << EOF
-${ZEN_CYAN}zenith pkg list${RESET} — List installed packages
+${ZEN_CYAN}zenith pkg list${ZEN_RESET} — List installed packages
 
-${YELLOW}USAGE:${RESET}
+${ZEN_YELLOW}USAGE:${ZEN_RESET}
     zenith pkg list [OPTIONS]
 
-${YELLOW}OPTIONS:${RESET}
-    ${GREEN}--explicit, -e${RESET}         List explicitly installed (pacman)
-    ${GREEN}--orphans, -t${RESET}          List orphan packages (pacman)
-    ${GREEN}--search, -s <pattern>${RESET} Search packages by name
-    ${GREEN}--flatpak${RESET}              Operate on flatpak packages
-    ${GREEN}--help, -h${RESET}             Show this help message
+${ZEN_YELLOW}OPTIONS:${ZEN_RESET}
+    ${ZEN_GREEN}--explicit, -e${ZEN_RESET}         List explicitly installed (pacman)
+    ${ZEN_GREEN}--orphans, -t${ZEN_RESET}          List orphan packages (pacman)
+    ${ZEN_GREEN}--search, -s <pattern>${ZEN_RESET} Search packages by name
+    ${ZEN_GREEN}--flatpak${ZEN_RESET}              Operate on flatpak packages
+    ${ZEN_GREEN}--help, -h${ZEN_RESET}             Show this help message
 
-${YELLOW}EXAMPLES:${RESET}
+${ZEN_YELLOW}EXAMPLES:${ZEN_RESET}
     zenith pkg list                        # Interactive pacman list
     zenith pkg list --orphans              # Find orphan packages
     zenith pkg list --search firefox       # Search for firefox
@@ -345,18 +345,18 @@ EOF
             ;;
         *)
             cat << EOF
-${ZEN_CYAN}zenith pkg${RESET} — Unified package manager
+${ZEN_CYAN}zenith pkg${ZEN_RESET} — Unified package manager
 
-${YELLOW}USAGE:${RESET}
+${ZEN_YELLOW}USAGE:${ZEN_RESET}
     zenith pkg <command> [OPTIONS]
 
-${YELLOW}COMMANDS:${RESET}
-    ${GREEN}install${RESET}    Interactive package installation
-    ${GREEN}remove${RESET}     Interactive package removal
-    ${GREEN}list${RESET}       List installed packages
-    ${GREEN}missing${RESET}    Check if packages are installed
+${ZEN_YELLOW}COMMANDS:${ZEN_RESET}
+    ${ZEN_GREEN}install${ZEN_RESET}    Interactive package installation
+    ${ZEN_GREEN}remove${ZEN_RESET}     Interactive package removal
+    ${ZEN_GREEN}list${ZEN_RESET}       List installed packages
+    ${ZEN_GREEN}missing${ZEN_RESET}    Check if packages are installed
 
-${YELLOW}EXAMPLES:${RESET}
+${ZEN_YELLOW}EXAMPLES:${ZEN_RESET}
     zenith pkg install                  # Install from pacman
     zenith pkg install --aur            # Install from AUR
     zenith pkg install --flatpak        # Install from Flathub

@@ -45,16 +45,6 @@ jobs:
           fi
           echo "All shell scripts have valid syntax"
 
-      - name: Install ShellCheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
-
-      - name: Run ShellCheck
-        run: |
-          set -e
-          for script in $(find . -name "*.sh" -type f); do
-            shellcheck "$script" || true
-          done
-          echo "ShellCheck complete"
 
       - name: Verify bin count
         run: |

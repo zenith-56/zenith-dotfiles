@@ -38,18 +38,26 @@ jobs:
 
       - name: Validate TOML files
         run: |
-          pip3 install toml 2>/dev/null || true
           errors=0
-          if python3 -c "import toml" 2>/dev/null; then
-            for toml in $(find .config -name "*.toml" -type f); do
-              if ! python3 -c "import toml; toml.load('$toml')" 2>/dev/null; then
-                echo "ERROR: Invalid TOML in $toml"
-                errors=$((errors + 1))
-              fi
-            done
-          else
-            echo "toml module not available, skipping TOML validation"
+          for toml_file in $(find .config -name "*.toml" -type f); do
+            if ! python3 -c "
+import sys
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$toml_file', 'rb') as f:
+    tomllib.load(f)
+" 2>/dev/null; then
+              echo "ERROR: Invalid TOML in $toml_file"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ "$errors" -gt 0 ]; then
+            echo "Total TOML errors: $errors"
+            exit 1
           fi
+          echo "All TOML files valid"
 
       - name: Validate CSS files
         run: |
@@ -103,7 +111,7 @@ jobs:
       - name: Verify Matugen templates exist
         run: |
           templates_dir=".config/matugen/templates"
-          expected_templates=("colors.css" "colors.rasi" "dunstrc" "hyprlock.conf" "kitty.conf" "swayosd.css" "zed-theme.json" "btop.theme")
+          expected_templates=("colors.css" "rofi-colors.rasi" "dunstrc" "hyprlock.conf" "kitty.conf" "swayosd.css" "btop.theme")
           missing=0
           for template in "${expected_templates[@]}"; do
             if [ ! -f "$templates_dir/$template" ]; then

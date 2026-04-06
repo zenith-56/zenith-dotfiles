@@ -21,8 +21,9 @@ jobs:
         run: |
           VERSION=$(cat version)
           TAG=${GITHUB_REF#refs/tags/}
-          if [ "$VERSION" != "$TAG" ]; then
-            echo "Version mismatch: version file has '$VERSION', tag is '$TAG'"
+          TAG_VERSION="${TAG#v}"
+          if [ "$VERSION" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: version file has '$VERSION', tag is '$TAG' (stripped: '$TAG_VERSION')"
             exit 1
           fi
           echo "Version $VERSION matches tag $TAG"

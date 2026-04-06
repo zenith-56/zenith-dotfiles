@@ -1,6 +1,9 @@
+#!/usr/bin/env bash
 # =============================================================================
 # Zenith-Dotfiles Installer - Banner
 # =============================================================================
+
+set -euo pipefail
 
 echo ""
 gum style --foreground 212 --border-foreground 212 --border double \

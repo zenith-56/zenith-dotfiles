@@ -7,6 +7,8 @@
 #               speed dynamically (faster when CPU load is high).
 # =============================================================================
 
+set -euo pipefail
+
 frames=("⠁" "⠂" "⠄" "⡀" "⢀" "⠠" "⠐" "⠈")
 num_frames=${#frames[@]}
 i=0

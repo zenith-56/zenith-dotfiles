@@ -7,8 +7,8 @@ version
 README\.md
 CHANGELOG\.md
 LICENSE
-\install
-\images
+^install
+^images
 \.gitignore
 \.git
 \.stow-local-ignore

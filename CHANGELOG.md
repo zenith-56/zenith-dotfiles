@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- `release.yml` version/tag comparison now strips `v` prefix correctly
+- `uninstall.sh` now removes the `zenith` main dispatcher (was only removing `zenith-*`)
+- `uninstall.sh` `--force` flag now works (was declared but never used)
+- `zenith-pkg` help colors now use `ZEN_*` constants (was using undefined `${RESET}`, `${YELLOW}`, `${GREEN}`)
+- `validate-configs.yml` template names now match actual files (`rofi-colors.rasi`, no `zed-theme.json`)
+- `zenith-check` now sources `zenith-lib.sh` and uses `ZEN_*` colors instead of raw ANSI
+- `install.sh` uses `pushd`/`popd` instead of bare `cd` for directory navigation
+
+### Changed
+- Added `set -euo pipefail` to `00-banner.sh` and `braille-snake.sh`
+- Added shebangs to `00-banner.sh`, `03-deploy-configs.sh`, `04-deploy-bin.sh` for consistency
+- Removed duplicate color/logging definitions from `install/run.sh` (already in `common.sh`)
+- Removed duplicate ShellCheck step from `test-install.yml` (already in `shellcheck.yml`)
+- Reduced ShellCheck exclusions from 9 to 3 (only SC1091, SC1090, SC2034)
+- `validate-configs.yml` TOML validation uses Python 3.11+ `tomllib` instead of pip-installed `toml`
+- Fixed `.stow-local-ignore` regex syntax for `install` and `images` directories
+- Updated changelog format to follow Keep a Changelog standard
+
+## [0.4.2] - 2026-04-06
+
 ### 0.4.2 - Code Hardening & Quality Improvements
 
 #### Fixed
@@ -27,6 +48,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `zenith-restart` `all` case now iterates over an array and checks each command before pkill/restart
 - `zenith-webapp` `build_exec` now properly quotes URL in desktop file Exec lines
 - `zenith-kb-layout` toggle now dynamically reads all layouts from `input.kdl` and cycles through them in order
+
+## [0.4.1] - 2026-04-04
 
 ### 0.4.1 - Bug Fixes & Hardening
 
@@ -125,10 +148,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 #### Code Review - Potential Cleanup (verify before removing)
 - All items from this list have been addressed in 0.4.0
 
-### 0.3.4 - Utilities Varias
 
-#### Added
-- (pendiente - definir con el usuario)
 
 ### 0.3.2 - Network Modules
 
@@ -179,4 +199,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Config updater (`update.sh`)
 - Uninstaller (`uninstall.sh`)
 
-[Unreleased]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.0...v0.4.1

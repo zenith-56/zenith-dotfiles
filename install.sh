@@ -93,7 +93,7 @@ command -v gum &>/dev/null || install_gum
 if [ -d "$DOTFILES_DIR/.git" ]; then
     info "Updating existing repo..."
     debug "Changing to: $DOTFILES_DIR"
-    cd "$DOTFILES_DIR"
+    pushd "$DOTFILES_DIR" >/dev/null
     debug "Running: git pull --ff-only"
     git pull --ff-only 2>/dev/null || warn "Could not pull, using existing files"
 else
@@ -105,7 +105,7 @@ else
     info "Cloning Zenith-Dotfiles..."
     debug "Running: git clone $REPO_URL $DOTFILES_DIR"
     git clone "$REPO_URL" "$DOTFILES_DIR" || err "Failed to clone repo"
-    cd "$DOTFILES_DIR"
+    pushd "$DOTFILES_DIR" >/dev/null
 fi
 
 # ── Source common functions (now that repo exists on disk) ────────────────────

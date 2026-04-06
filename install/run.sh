@@ -8,13 +8,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="$SCRIPT_DIR"
 
-# ── Colors ────────────────────────────────────────────────────────────────────
-export GREEN='\033[0;32m'
-export YELLOW='\033[1;33m'
-export RED='\033[0;31m'
-export CYAN='\033[0;36m'
-export RESET='\033[0m'
-
 # ── Flags ─────────────────────────────────────────────────────────────────────
 VERBOSE=false
 
@@ -36,11 +29,7 @@ for arg in "$@"; do
     esac
 done
 
-# ── Logging Functions ─────────────────────────────────────────────────────────
-log()  { echo -e "${GREEN}[✓]${RESET} $1"; }
-warn() { echo -e "${YELLOW}[!]${RESET} $1"; }
-err()  { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
-info() { echo -e "${CYAN}[i]${RESET} $1"; }
+# ── Debug helper ──────────────────────────────────────────────────────────────
 debug() { [ "$VERBOSE" = true ] && echo -e "${YELLOW}[DEBUG]${RESET} $1" || true; }
 
 source "$INSTALL_DIR/common.sh"

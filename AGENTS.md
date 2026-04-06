@@ -22,7 +22,8 @@ zenith-dotfiles/
 │   └── 08-display-manager.sh
 ├── update.sh              # Config updater
 ├── uninstall.sh           # Removal script
-├── version                # Version file (e.g., 0.4.1)
+├── version                # Version file (e.g., 0.4.2)
+├── logo.txt               # ASCII art logo
 ├── .local/
 │   └── bin/               # Zenith bin scripts
 │   └── share/
@@ -69,6 +70,7 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Kitty** | `zenith restart kitty` |
 | **Web Apps** | `zenith webapp {install,uninstall,list}` |
 | **Packages** | `zenith pkg {install,remove,list,missing}` with `--aur`, `--flatpak` flags |
+| **Health Check** | `zenith-check` |
 | **Utils** | `zen_done` from `zenith-lib.sh` |
 
 ## Rofi Scripts
@@ -85,6 +87,7 @@ Scripts in `.config/rofi/scripts/`:
 | `power-menu.sh` | Power menu (lock, logout, reboot, poweroff) |
 | `package-manager.sh` | Unified package management (install/uninstall) |
 | `network-menu.sh` | Network config (Firewall + DNS) |
+| `emoji-picker.sh` | Emoji picker (rofi-emoji) |
 
 ## Waybar Scripts
 
@@ -99,7 +102,7 @@ Located in `.config/matugen/templates/`:
 | Template | Output |
 |----------|--------|
 | `colors.css` | Waybar |
-| `colors.rasi` | Rofi |
+| `rofi-colors.rasi` | Rofi |
 | `dunstrc` | Dunst |
 | `hyprlock.conf` | Hyprlock |
 | `kitty.conf` | Kitty |
