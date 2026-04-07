@@ -193,6 +193,12 @@ else
         log "Darkman scripts updated"
     fi
 
+    if [ -d "$DOTFILES_DIR/vm-icons" ]; then
+        mkdir -p "$HOME/.local/share/icons/zenith-vms"
+        cp -r "$DOTFILES_DIR/vm-icons/"* "$HOME/.local/share/icons/zenith-vms/" 2>/dev/null || true
+        log "VM icons updated"
+    fi
+
     # Fix fish variables for current user
     FISH_VARS="$HOME/.config/fish/fish_variables"
     if [ -f "$FISH_VARS" ]; then

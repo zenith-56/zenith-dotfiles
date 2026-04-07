@@ -8,6 +8,7 @@ README\.md
 CHANGELOG\.md
 LICENSE
 ^install
+^vm-icons
 ^images
 \.gitignore
 \.git

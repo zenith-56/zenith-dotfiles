@@ -226,7 +226,7 @@ vm_install() {
     done
 
     local chosen_label
-    chosen_label=$(printf '%s\n' "${os_choices[@]}" | gum choose --header "Select operating system:")
+    chosen_label=$(printf '%s\n' "${os_choices[@]}" | gum choose --height 25 --header "Select operating system:")
 
     if [[ -z "$chosen_label" ]]; then
         echo "Installation cancelled."
@@ -518,7 +518,11 @@ YAML
 
     # Create desktop entry
     local desktop_file="$APPS_DIR/${vm_name}-vm.desktop"
+    local custom_icon_path="$HOME/.local/share/icons/zenith-vms/${os_id}.png"
     local os_icon="${OS_ICONS[$os_id]:-computer}"
+    if [[ -f "$custom_icon_path" ]]; then
+        os_icon="$custom_icon_path"
+    fi
     cat > "$desktop_file" <<DESKTOP
 [Desktop Entry]
 Name=${os_display#*  } VM
@@ -578,7 +582,7 @@ vm_remove() {
             exit 0
         fi
 
-        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to remove:")
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --height 15 --header "Select VM to remove:")
         if [[ -z "$vm_name" ]]; then
             echo "Cancelled."
             exit 0
@@ -649,7 +653,7 @@ vm_launch() {
             exit 0
         fi
 
-        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to launch:")
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --height 15 --header "Select VM to launch:")
         if [[ -z "$vm_name" ]]; then
             exit 0
         fi
@@ -805,7 +809,7 @@ vm_stop() {
             exit 0
         fi
 
-        vm_name=$(printf '%s\n' "${running[@]}" | gum choose --header "Select VM to stop:")
+        vm_name=$(printf '%s\n' "${running[@]}" | gum choose --height 15 --header "Select VM to stop:")
         if [[ -z "$vm_name" ]]; then
             exit 0
         fi
@@ -934,7 +938,7 @@ vm_config() {
             exit 0
         fi
 
-        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to edit config:")
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --height 15 --header "Select VM to edit config:")
         if [[ -z "$vm_name" ]]; then
             exit 0
         fi

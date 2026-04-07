@@ -27,6 +27,12 @@ if [ -d "$LOCAL_SRC/share/dark-mode.d" ]; then
     cp -r "$LOCAL_SRC/share/light-mode.d/"* "$HOME/.local/share/light-mode.d/" 2>/dev/null || true
 fi
 
+if [ -d "$DOTFILES_DIR/vm-icons" ]; then
+    mkdir -p "$HOME/.local/share/icons/zenith-vms"
+    cp -r "$DOTFILES_DIR/vm-icons/"* "$HOME/.local/share/icons/zenith-vms/" 2>/dev/null || true
+    log "VM icons deployed"
+fi
+
 # Fix hardcoded paths in fish_variables for current user
 FISH_VARS="$HOME/.config/fish/fish_variables"
 if [ -f "$FISH_VARS" ]; then
