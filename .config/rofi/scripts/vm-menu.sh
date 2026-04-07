@@ -39,11 +39,11 @@ show_docker() {
 
         case "$chosen" in
             *Lazydocker)
-                kitty --title "Lazydocker" -e bash -c "zenith docker lazy" &
+                kitty --class "zenith-docker" --title "Lazydocker" -e bash -c "zenith docker lazy" &
                 exit 0
                 ;;
             *Docker\ Status)
-                kitty --title "Docker Status" -e bash -c "zenith docker status; read -rp 'Press ENTER to close...'" &
+                kitty --class "zenith-docker" --title "Docker Status" -e bash -c "zenith docker status; read -rp 'Press ENTER to close...'" &
                 exit 0
                 ;;
             *Back) return 0 ;;
@@ -58,23 +58,23 @@ show_vms() {
 
         case "$chosen" in
             *Launch\ VM)
-                kitty --title "Launch VM" -e bash -c "zenith vm launch" &
+                kitty --class "zenith-vm" --title "Launch VM" -e bash -c "zenith vm launch" &
                 exit 0
                 ;;
             *Stop\ VM)
-                kitty --title "Stop VM" -e bash -c "zenith vm stop" &
+                kitty --class "zenith-vm" --title "Stop VM" -e bash -c "zenith vm stop" &
                 exit 0
                 ;;
             *Install\ VM)
-                kitty --title "Install VM" -e bash -c "zenith vm install" &
+                kitty --class "zenith-vm" --title "Install VM" -e bash -c "zenith vm install" &
                 exit 0
                 ;;
             *Remove\ VM)
-                kitty --title "Remove VM" -e bash -c "zenith vm remove" &
+                kitty --class "zenith-vm" --title "Remove VM" -e bash -c "zenith vm remove" &
                 exit 0
                 ;;
             *VM\ Status)
-                kitty --title "VM Status" -e bash -c "zenith vm list; read -rp 'Press ENTER to close...'" &
+                kitty --class "zenith-vm" --title "VM Status" -e bash -c "zenith vm list; read -rp 'Press ENTER to close...'" &
                 exit 0
                 ;;
             *Back) return 0 ;;

@@ -30,6 +30,8 @@ window-rule {
     match app-id="zenith-installer"
     match app-id="zenith-uninstaller"
     match app-id="zenith-network"
+    match app-id="zenith-docker"
+    match app-id="zenith-vm"
     open-floating true
     default-window-height { proportion 0.6; }
     default-column-width { proportion 0.8; }
