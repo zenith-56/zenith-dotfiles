@@ -58,6 +58,8 @@ PACMAN_PACKAGES=(
     cmake
     darkman
     dnsmasq
+    docker
+    docker-compose
     dunst
     edk2-ovmf
     efibootmgr
@@ -66,6 +68,7 @@ PACMAN_PACKAGES=(
     ffmpeg
     ffmpegthumbnailer
     fish
+    freerdp
     flatpak
     fzf
     github-cli
@@ -79,6 +82,7 @@ PACMAN_PACKAGES=(
     iwd
     jq
     kitty
+    lazydocker
     libsecret
     libnotify
     mediainfo
@@ -89,6 +93,7 @@ PACMAN_PACKAGES=(
     noto-fonts
     noto-fonts-cjk
     noto-fonts-emoji
+    openbsd-netcat
     pamixer
     pipewire
     pipewire-alsa
@@ -114,6 +119,7 @@ PACMAN_PACKAGES=(
     ttf-nerd-fonts-symbols-common
     ufw
     unzip
+    uwsm
     waybar
     wf-recorder
     wget
@@ -161,6 +167,7 @@ MODE_SCRIPTS=(
 
 # ── Service Lists ─────────────────────────────────────────────────────────────
 SYSTEM_SERVICES=(
+    "docker"
     "power-profiles-daemon"
     "bluetooth"
     "iwd"

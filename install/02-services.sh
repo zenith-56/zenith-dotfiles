@@ -30,3 +30,15 @@ if gum confirm "Enable darkman (user service)?"; then
     systemctl --user enable --now darkman.service || warn "Failed to enable darkman"
     log "Enabled: darkman"
 fi
+
+# ── Docker Group Setup ────────────────────────────────────────────────────────
+if has_cmd docker; then
+    if ! groups "$USER" | grep -q docker; then
+        if gum confirm "Add $USER to docker group? (avoids sudo for docker)"; then
+            sudo usermod -aG docker "$USER"
+            warn "Added $USER to docker group — log out and back in for it to take effect"
+        fi
+    else
+        log "User already in docker group"
+    fi
+fi

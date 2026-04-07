@@ -4,7 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.0.0-rc1] - 2026-04-07
+
+### Added
+- `zenith vm` now supports a `--webapp` flag to launch VMs in an isolated PWA-style Chromium browser window.
+- VM `.desktop` entries now utilize FreeDesktop dynamic OS icons (e.g. `distributor-logo-alpine`) instead of generic system icons.
+
+### Changed
+- Refactored `vm-menu.sh` (Rofi menu): Split into a main categorised view mapping `Docker` and `VMs Management` to dedicated submenus with a `Back` button.
+- VM `.desktop` launchers now automatically use the `--webapp` wrapper to hide browser UI constraints.
+
+## [0.5.0] - 2026-04-06
+
+### Added
+- `zenith docker` — Docker management with `status`, `start`, `stop`, `lazy`, `compose {up,down,logs}`, `prune`, `group` subcommands
+- `zenith vm` — Multi-OS virtual machine manager with `install`, `remove`, `launch`, `stop`, `status`, `list`, `config` subcommands
+  - Windows 10/11 VMs via `dockurr/windows` (RDP + web viewer)
+  - 22+ Linux distros via `qemux/qemu` (web viewer): Alma, Alpine, Arch, CachyOS, CentOS, Debian, Fedora, Gentoo, Kali, Kubuntu, Linux Mint, Manjaro, MX Linux, NixOS, openSUSE, Rocky, Slackware, Tails, Ubuntu, Ubuntu Server, Xubuntu, Zorin OS
+  - Custom ISO support via URL or local path
+  - Interactive installation wizard with gum (OS selection, resource allocation, credentials)
+  - Per-VM Docker Compose configs in `~/.config/zenith-vms/`
+  - Automatic port management for multiple concurrent VMs
+  - Desktop entries (.desktop) for each installed VM
+  - Windows RDP with niri display scale detection
+- Rofi "Docker & VMs" submenu (`vm-menu.sh`) with lazydocker, Docker status, VM launch/stop/install/remove
+- Docker & VMs entry in main Rofi launcher menu
+
+### Changed
+- Added `docker`, `docker-compose`, `lazydocker`, `freerdp`, `openbsd-netcat` to pacman packages
+- Added `docker` to system services
+- Installer now offers to add user to docker group during setup
 
 ## [0.4.3] - 2026-04-06
 
@@ -203,7 +232,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Config updater (`update.sh`)
 - Uninstaller (`uninstall.sh`)
 
-[Unreleased]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zenith-56/zenith-dotfiles/compare/v0.4.0...v0.4.1

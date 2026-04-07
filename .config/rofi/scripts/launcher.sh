@@ -12,7 +12,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 main_menu() {
-    printf ' 󰀻  Applications\n 󰢩  Network\n 󰏗  Theming\n 󰏗  Package Management\n 󰐥  Power Menu\n'
+    printf ' 󰀻  Applications\n 󰢩  Network\n   Docker & VMs\n   Theming\n 󰏗  Package Management\n 󰐥  Power Menu\n'
 }
 
 while true; do
@@ -25,6 +25,10 @@ while true; do
             ;;
         *Network)
             bash "$ROFI_SCRIPTS_DIR/network-menu.sh" || continue
+            exit 0
+            ;;
+        *Docker*VMs)
+            bash "$ROFI_SCRIPTS_DIR/vm-menu.sh" || continue
             exit 0
             ;;
         *Theming)

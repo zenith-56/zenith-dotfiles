@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Docker Management
+# =============================================================================
+# Usage:
+#   zenith docker status                Show Docker daemon status & containers
+#   zenith docker start                 Start Docker daemon
+#   zenith docker stop                  Stop Docker daemon
+#   zenith docker lazy                  Launch lazydocker TUI
+#   zenith docker compose up [file]     Start compose (default: ./docker-compose.yml)
+#   zenith docker compose down [file]   Stop compose
+#   zenith docker compose logs [file]   Tail compose logs
+#   zenith docker prune                 Interactive prune
+#   zenith docker group                 Add current user to docker group
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+# ── Status ────────────────────────────────────────────────────────────────────
+docker_status() {
+    echo -e "${ZEN_GREEN}── Docker Status ──${ZEN_RESET}\n"
+
+    # Daemon status
+    if systemctl is-active --quiet docker 2>/dev/null; then
+        echo -e "  Daemon:     ${ZEN_GREEN}● running${ZEN_RESET}"
+    else
+        echo -e "  Daemon:     ${ZEN_RED}● stopped${ZEN_RESET}"
+        echo -e "\n  Start with: ${ZEN_CYAN}zenith docker start${ZEN_RESET}"
+        return 0
+    fi
+
+    # Containers
+    local running stopped
+    running=$(docker ps -q 2>/dev/null | wc -l)
+    stopped=$(docker ps -aq --filter "status=exited" 2>/dev/null | wc -l)
+    echo -e "  Containers: ${ZEN_GREEN}${running} running${ZEN_RESET}, ${ZEN_YELLOW}${stopped} stopped${ZEN_RESET}"
+
+    # Images
+    local images
+    images=$(docker images -q 2>/dev/null | wc -l)
+    echo -e "  Images:     ${images}"
+
+    # Disk usage (compact)
+    echo ""
+    docker system df 2>/dev/null || true
+
+    # Running containers table
+    if (( running > 0 )); then
+        echo -e "\n${ZEN_CYAN}Running containers:${ZEN_RESET}"
+        docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || true
+    fi
+}
+
+# ── Start/Stop ────────────────────────────────────────────────────────────────
+docker_start() {
+    zen_check_deps systemctl
+    if systemctl is-active --quiet docker 2>/dev/null; then
+        echo -e "${ZEN_YELLOW}Docker is already running${ZEN_RESET}"
+        return 0
+    fi
+    echo "Starting Docker daemon..."
+    sudo systemctl start docker
+    echo -e "${ZEN_GREEN}✓ Docker started${ZEN_RESET}"
+}
+
+docker_stop() {
+    zen_check_deps systemctl
+    if ! systemctl is-active --quiet docker 2>/dev/null; then
+        echo -e "${ZEN_YELLOW}Docker is already stopped${ZEN_RESET}"
+        return 0
+    fi
+
+    local running
+    running=$(docker ps -q 2>/dev/null | wc -l)
+    if (( running > 0 )); then
+        echo -e "${ZEN_YELLOW}Warning: ${running} container(s) still running${ZEN_RESET}"
+        if ! gum confirm "Stop Docker anyway?"; then
+            echo "Cancelled."
+            return 0
+        fi
+    fi
+
+    echo "Stopping Docker daemon..."
+    sudo systemctl stop docker
+    echo -e "${ZEN_GREEN}✓ Docker stopped${ZEN_RESET}"
+}
+
+# ── Lazydocker ────────────────────────────────────────────────────────────────
+docker_lazy() {
+    zen_check_deps lazydocker
+    if ! systemctl is-active --quiet docker 2>/dev/null; then
+        echo -e "${ZEN_YELLOW}Docker is not running. Starting...${ZEN_RESET}"
+        sudo systemctl start docker
+    fi
+    exec lazydocker
+}
+
+# ── Compose ───────────────────────────────────────────────────────────────────
+docker_compose() {
+    zen_check_deps docker
+    local action="${1:-}"
+    local compose_file="${2:-}"
+
+    if [[ -z "$action" ]]; then
+        echo "Usage: zenith docker compose {up|down|logs} [file]" >&2
+        exit 1
+    fi
+
+    local compose_args=()
+    if [[ -n "$compose_file" ]]; then
+        compose_args+=(-f "$compose_file")
+    fi
+
+    case "$action" in
+        up)
+            echo "Starting compose services..."
+            docker compose "${compose_args[@]}" up -d
+            echo -e "${ZEN_GREEN}✓ Services started${ZEN_RESET}"
+            ;;
+        down)
+            echo "Stopping compose services..."
+            docker compose "${compose_args[@]}" down
+            echo -e "${ZEN_GREEN}✓ Services stopped${ZEN_RESET}"
+            ;;
+        logs)
+            docker compose "${compose_args[@]}" logs -f --tail=50
+            ;;
+        *)
+            echo "Unknown compose action: $action" >&2
+            echo "Usage: zenith docker compose {up|down|logs} [file]" >&2
+            exit 1
+            ;;
+    esac
+}
+
+# ── Prune ─────────────────────────────────────────────────────────────────────
+docker_prune() {
+    zen_check_deps docker gum
+
+    echo -e "${ZEN_GREEN}── Docker Prune ──${ZEN_RESET}\n"
+    echo -e "${ZEN_YELLOW}Select resources to prune:${ZEN_RESET}\n"
+
+    local selected=()
+    mapfile -t selected < <(
+        gum choose --no-limit --header "Select resources to prune (Space to select):" \
+            "Stopped containers" \
+            "Dangling images" \
+            "All unused images" \
+            "Unused volumes" \
+            "Unused networks" \
+            "Everything (system prune)"
+    )
+
+    if (( ${#selected[@]} == 0 )); then
+        echo -e "${ZEN_YELLOW}Nothing selected.${ZEN_RESET}"
+        return 0
+    fi
+
+    echo ""
+    echo -e "${ZEN_RED}The following will be pruned:${ZEN_RESET}"
+    for item in "${selected[@]}"; do
+        echo "  • $item"
+    done
+    echo ""
+
+    if ! gum confirm --default=false "Proceed with prune?"; then
+        echo "Cancelled."
+        return 0
+    fi
+
+    for item in "${selected[@]}"; do
+        case "$item" in
+            "Stopped containers")
+                docker container prune -f
+                ;;
+            "Dangling images")
+                docker image prune -f
+                ;;
+            "All unused images")
+                docker image prune -a -f
+                ;;
+            "Unused volumes")
+                docker volume prune -f
+                ;;
+            "Unused networks")
+                docker network prune -f
+                ;;
+            "Everything (system prune)")
+                docker system prune -a --volumes -f
+                ;;
+        esac
+    done
+
+    echo -e "\n${ZEN_GREEN}✓ Prune complete${ZEN_RESET}"
+    zen_done
+}
+
+# ── Group ─────────────────────────────────────────────────────────────────────
+docker_group() {
+    if groups "$USER" | grep -q docker; then
+        echo -e "${ZEN_GREEN}User '$USER' is already in the docker group${ZEN_RESET}"
+        return 0
+    fi
+
+    echo "Adding '$USER' to the docker group..."
+    sudo usermod -aG docker "$USER"
+    echo -e "${ZEN_GREEN}✓ Added '$USER' to docker group${ZEN_RESET}"
+    echo -e "${ZEN_YELLOW}Log out and back in for the change to take effect${ZEN_RESET}"
+}
+
+# ── Help ──────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << EOF
+Docker management
+
+USAGE:
+    zenith docker <command> [args]
+
+COMMANDS:
+    status               Show Docker daemon status & containers
+    start                Start Docker daemon
+    stop                 Stop Docker daemon
+    lazy                 Launch lazydocker TUI
+    compose up [file]    Start compose services
+    compose down [file]  Stop compose services
+    compose logs [file]  Tail compose logs
+    prune                Interactive prune (containers, images, volumes)
+    group                Add current user to docker group
+
+EXAMPLES:
+    zenith docker status
+    zenith docker lazy
+    zenith docker compose up ./docker-compose.yml
+    zenith docker prune
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        status)         docker_status ;;
+        start)          docker_start ;;
+        stop)           docker_stop ;;
+        lazy)           docker_lazy ;;
+        compose)        shift; docker_compose "$@" ;;
+        prune)          docker_prune ;;
+        group)          docker_group ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

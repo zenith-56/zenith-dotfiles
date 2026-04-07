@@ -11,6 +11,8 @@
 #   zenith osd {volume,brightness}
 #   zenith screenshot {full,region}
 #   zenith webapp {install,uninstall,list}
+#   zenith docker {status,start,stop,lazy,compose,prune,group}
+#   zenith vm {install,remove,launch,stop,status,list,config}
 #   zenith music-show
 #   zenith mic
 #   zenith volume {get,set}
@@ -38,6 +40,8 @@ COMMANDS:
     osd             On-screen display (volume, brightness)
     screenshot      Take screenshots (full, region)
     webapp          Web app management (install, uninstall, list)
+    docker          Docker management (status, lazy, prune)
+    vm              Virtual machine management (install, launch, stop)
     music-show      Show current music track
     mic             Toggle microphone
     volume          Volume control (get, set)
@@ -72,6 +76,8 @@ main() {
         osd)            exec "$ZENITH_BIN/zenith-osd" "$@" ;;
         screenshot)     exec "$ZENITH_BIN/zenith-screenshot" "$@" ;;
         webapp)         exec "$ZENITH_BIN/zenith-webapp" "$@" ;;
+        docker)         exec "$ZENITH_BIN/zenith-docker" "$@" ;;
+        vm)             exec "$ZENITH_BIN/zenith-vm" "$@" ;;
         music-show)     exec "$ZENITH_BIN/zenith-music-show" "$@" ;;
         mic)            exec "$ZENITH_BIN/zenith-mic" "$@" ;;
         volume)         exec "$ZENITH_BIN/zenith-volume" "$@" ;;

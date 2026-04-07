@@ -33,6 +33,7 @@ binds {
 
     XF86AudioMicMute allow-when-locked=true { spawn "~/.local/bin/zenith-mic"; }
     Mod+Shift+K { spawn "~/.local/bin/zenith-kb-layout" "toggle"; }
+    Mod+Shift+D { spawn "~/.config/rofi/scripts/vm-menu.sh"; }
 
     Mod+TAB repeat=false { toggle-overview; }
     Mod+Q repeat=false { close-window; }

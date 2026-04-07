@@ -1,0 +1,1016 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Zenith-Dotfiles - Virtual Machine Manager
+# =============================================================================
+# Usage:
+#   zenith vm install              Interactive VM installation wizard
+#   zenith vm remove [name]        Remove a VM and its data
+#   zenith vm launch [name]        Start VM and connect
+#   zenith vm stop [name]          Stop a running VM
+#   zenith vm status [name]        Show VM status (or all)
+#   zenith vm list                 List all installed VMs
+#   zenith vm config [name]        Open VM compose file in $EDITOR
+# =============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/zenith-lib.sh"
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+VMS_CONFIG_DIR="$HOME/.config/zenith-vms"
+VMS_DATA_DIR="$HOME/.zenith-vms"
+VMS_SHARED_DIR="$HOME/VMs"
+PORTS_FILE="$VMS_CONFIG_DIR/ports.json"
+APPS_DIR="$HOME/.local/share/applications"
+
+mkdir -p "$VMS_CONFIG_DIR" "$VMS_DATA_DIR" "$APPS_DIR"
+
+# ── Supported OS ──────────────────────────────────────────────────────────────
+# Windows uses dockurr/windows, everything else uses qemux/qemu
+declare -A OS_LABELS=(
+    ["win11"]="  Windows 11"
+    ["win10"]="  Windows 10"
+    ["alma"]="  Alma Linux"
+    ["alpine"]="  Alpine Linux"
+    ["arch"]="󰣇  Arch Linux"
+    ["cachy"]="  CachyOS"
+    ["centos"]="  CentOS"
+    ["debian"]="  Debian"
+    ["fedora"]="  Fedora"
+    ["gentoo"]="  Gentoo"
+    ["kali"]="  Kali Linux"
+    ["kubuntu"]="  Kubuntu"
+    ["mint"]="󰣭  Linux Mint"
+    ["manjaro"]="  Manjaro"
+    ["mx"]="  MX Linux"
+    ["nixos"]="  NixOS"
+    ["suse"]="  openSUSE"
+    ["rocky"]="  Rocky Linux"
+    ["slack"]="  Slackware"
+    ["tails"]="  Tails"
+    ["ubuntu"]="  Ubuntu"
+    ["ubuntus"]="  Ubuntu Server"
+    ["xubuntu"]="  Xubuntu"
+    ["zorin"]="  Zorin OS"
+    ["custom"]="  Custom ISO (URL or path)"
+)
+
+# Ordered list for gum choose
+OS_ORDER=(
+    "win11" "win10"
+    "alma" "alpine" "arch" "cachy" "centos" "debian" "fedora" "gentoo"
+    "kali" "kubuntu" "mint" "manjaro" "mx" "nixos" "suse" "rocky"
+    "slack" "tails" "ubuntu" "ubuntus" "xubuntu" "zorin"
+    "custom"
+)
+
+# Application Icons
+declare -A OS_ICONS=(
+    ["win11"]="distributor-logo-windows"
+    ["win10"]="distributor-logo-windows"
+    ["alma"]="distributor-logo-almalinux"
+    ["alpine"]="distributor-logo-alpine"
+    ["arch"]="distributor-logo-archlinux"
+    ["cachy"]="distributor-logo-archlinux"
+    ["centos"]="distributor-logo-centos"
+    ["debian"]="distributor-logo-debian"
+    ["fedora"]="distributor-logo-fedora"
+    ["gentoo"]="distributor-logo-gentoo"
+    ["kali"]="distributor-logo-kali-linux"
+    ["kubuntu"]="distributor-logo-kubuntu"
+    ["mint"]="distributor-logo-linux-mint"
+    ["manjaro"]="distributor-logo-manjaro"
+    ["mx"]="distributor-logo-mx"
+    ["nixos"]="distributor-logo-nixos"
+    ["suse"]="distributor-logo-opensuse"
+    ["rocky"]="distributor-logo-rocky"
+    ["slack"]="distributor-logo-slackware"
+    ["tails"]="distributor-logo-tails"
+    ["ubuntu"]="distributor-logo-ubuntu"
+    ["ubuntus"]="distributor-logo-ubuntu"
+    ["xubuntu"]="distributor-logo-xubuntu"
+    ["zorin"]="distributor-logo-zorin"
+    ["custom"]="drive-optical"
+)
+
+# ── Port Management ──────────────────────────────────────────────────────────
+init_ports_file() {
+    if [[ ! -f "$PORTS_FILE" ]]; then
+        echo "{}" > "$PORTS_FILE"
+    fi
+}
+
+get_next_web_port() {
+    init_ports_file
+    local max_port
+    max_port=$(jq -r '[.[].web // empty] | max // 8005' "$PORTS_FILE")
+    echo $((max_port + 1))
+}
+
+get_next_rdp_port() {
+    init_ports_file
+    local max_port
+    max_port=$(jq -r '[.[].rdp // empty] | max // 3388' "$PORTS_FILE")
+    echo $((max_port + 1))
+}
+
+save_ports() {
+    local name="$1" web_port="$2" rdp_port="${3:-}"
+    init_ports_file
+    if [[ -n "$rdp_port" ]]; then
+        jq --arg n "$name" --argjson w "$web_port" --argjson r "$rdp_port" \
+            '.[$n] = {"web": $w, "rdp": $r}' "$PORTS_FILE" > "${PORTS_FILE}.tmp" \
+            && mv "${PORTS_FILE}.tmp" "$PORTS_FILE"
+    else
+        jq --arg n "$name" --argjson w "$web_port" \
+            '.[$n] = {"web": $w}' "$PORTS_FILE" > "${PORTS_FILE}.tmp" \
+            && mv "${PORTS_FILE}.tmp" "$PORTS_FILE"
+    fi
+}
+
+remove_ports() {
+    local name="$1"
+    init_ports_file
+    jq --arg n "$name" 'del(.[$n])' "$PORTS_FILE" > "${PORTS_FILE}.tmp" \
+        && mv "${PORTS_FILE}.tmp" "$PORTS_FILE"
+}
+
+get_web_port() {
+    local name="$1"
+    init_ports_file
+    jq -r --arg n "$name" '.[$n].web // empty' "$PORTS_FILE"
+}
+
+get_rdp_port() {
+    local name="$1"
+    init_ports_file
+    jq -r --arg n "$name" '.[$n].rdp // empty' "$PORTS_FILE"
+}
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+is_windows() {
+    local os_id="$1"
+    [[ "$os_id" == "win11" || "$os_id" == "win10" ]]
+}
+
+get_container_name() {
+    local name="$1"
+    echo "zenith-vm-${name}"
+}
+
+get_compose_file() {
+    local name="$1"
+    echo "$VMS_CONFIG_DIR/$name/docker-compose.yml"
+}
+
+get_vm_names() {
+    init_ports_file
+    jq -r 'keys[]' "$PORTS_FILE" 2>/dev/null
+}
+
+get_running_vms() {
+    docker ps --filter "name=zenith-vm-" --format "{{.Names}}" 2>/dev/null | sed 's/zenith-vm-//'
+}
+
+container_status() {
+    local name="$1"
+    local container
+    container=$(get_container_name "$name")
+    docker inspect --format='{{.State.Status}}' "$container" 2>/dev/null || echo "not found"
+}
+
+# ── Prerequisites ─────────────────────────────────────────────────────────────
+check_prerequisites() {
+    local disk_size_gb="${1:-64}"
+    local required_space=$((disk_size_gb + 10))
+
+    # Check KVM
+    if [[ ! -e /dev/kvm ]]; then
+        echo -e "${ZEN_RED}❌ KVM virtualization not available!${ZEN_RESET}"
+        echo ""
+        echo "Please enable virtualization in BIOS or run:"
+        echo "  sudo modprobe kvm-intel  # for Intel CPUs"
+        echo "  sudo modprobe kvm-amd    # for AMD CPUs"
+        exit 1
+    fi
+
+    # Check Docker
+    if ! systemctl is-active --quiet docker 2>/dev/null; then
+        echo -e "${ZEN_YELLOW}Docker is not running. Starting...${ZEN_RESET}"
+        sudo systemctl start docker
+    fi
+
+    # Check disk space
+    local available_space
+    available_space=$(df "$HOME" | awk 'NR==2 {print int($4/1024/1024)}')
+    if (( available_space < required_space )); then
+        echo -e "${ZEN_RED}❌ Insufficient disk space!${ZEN_RESET}"
+        echo "   Available: ${available_space}GB"
+        echo "   Required: ${required_space}GB (${disk_size_gb}GB disk + 10GB overhead)"
+        exit 1
+    fi
+}
+
+# ── Install ───────────────────────────────────────────────────────────────────
+vm_install() {
+    zen_check_deps docker gum jq
+
+    trap 'echo ""; echo "Installation cancelled by user"; exit 1' INT
+
+    echo -e "${ZEN_GREEN}── Zenith VM Installer ──${ZEN_RESET}\n"
+
+    # Step 1 — OS Selection
+    local os_choices=()
+    for os_id in "${OS_ORDER[@]}"; do
+        os_choices+=("${OS_LABELS[$os_id]}")
+    done
+
+    local chosen_label
+    chosen_label=$(printf '%s\n' "${os_choices[@]}" | gum choose --header "Select operating system:")
+
+    if [[ -z "$chosen_label" ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    # Find the OS ID from the label
+    local os_id=""
+    for id in "${OS_ORDER[@]}"; do
+        if [[ "${OS_LABELS[$id]}" == "$chosen_label" ]]; then
+            os_id="$id"
+            break
+        fi
+    done
+
+    if [[ -z "$os_id" ]]; then
+        echo -e "${ZEN_RED}Failed to identify OS selection${ZEN_RESET}" >&2
+        exit 1
+    fi
+
+    # Step 2 — VM Name
+    local default_name="$os_id"
+    local vm_name
+    vm_name=$(gum input --prompt "VM Name> " --placeholder "$default_name" --value "$default_name" \
+        --header "Enter a name for this VM:")
+
+    if [[ -z "$vm_name" ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    # Sanitize name
+    vm_name="${vm_name// /-}"
+    vm_name="${vm_name//[^a-zA-Z0-9_.-]/}"
+    vm_name="${vm_name,,}"
+
+    # Check uniqueness
+    if [[ -d "$VMS_CONFIG_DIR/$vm_name" ]]; then
+        echo -e "${ZEN_RED}A VM named '$vm_name' already exists.${ZEN_RESET}" >&2
+        echo "Use 'zenith vm remove $vm_name' first or choose a different name."
+        exit 1
+    fi
+
+    # Step 3 — Resources
+    local total_ram_gb
+    total_ram_gb=$(awk 'NR==1 {printf "%d", $2/1024/1024}' /proc/meminfo)
+    local total_cores
+    total_cores=$(nproc)
+
+    echo ""
+    echo "System: ${total_ram_gb}GB RAM, ${total_cores} CPU cores"
+    echo ""
+
+    # RAM
+    local ram_options=()
+    for size in 2 4 8 16 32 64; do
+        if (( size <= total_ram_gb )); then
+            ram_options+=("${size}G")
+        fi
+    done
+
+    local selected_ram
+    selected_ram=$(printf '%s\n' "${ram_options[@]}" | gum choose --selected="4G" \
+        --header "Allocate RAM:")
+
+    if [[ -z "$selected_ram" ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    # CPU cores
+    local selected_cores
+    selected_cores=$(gum input --placeholder "1-$total_cores" --value "2" --char-limit=2 \
+        --header "Allocate CPU cores:")
+
+    if [[ -z "$selected_cores" ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    if ! [[ $selected_cores =~ ^[0-9]+$ ]] || (( selected_cores < 1 )) || (( selected_cores > total_cores )); then
+        echo -e "${ZEN_YELLOW}Invalid input. Using default: 2 cores${ZEN_RESET}"
+        selected_cores=2
+    fi
+
+    # Disk
+    local available_space
+    available_space=$(df "$HOME" | awk 'NR==2 {print int($4/1024/1024)}')
+    local max_disk_gb=$((available_space - 10))
+
+    if (( max_disk_gb < 32 )); then
+        echo -e "${ZEN_RED}❌ Insufficient disk space! Need at least 42GB free.${ZEN_RESET}"
+        exit 1
+    fi
+
+    local disk_options=()
+    for size in 32 64 128 256 512; do
+        if (( size <= max_disk_gb )); then
+            disk_options+=("${size}G")
+        fi
+    done
+
+    local default_disk="64G"
+    if ! printf '%s\n' "${disk_options[@]}" | grep -q "64G"; then
+        default_disk="32G"
+    fi
+
+    local selected_disk
+    selected_disk=$(printf '%s\n' "${disk_options[@]}" | gum choose --selected="$default_disk" \
+        --header "Allocate disk space:")
+
+    if [[ -z "$selected_disk" ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    local disk_size_num="${selected_disk//G/}"
+    check_prerequisites "$disk_size_num"
+
+    # Step 4 — Windows credentials
+    local win_user="" win_pass=""
+    if is_windows "$os_id"; then
+        win_user=$(gum input --placeholder "docker" --header "Windows username:" \
+            --prompt "User> ")
+        [[ -z "$win_user" ]] && win_user="docker"
+
+        win_pass=$(gum input --placeholder "admin" --password --header "Windows password:" \
+            --prompt "Pass> ")
+        [[ -z "$win_pass" ]] && win_pass="admin"
+    fi
+
+    # Step 5 — Custom ISO
+    local custom_boot=""
+    if [[ "$os_id" == "custom" ]]; then
+        custom_boot=$(gum input --prompt "ISO> " \
+            --placeholder "https://example.com/distro.iso or /path/to/file.iso" \
+            --header "Enter ISO URL or local path:")
+
+        if [[ -z "$custom_boot" ]]; then
+            echo "Installation cancelled."
+            exit 1
+        fi
+    fi
+
+    # Assign ports
+    local web_port rdp_port=""
+    web_port=$(get_next_web_port)
+    if is_windows "$os_id"; then
+        rdp_port=$(get_next_rdp_port)
+    fi
+
+    # Step 6 — Summary
+    local os_display="${OS_LABELS[$os_id]}"
+    local image_display
+    if is_windows "$os_id"; then
+        image_display="dockurr/windows"
+    else
+        image_display="qemux/qemu"
+    fi
+
+    local summary_lines=(
+        "VM Configuration"
+        ""
+        "OS:        $os_display"
+        "Name:      $vm_name"
+        "Image:     $image_display"
+        "RAM:       $selected_ram"
+        "CPU:       $selected_cores cores"
+        "Disk:      $selected_disk"
+        "Web:       http://127.0.0.1:$web_port"
+    )
+
+    if is_windows "$os_id"; then
+        summary_lines+=("RDP:       127.0.0.1:$rdp_port")
+        summary_lines+=("User:      $win_user")
+    fi
+
+    if [[ -n "$custom_boot" ]]; then
+        summary_lines+=("ISO:       $custom_boot")
+    fi
+
+    gum style \
+        --border normal \
+        --padding "1 2" \
+        --margin "1" \
+        --align left \
+        --bold \
+        "${summary_lines[@]}"
+
+    echo ""
+    if ! gum confirm "Proceed with this configuration?"; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+
+    # Step 7 — Generate compose & deploy
+    local compose_dir="$VMS_CONFIG_DIR/$vm_name"
+    local compose_file="$compose_dir/docker-compose.yml"
+    local storage_dir="$VMS_DATA_DIR/$vm_name"
+    local shared_dir="$VMS_SHARED_DIR/$vm_name"
+
+    mkdir -p "$compose_dir" "$storage_dir" "$shared_dir"
+
+    if is_windows "$os_id"; then
+        local win_version="11"
+        [[ "$os_id" == "win10" ]] && win_version="10"
+        local tz
+        tz=$(timedatectl show -p Timezone --value 2>/dev/null || echo "UTC")
+
+        cat > "$compose_file" <<YAML
+services:
+  windows:
+    image: dockurr/windows
+    container_name: zenith-vm-${vm_name}
+    environment:
+      VERSION: "${win_version}"
+      RAM_SIZE: "${selected_ram}"
+      CPU_CORES: "${selected_cores}"
+      DISK_SIZE: "${selected_disk}"
+      USERNAME: "${win_user}"
+      PASSWORD: "${win_pass}"
+      TZ: "${tz}"
+      ARGUMENTS: "-rtc base=localtime,clock=host,driftfix=slew"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 127.0.0.1:${web_port}:8006
+      - 127.0.0.1:${rdp_port}:3389/tcp
+      - 127.0.0.1:${rdp_port}:3389/udp
+    volumes:
+      - ${storage_dir}:/storage
+      - ${shared_dir}:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
+YAML
+    else
+        # qemux/qemu compose
+        local boot_value="$os_id"
+        local extra_volumes=""
+
+        if [[ "$os_id" == "custom" ]]; then
+            if [[ "$custom_boot" =~ ^https?:// ]]; then
+                boot_value="$custom_boot"
+            else
+                # Local file — bind mount
+                boot_value="custom"
+                extra_volumes="      - ${custom_boot}:/boot.iso"
+            fi
+        fi
+
+        cat > "$compose_file" <<YAML
+services:
+  qemu:
+    image: qemux/qemu
+    container_name: zenith-vm-${vm_name}
+    environment:
+      BOOT: "${boot_value}"
+      RAM_SIZE: "${selected_ram}"
+      CPU_CORES: "${selected_cores}"
+      DISK_SIZE: "${selected_disk}"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 127.0.0.1:${web_port}:8006
+    volumes:
+      - ${storage_dir}:/storage
+YAML
+        if [[ -n "$extra_volumes" ]]; then
+            echo "$extra_volumes" >> "$compose_file"
+        fi
+
+        cat >> "$compose_file" <<YAML
+    restart: unless-stopped
+    stop_grace_period: 2m
+YAML
+    fi
+
+    # Save port allocation
+    save_ports "$vm_name" "$web_port" "$rdp_port"
+
+    # Save OS metadata
+    echo "$os_id" > "$compose_dir/os_id"
+
+    # Create desktop entry
+    local desktop_file="$APPS_DIR/${vm_name}-vm.desktop"
+    local os_icon="${OS_ICONS[$os_id]:-computer}"
+    cat > "$desktop_file" <<DESKTOP
+[Desktop Entry]
+Name=${os_display#*  } VM
+Comment=Zenith VM — ${vm_name}
+Exec=uwsm app -- ${SCRIPT_DIR}/zenith-vm launch ${vm_name} --webapp
+Icon=${os_icon}
+Terminal=false
+Type=Application
+Categories=System;Virtualization;
+DESKTOP
+    chmod +x "$desktop_file"
+
+    # Start VM
+    echo ""
+    echo "Starting VM..."
+    if ! docker compose -f "$compose_file" up -d 2>&1; then
+        echo -e "${ZEN_RED}❌ Failed to start VM!${ZEN_RESET}"
+        echo "   Common issues:"
+        echo "   - Docker daemon not running: sudo systemctl start docker"
+        echo "   - Port already in use: check if another VM is running"
+        echo "   - Permission issues: make sure you're in the docker group"
+        exit 1
+    fi
+
+    echo ""
+    echo -e "${ZEN_GREEN}✓ VM '$vm_name' is starting!${ZEN_RESET}"
+    echo ""
+    echo "  Web viewer: http://127.0.0.1:${web_port}"
+    if is_windows "$os_id"; then
+        echo "  RDP:        127.0.0.1:${rdp_port}"
+    fi
+    echo ""
+
+    sleep 3
+    xdg-open "http://127.0.0.1:${web_port}" 2>/dev/null || true
+
+    echo "To stop:   zenith vm stop $vm_name"
+    echo "To remove: zenith vm remove $vm_name"
+    echo "Config:    $compose_file"
+    echo ""
+}
+
+# ── Remove ────────────────────────────────────────────────────────────────────
+vm_remove() {
+    zen_check_deps docker gum jq
+
+    local vm_name="${1:-}"
+
+    if [[ -z "$vm_name" ]]; then
+        # Interactive selection
+        local vms=()
+        mapfile -t vms < <(get_vm_names)
+
+        if (( ${#vms[@]} == 0 )); then
+            echo -e "${ZEN_YELLOW}No VMs installed.${ZEN_RESET}"
+            read -rp "Press ENTER to close..."
+            exit 0
+        fi
+
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to remove:")
+        if [[ -z "$vm_name" ]]; then
+            echo "Cancelled."
+            exit 0
+        fi
+    fi
+
+    local compose_file
+    compose_file=$(get_compose_file "$vm_name")
+
+    if [[ ! -f "$compose_file" ]]; then
+        echo -e "${ZEN_RED}VM '$vm_name' not found.${ZEN_RESET}" >&2
+        exit 1
+    fi
+
+    if ! gum confirm --default=false "Remove VM '$vm_name' and delete all associated data?"; then
+        echo "Removal cancelled."
+        exit 0
+    fi
+
+    echo "Removing VM '$vm_name'..."
+
+    # Stop container
+    docker compose -f "$compose_file" down 2>/dev/null || true
+
+    # Remove container + image
+    local container
+    container=$(get_container_name "$vm_name")
+    docker rm -f "$container" 2>/dev/null || true
+
+    # Remove files
+    rm -rf "${VMS_CONFIG_DIR:?}/$vm_name"
+    rm -rf "${VMS_DATA_DIR:?}/$vm_name"
+    rm -rf "${VMS_SHARED_DIR:?}/$vm_name"
+    rm -f "$APPS_DIR/${vm_name}-vm.desktop"
+
+    # Remove port allocation
+    remove_ports "$vm_name"
+
+    echo -e "${ZEN_GREEN}✓ VM '$vm_name' removed${ZEN_RESET}"
+    zen_done
+}
+
+# ── Launch ────────────────────────────────────────────────────────────────────
+vm_launch() {
+    zen_check_deps docker jq
+
+    local vm_name="${1:-}"
+    local keep_alive=false
+    local force_webapp=false
+
+    # Parse flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --keep-alive|-k) keep_alive=true; shift ;;
+            --webapp|-w) force_webapp=true; shift ;;
+            *) vm_name="$1"; shift ;;
+        esac
+    done
+
+    if [[ -z "$vm_name" ]]; then
+        # Interactive selection
+        local vms=()
+        mapfile -t vms < <(get_vm_names)
+
+        if (( ${#vms[@]} == 0 )); then
+            echo -e "${ZEN_YELLOW}No VMs installed.${ZEN_RESET}"
+            read -rp "Press ENTER to close..."
+            exit 0
+        fi
+
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to launch:")
+        if [[ -z "$vm_name" ]]; then
+            exit 0
+        fi
+    fi
+
+    local compose_file
+    compose_file=$(get_compose_file "$vm_name")
+
+    if [[ ! -f "$compose_file" ]]; then
+        echo -e "${ZEN_RED}VM '$vm_name' not found. Run: zenith vm install${ZEN_RESET}" >&2
+        exit 1
+    fi
+
+    local container
+    container=$(get_container_name "$vm_name")
+    local status
+    status=$(container_status "$vm_name")
+
+    if [[ "$status" != "running" ]]; then
+        echo "Starting VM '$vm_name'..."
+        zen_notify "Starting VM" "$vm_name — This can take 15-30 seconds"
+
+        if ! docker compose -f "$compose_file" up -d 2>&1; then
+            echo -e "${ZEN_RED}❌ Failed to start VM!${ZEN_RESET}"
+            zen_notify "VM Error" "Failed to start $vm_name" "dialog-error"
+            exit 1
+        fi
+
+        echo "Waiting for VM to boot..."
+        sleep 5
+    fi
+
+    local web_port
+    web_port=$(get_web_port "$vm_name")
+
+    # Determine OS type
+    local os_id=""
+    if [[ -f "$VMS_CONFIG_DIR/$vm_name/os_id" ]]; then
+        os_id=$(cat "$VMS_CONFIG_DIR/$vm_name/os_id")
+    fi
+
+    if is_windows "$os_id" && command -v xfreerdp3 &>/dev/null; then
+        local rdp_port
+        rdp_port=$(get_rdp_port "$vm_name")
+
+        # Extract credentials from compose
+        local win_user win_pass
+        win_user=$(grep "USERNAME:" "$compose_file" | sed 's/.*USERNAME: "\(.*\)"/\1/')
+        win_pass=$(grep "PASSWORD:" "$compose_file" | sed 's/.*PASSWORD: "\(.*\)"/\1/')
+        [[ -z "$win_user" ]] && win_user="docker"
+        [[ -z "$win_pass" ]] && win_pass="admin"
+
+        # Wait for Windows to be ready
+        echo "Waiting for Windows to be ready..."
+        local wait_count=0
+        until docker logs "$container" 2>&1 | grep -qi "windows started successfully"; do
+            sleep 2
+            wait_count=$((wait_count + 1))
+            if (( wait_count > 60 )); then
+                echo -e "${ZEN_YELLOW}Timeout waiting for Windows boot.${ZEN_RESET}"
+                echo "Opening web viewer instead..."
+                xdg-open "http://127.0.0.1:${web_port}" 2>/dev/null || true
+                return 0
+            fi
+        done
+
+        # Detect display scale from niri
+        local rdp_scale=""
+        if command -v niri &>/dev/null; then
+            local scale_raw
+            scale_raw=$(niri msg -j outputs 2>/dev/null | jq -r '.[0].current_mode.scale // 1' 2>/dev/null || echo "1")
+            local scale_percent
+            scale_percent=$(echo "$scale_raw" | awk '{print int($1 * 100)}')
+            if (( scale_percent >= 170 )); then
+                rdp_scale="/scale:180"
+            elif (( scale_percent >= 130 )); then
+                rdp_scale="/scale:140"
+            fi
+        fi
+
+        local lifecycle_msg
+        if [[ "$keep_alive" == "true" ]]; then
+            lifecycle_msg="VM will keep running after RDP closes"
+        else
+            lifecycle_msg="VM will auto-stop when RDP closes"
+        fi
+
+        gum style \
+            --border normal \
+            --padding "1 2" \
+            --margin "1" \
+            --align center \
+            "Connecting to $vm_name" \
+            "" \
+            "$lifecycle_msg"
+
+        # Connect via RDP
+        xfreerdp3 /u:"$win_user" /p:"$win_pass" /v:127.0.0.1:"$rdp_port" \
+            -grab-keyboard /sound /microphone /clipboard /cert:ignore \
+            /title:"$vm_name — Zenith VM" /dynamic-resolution /gfx:AVC444 \
+            /floatbar:sticky:off,default:visible,show:fullscreen $rdp_scale || true
+
+        if [[ "$keep_alive" == "false" ]]; then
+            echo ""
+            echo "RDP session closed. Stopping VM..."
+            docker compose -f "$compose_file" down
+            echo -e "${ZEN_GREEN}VM stopped.${ZEN_RESET}"
+        else
+            echo ""
+            echo "RDP session closed. VM is still running."
+            echo "To stop: zenith vm stop $vm_name"
+        fi
+    else
+        # Open web viewer
+        echo -e "${ZEN_GREEN}Opening web viewer for '$vm_name'...${ZEN_RESET}"
+        echo "  URL: http://127.0.0.1:${web_port}"
+        
+        if [[ "$force_webapp" == "true" ]]; then
+            local browser=""
+            for b in chromium google-chrome-stable microsoft-edge-stable brave; do
+                if command -v "$b" &>/dev/null; then
+                    browser="$b"
+                    break
+                fi
+            done
+            
+            if [[ -n "$browser" ]]; then
+                echo -e "${ZEN_CYAN}Launching in PWA app mode ($browser)...${ZEN_RESET}"
+                "$browser" --app="http://127.0.0.1:${web_port}" --window-size=1280,720 &
+            else
+                echo -e "${ZEN_YELLOW}No Chromium browser found for PWA mode. Using default browser.${ZEN_RESET}"
+                xdg-open "http://127.0.0.1:${web_port}" 2>/dev/null || true
+            fi
+        else
+            xdg-open "http://127.0.0.1:${web_port}" 2>/dev/null || true
+        fi
+    fi
+}
+
+# ── Stop ──────────────────────────────────────────────────────────────────────
+vm_stop() {
+    zen_check_deps docker
+
+    local vm_name="${1:-}"
+
+    if [[ -z "$vm_name" ]]; then
+        local running=()
+        mapfile -t running < <(get_running_vms)
+
+        if (( ${#running[@]} == 0 )); then
+            echo -e "${ZEN_YELLOW}No running VMs.${ZEN_RESET}"
+            read -rp "Press ENTER to close..."
+            exit 0
+        fi
+
+        vm_name=$(printf '%s\n' "${running[@]}" | gum choose --header "Select VM to stop:")
+        if [[ -z "$vm_name" ]]; then
+            exit 0
+        fi
+    fi
+
+    local compose_file
+    compose_file=$(get_compose_file "$vm_name")
+
+    if [[ ! -f "$compose_file" ]]; then
+        echo -e "${ZEN_RED}VM '$vm_name' not found.${ZEN_RESET}" >&2
+        exit 1
+    fi
+
+    echo "Stopping VM '$vm_name'..."
+    docker compose -f "$compose_file" down
+    echo -e "${ZEN_GREEN}✓ VM '$vm_name' stopped${ZEN_RESET}"
+}
+
+# ── Status ────────────────────────────────────────────────────────────────────
+vm_status() {
+    zen_check_deps docker jq
+
+    local vm_name="${1:-}"
+
+    if [[ -n "$vm_name" ]]; then
+        # Single VM status
+        local compose_file
+        compose_file=$(get_compose_file "$vm_name")
+
+        if [[ ! -f "$compose_file" ]]; then
+            echo -e "${ZEN_RED}VM '$vm_name' not found.${ZEN_RESET}" >&2
+            exit 1
+        fi
+
+        local status
+        status=$(container_status "$vm_name")
+        local web_port
+        web_port=$(get_web_port "$vm_name")
+        local rdp_port
+        rdp_port=$(get_rdp_port "$vm_name")
+
+        local os_id=""
+        [[ -f "$VMS_CONFIG_DIR/$vm_name/os_id" ]] && os_id=$(cat "$VMS_CONFIG_DIR/$vm_name/os_id")
+
+        local status_icon="🔴"
+        [[ "$status" == "running" ]] && status_icon="🟢"
+
+        local info_lines=(
+            "VM: $vm_name"
+            ""
+            "Status:  $status_icon $status"
+            "Web:     http://127.0.0.1:$web_port"
+        )
+
+        if [[ -n "$rdp_port" ]]; then
+            info_lines+=("RDP:     127.0.0.1:$rdp_port")
+        fi
+
+        if [[ "$status" == "running" ]]; then
+            info_lines+=("" "Launch:  zenith vm launch $vm_name" "Stop:    zenith vm stop $vm_name")
+        else
+            info_lines+=("" "Launch:  zenith vm launch $vm_name")
+        fi
+
+        gum style \
+            --border normal \
+            --padding "1 2" \
+            --margin "1" \
+            --align left \
+            "${info_lines[@]}"
+    else
+        # All VMs
+        vm_list
+    fi
+}
+
+# ── List ──────────────────────────────────────────────────────────────────────
+vm_list() {
+    zen_check_deps jq
+
+    local vms=()
+    mapfile -t vms < <(get_vm_names)
+
+    if (( ${#vms[@]} == 0 )); then
+        echo -e "${ZEN_YELLOW}No VMs installed.${ZEN_RESET}"
+        echo "Install one with: zenith vm install"
+        read -rp "Press ENTER to close..."
+        exit 0
+    fi
+
+    echo -e "${ZEN_GREEN}── Zenith VMs (${#vms[@]}) ──${ZEN_RESET}\n"
+
+    for name in "${vms[@]}"; do
+        local status
+        status=$(container_status "$name")
+        local web_port
+        web_port=$(get_web_port "$name")
+
+        local status_icon="🔴"
+        [[ "$status" == "running" ]] && status_icon="🟢"
+
+        local os_id=""
+        [[ -f "$VMS_CONFIG_DIR/$name/os_id" ]] && os_id=$(cat "$VMS_CONFIG_DIR/$name/os_id")
+
+        local os_label="unknown"
+        if [[ -n "$os_id" && -n "${OS_LABELS[$os_id]:-}" ]]; then
+            os_label="${OS_LABELS[$os_id]}"
+        fi
+
+        echo -e "  $status_icon  $name  ($os_label)  :$web_port  [$status]"
+    done
+    echo ""
+}
+
+# ── Config ────────────────────────────────────────────────────────────────────
+vm_config() {
+    local vm_name="${1:-}"
+
+    if [[ -z "$vm_name" ]]; then
+        local vms=()
+        mapfile -t vms < <(get_vm_names)
+
+        if (( ${#vms[@]} == 0 )); then
+            echo -e "${ZEN_YELLOW}No VMs installed.${ZEN_RESET}"
+            read -rp "Press ENTER to close..."
+            exit 0
+        fi
+
+        vm_name=$(printf '%s\n' "${vms[@]}" | gum choose --header "Select VM to edit config:")
+        if [[ -z "$vm_name" ]]; then
+            exit 0
+        fi
+    fi
+
+    local compose_file
+    compose_file=$(get_compose_file "$vm_name")
+
+    if [[ ! -f "$compose_file" ]]; then
+        echo -e "${ZEN_RED}VM '$vm_name' not found.${ZEN_RESET}" >&2
+        exit 1
+    fi
+
+    local editor="${EDITOR:-nano}"
+    "$editor" "$compose_file"
+}
+
+# ── Help ──────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << EOF
+Virtual machine manager
+
+USAGE:
+    zenith vm <command> [args]
+
+COMMANDS:
+    install              Interactive VM installation wizard
+    remove [name]        Remove a VM and its data
+    launch [name] [-k]   Start VM and connect (web viewer / RDP)
+    stop [name]          Stop a running VM
+    status [name]        Show VM status (all if no name given)
+    list                 List all installed VMs
+    config [name]        Open VM compose file in \$EDITOR
+
+SUPPORTED OPERATING SYSTEMS:
+    Windows 10/11        via dockurr/windows (RDP + web viewer)
+    22+ Linux distros    via qemux/qemu (web viewer)
+    Custom ISO           via URL or local path
+
+FLAGS:
+    -k, --keep-alive     Keep VM running after viewer/RDP closes
+
+EXAMPLES:
+    zenith vm install                   # interactive wizard
+    zenith vm launch fedora             # start and open web viewer
+    zenith vm launch win11 -k           # RDP, keep running on close
+    zenith vm stop fedora               # stop VM
+    zenith vm list                      # list all VMs
+    zenith vm config arch               # edit compose file
+    zenith vm remove win11              # delete VM + data
+
+EOF
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+
+    case "$1" in
+        install)        shift; vm_install "$@" ;;
+        remove)         shift; vm_remove "${1:-}" ;;
+        launch|start)   shift; vm_launch "$@" ;;
+        stop|down)      shift; vm_stop "${1:-}" ;;
+        status)         shift; vm_status "${1:-}" ;;
+        list)           vm_list ;;
+        config)         shift; vm_config "${1:-}" ;;
+        --help|-h|help) show_help ;;
+        *)
+            echo "Unknown command: $1" >&2
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -22,7 +22,7 @@ zenith-dotfiles/
 │   └── 08-display-manager.sh
 ├── update.sh              # Config updater
 ├── uninstall.sh           # Removal script
-├── version                # Version file (e.g., 0.4.3)
+├── version                # Version file (e.g., 0.5.0)
 ├── logo.txt               # ASCII art logo
 ├── .local/
 │   └── bin/               # Zenith bin scripts
@@ -69,6 +69,8 @@ All scripts in `.local/bin/` use `#!/usr/bin/env bash` and follow this pattern:
 | **Keyboard** | `zenith-kb-layout` |
 | **Kitty** | `zenith restart kitty` |
 | **Web Apps** | `zenith webapp {install,uninstall,list}` |
+| **Docker** | `zenith docker {status,start,stop,lazy,compose,prune,group}` |
+| **VMs** | `zenith vm {install,remove,launch,stop,status,list,config}` with `--webapp` flag |
 | **Packages** | `zenith pkg {install,remove,list,missing}` with `--aur`, `--flatpak` flags |
 | **Health Check** | `zenith-check` |
 | **Utils** | `zen_done` from `zenith-lib.sh` |
@@ -87,6 +89,7 @@ Scripts in `.config/rofi/scripts/`:
 | `power-menu.sh` | Power menu (lock, logout, reboot, poweroff) |
 | `package-manager.sh` | Unified package management (install/uninstall) |
 | `network-menu.sh` | Network config (Firewall + DNS) |
+| `vm-menu.sh` | Docker & VMs (lazydocker, VM install/launch/stop/remove) |
 | `emoji-picker.sh` | Emoji picker (rofi-emoji) |
 
 ## Waybar Scripts
