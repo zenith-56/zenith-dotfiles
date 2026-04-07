@@ -22,7 +22,7 @@ zenith-dotfiles/
 │   └── 08-display-manager.sh
 ├── update.sh              # Config updater
 ├── uninstall.sh           # Removal script
-├── version                # Version file (e.g., 0.4.2)
+├── version                # Version file (e.g., 0.4.3)
 ├── logo.txt               # ASCII art logo
 ├── .local/
 │   └── bin/               # Zenith bin scripts
