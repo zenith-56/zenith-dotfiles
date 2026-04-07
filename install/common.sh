@@ -103,6 +103,7 @@ PACMAN_PACKAGES=(
     polkit
     poppler
     power-profiles-daemon
+    qemu-full
     reflector
     resvg
     ripgrep
