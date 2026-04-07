@@ -81,7 +81,6 @@ PACMAN_PACKAGES=(
     kitty
     libsecret
     libnotify
-    libvirt
     mediainfo
     mpv
     nano
@@ -99,7 +98,6 @@ PACMAN_PACKAGES=(
     polkit
     poppler
     power-profiles-daemon
-    qemu-full
     reflector
     resvg
     ripgrep
@@ -116,8 +114,6 @@ PACMAN_PACKAGES=(
     ttf-nerd-fonts-symbols-common
     ufw
     unzip
-    virt-manager
-    virt-viewer
     waybar
     wf-recorder
     wget
@@ -167,7 +163,6 @@ MODE_SCRIPTS=(
 SYSTEM_SERVICES=(
     "power-profiles-daemon"
     "bluetooth"
-    "libvirtd"
     "iwd"
     "systemd-networkd"
     "systemd-resolved"
