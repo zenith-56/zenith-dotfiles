@@ -23,12 +23,8 @@
 
 /*****----- Configuration -----*****/
 configuration {
-    modi:                       "drun,run,filebrowser,window";
+    modi:                       "drun";
     show-icons:                 true;
-    display-drun:               "APPS";
-    display-run:                "RUN";
-    display-filebrowser:        "FILES";
-    display-window:             "WINDOW";
     drun-display-format:        "{name}";
     window-format:              "{w} · {c} · {t}";
 }
@@ -46,7 +42,6 @@ window {
 
     /* properties for all widgets */
     enabled:                     true;
-    border-radius:               15px;
     cursor:                      "default";
     background-color:            @bg;
 }
@@ -65,7 +60,7 @@ imagebox {
     background-color:            #1A1B26; /* Puedes dejarlo fijo o usar @bg-alt si prefieres que cambie */
     background-image:            url("~/.config/rofi/images/current_wallpaper.png", height);
     orientation:                 vertical;
-    children:                    [ "inputbar", "dummy", "mode-switcher" ];
+    children:                    [ "inputbar", "dummy" ];
 }
 
 listbox {
@@ -85,7 +80,6 @@ inputbar {
     enabled:                     true;
     spacing:                     8px;
     padding:                     12px;
-    border-radius:               8px;
     background-color:            @bg-alt;
     text-color:                  @fg;
     children:                    [ "textbox-prompt-colon", "entry" ];
@@ -105,25 +99,6 @@ entry {
     cursor:                      text;
     placeholder:                 "Search";
     placeholder-color:           inherit;
-}
-
-/*****----- Mode Switcher -----*****/
-mode-switcher{
-    enabled:                     true;
-    spacing:                     20px;
-    background-color:            transparent;
-    text-color:                  @fg;
-}
-button {
-    padding:                     12px;
-    border-radius:               8px;
-    background-color:            @bg-alt;
-    text-color:                  inherit;
-    cursor:                      pointer;
-}
-button selected {
-    background-color:            @sel;
-    text-color:                  @bg; /* Invertimos el texto para que se lea sobre el color de acento */
 }
 
 /*****----- Listview -----*****/
@@ -150,7 +125,6 @@ element {
     enabled:                     true;
     spacing:                     10px;
     padding:                     6px;
-    border-radius:               8px;
     background-color:            transparent;
     text-color:                  @fg;
     cursor:                      pointer;
@@ -199,7 +173,6 @@ message {
 }
 textbox {
     padding:                     12px;
-    border-radius:               8px;
     background-color:            @bg-alt;
     text-color:                  @fg;
     vertical-align:              0.5;
@@ -207,7 +180,6 @@ textbox {
 }
 error-message {
     padding:                     12px;
-    border-radius:               10px;
     background-color:            @bg;
     text-color:                  @fg;
 }
