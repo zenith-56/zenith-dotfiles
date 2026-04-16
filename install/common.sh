@@ -48,6 +48,7 @@ check_commands() {
 PACMAN_PACKAGES=(
     7zip
     awww
+    amdgpu
     base
     base-devel
     bluez
@@ -90,6 +91,8 @@ PACMAN_PACKAGES=(
     nano
     neovim
     niri
+    nvidia-dkms
+    nvidia-utils
     noto-fonts
     noto-fonts-cjk
     noto-fonts-emoji
