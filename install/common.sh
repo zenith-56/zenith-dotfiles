@@ -85,6 +85,7 @@ PACMAN_PACKAGES=(
     kitty
     lazydocker
     libsecret
+    libvirt
     libnotify
     mediainfo
     mpv
@@ -129,6 +130,7 @@ PACMAN_PACKAGES=(
     wget
     wireless_tools
     wireplumber
+    virt-manager
     woff2-font-awesome
     xdg-desktop-portal
     xdg-desktop-portal-gnome
@@ -175,6 +177,7 @@ SYSTEM_SERVICES=(
     "power-profiles-daemon"
     "bluetooth"
     "iwd"
+    "libvirtd"
     "systemd-networkd"
     "systemd-resolved"
 )

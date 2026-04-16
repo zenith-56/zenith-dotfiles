@@ -42,3 +42,17 @@ if has_cmd docker; then
         log "User already in docker group"
     fi
 fi
+
+# ── Libvirt Group Setup ────────────────────────────────────────────────────────
+if has_cmd virt-manager || has_cmd virsh; then
+    for grp in libvirt kvm; do
+        if ! groups "$USER" | grep -q "$grp"; then
+            if gum confirm "Add $USER to $grp group? (avoids sudo for virt)"; then
+                sudo usermod -aG "$grp" "$USER"
+                warn "Added $USER to $grp group — log out and back in for it to take effect"
+            fi
+        else
+            log "User already in $grp group"
+        fi
+    done
+fi
