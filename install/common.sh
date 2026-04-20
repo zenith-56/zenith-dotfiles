@@ -16,10 +16,10 @@ export CYAN='\033[0;36m'
 export RESET='\033[0m'
 
 # ── Logging Functions ─────────────────────────────────────────────────────────
-log()  { echo -e "${GREEN}[✓]${RESET} $1"; }
-warn() { echo -e "${YELLOW}[!]${RESET} $1"; }
-err()  { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
-info() { echo -e "${CYAN}[i]${RESET} $1"; }
+log()  { echo -e "${GREEN}[✓]${RESET} $1" >&2; }
+warn() { echo -e "${YELLOW}[!]${RESET} $1" >&2; }
+err()  { echo -e "${RED}[✗]${RESET} $1" >&2; exit 1; }
+info() { echo -e "${CYAN}[i]${RESET} $1" >&2; }
 
 # ── Command Check ─────────────────────────────────────────────────────────────
 # Check if a command exists
