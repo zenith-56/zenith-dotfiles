@@ -30,7 +30,7 @@ detect_hardware() {
         if lspci | grep -qi 'amd.*gpu\|radeon\|rx '; then
             gpu_amd=true
         fi
-        if lspci | grep -qi 'intel.*gpu\|intel hd\|iris'; then
+        if lspci | grep -qi 'intel.*gpu\|intel hd\|iris\|intel arc'; then
             gpu_intel=true
         fi
         if lspci | grep -qi 'nvidia'; then
@@ -71,7 +71,12 @@ filter_packages() {
 
     local has_virt=$(echo "$hw_info" | grep 'has_virt=true' &>/dev/null && echo true || echo false)
     local gpu_amd=$(echo "$hw_info" | grep 'gpu_amd=true' &>/dev/null && echo true || echo false)
+    local gpu_intel=$(echo "$hw_info" | grep 'gpu_intel=true' &>/dev/null && echo true || echo false)
     local gpu_nvidia=$(echo "$hw_info" | grep 'gpu_nvidia=true' &>/dev/null && echo true || echo false)
+
+    if [ "$gpu_intel" = true ]; then
+        info "Intel GPU detected - using included drivers (no extra packages needed)"
+    fi
 
     for pkg in "${pkgs[@]}"; do
         case "$pkg" in
@@ -85,6 +90,13 @@ filter_packages() {
             amdgpu)
                 if [ "$gpu_amd" = true ]; then
                     filtered+=("$pkg")
+                else
+                    info "Skipping amdgpu (no AMD GPU detected)"
+                fi
+                ;;
+            gpu-intel)
+                if [ "$gpu_intel" = true ]; then
+                    info "Intel GPU detected - using included drivers"
                 fi
                 ;;
             nvidia|nvidia-dkms|nvidia-utils)
