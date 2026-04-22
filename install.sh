@@ -63,31 +63,8 @@ install_deps() {
     fi
 }
 
-install_gum() {
-    if ! command -v gum &>/dev/null; then
-        info "Installing gum from AUR..."
-        debug "Building gum from AUR..."
-        if ! command -v make &>/dev/null; then
-            warn "make not found, installing base-devel..."
-            debug "Running: sudo pacman -Sy --noconfirm base-devel"
-            sudo pacman -Sy --noconfirm base-devel || err "Failed to install base-devel"
-        fi
-        pushd /tmp >/dev/null
-        rm -rf gum
-        debug "Cloning gum from AUR..."
-        git clone https://aur.archlinux.org/gum.git 2>/dev/null || {
-            warn "Failed to clone gum AUR"
-            popd >/dev/null || true
-            return 1
-        }
-        cd gum && makepkg -si --noconfirm || warn "Failed to build gum"
-        popd >/dev/null || true
-    fi
-}
-
 # ── Check and install deps ────────────────────────────────────────────────────
 command -v git &>/dev/null || install_deps
-command -v gum &>/dev/null || install_gum
 
 # ── Clone or update repo ──────────────────────────────────────────────────────
 if [ -d "$DOTFILES_DIR/.git" ]; then

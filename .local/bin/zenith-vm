@@ -770,7 +770,7 @@ vm_launch() {
         # Open web viewer
         echo -e "${ZEN_GREEN}Opening web viewer for '$vm_name'...${ZEN_RESET}"
         echo "  URL: http://127.0.0.1:${web_port}"
-        
+
         if [[ "$force_webapp" == "true" ]]; then
             local browser=""
             for b in chromium google-chrome-stable microsoft-edge-stable brave; do
@@ -779,7 +779,7 @@ vm_launch() {
                     break
                 fi
             done
-            
+
             if [[ -n "$browser" ]]; then
                 echo -e "${ZEN_CYAN}Launching in PWA app mode ($browser)...${ZEN_RESET}"
                 "$browser" --app="http://127.0.0.1:${web_port}" --window-size=1280,720 &
@@ -1001,7 +1001,15 @@ main() {
     fi
 
     case "$1" in
-        install)        shift; vm_install "$@" ;;
+        --install|install)        shift; vm_install "$@" ;;
+        --remove|remove)         shift; vm_remove "${1:-}" ;;
+        --launch|--start|launch|start)   shift; vm_launch "$@" ;;
+        --stop|--down|stop|down)      shift; vm_stop "${1:-}" ;;
+        --status|status)         shift; vm_status "${1:-}" ;;
+        --list|list)           vm_list ;;
+        --config|config)         shift; vm_config "${1:-}" ;;
+
+        *)                      show_help; exit 1 ;;
         remove)         shift; vm_remove "${1:-}" ;;
         launch|start)   shift; vm_launch "$@" ;;
         stop|down)      shift; vm_stop "${1:-}" ;;
